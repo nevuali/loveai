@@ -302,7 +302,7 @@
 }
 
 .gemini-input-container {
-  padding: 60px 200px;
+  padding: 20px 100px;
   border-top: none;
 }
 
@@ -942,7 +942,7 @@
   }
 
   .gemini-input-container {
-    padding: 20px 200px 24px;
+    padding: 20px 120px 24px;
   }
 
   .gemini-toolbox {
@@ -956,7 +956,7 @@
   }
 
   .gemini-input-container {
-    padding: 20px 240px 24px;
+    padding: 20px 150px 24px;
   }
 }
 
