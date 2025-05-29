@@ -10,6 +10,11 @@ service cloud.firestore {
     }
     
     // User Settings - Kullanıcı sadece kendi settings'lerini okuyup yazabilir
+    match /users/{userId}/settings/{document} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Legacy userSettings path (backward compatibility)
     match /userSettings/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }

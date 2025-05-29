@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
 
@@ -13,6 +13,7 @@ let analytics: any = null;
 
 // Debug mode for development
 const isDevelopment = import.meta.env.DEV;
+const useEmulators = isDevelopment; // Use emulators in development
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -28,11 +29,11 @@ const firebaseConfig = {
 
 // Debug logging for development
 if (isDevelopment) {
-  console.log('🔥 Firebase Config (Production):', {
+  console.log('🔥 Firebase Config:', {
     projectId: firebaseConfig.projectId,
     authDomain: firebaseConfig.authDomain,
     isDev: isDevelopment,
-    useEmulators: false
+    useEmulators: useEmulators
   });
 }
 
@@ -54,12 +55,30 @@ const db = getFirestore(app, "(default)");
 const storage = getStorage(app);
 const functions = getFunctions(app, 'europe-west1');
 
-console.log('✅ Firebase services initialized for PRODUCTION', {
+// Connect to emulators in development
+if (useEmulators) {
+  try {
+    // Only connect if not already connected
+    if (!auth.emulatorConfig) {
+      connectAuthEmulator(auth, "http://127.0.0.1:9099");
+      console.log('🔌 Connected to Auth Emulator');
+    }
+    
+    // Connect to Firestore emulator
+    connectFirestoreEmulator(db, '127.0.0.1', 8091);
+    console.log('🔌 Connected to Firestore Emulator');
+  } catch (error) {
+    console.warn('⚠️ Failed to connect to emulators (might already be connected):', error.message);
+  }
+}
+
+const connectionType = useEmulators ? 'EMULATORS' : 'PRODUCTION';
+console.log(`✅ Firebase services initialized for ${connectionType}`, {
   auth: !!auth,
   db: !!db,
   storage: !!storage,
   functions: !!functions,
-  emulators: false,
+  emulators: useEmulators,
   databaseId: "(default)"
 });
 

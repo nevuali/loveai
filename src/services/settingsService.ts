@@ -1,307 +1,176 @@
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  onSnapshot,
-  collection,
-  query,
-  where,
-  orderBy,
-  Timestamp 
-} from 'firebase/firestore';
-import { db, auth } from '../firebase';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 
 export interface UserSettings {
-  notifications: {
-    push: boolean;
-    email: boolean;
-    sms: boolean;
-    marketing: boolean;
-  };
-  privacy: {
-    profileVisible: boolean;
-    activityVisible: boolean;
-    dataCollection: boolean;
-  };
-  theme: {
-    darkMode: boolean;
-    language: string;
-  };
-  updatedAt?: Timestamp;
-  createdAt?: Timestamp;
+  notifications: boolean;
+  emailUpdates: boolean;
+  language: string;
+  profileVisible: boolean;
+  dataCollection: boolean;
+  theme: 'light' | 'dark' | 'system';
+  conversationHistory: boolean;
+  updatedAt: Date;
 }
 
 export const defaultSettings: UserSettings = {
-  notifications: {
-    push: true,
-    email: true,
-    sms: false,
-    marketing: true,
-  },
-  privacy: {
-    profileVisible: true,
-    activityVisible: false,
-    dataCollection: true,
-  },
-  theme: {
-    darkMode: true,
-    language: 'English',
-  }
+  notifications: true,
+  emailUpdates: false,
+  language: 'English',
+  profileVisible: true,
+  dataCollection: true,
+  theme: 'dark',
+  conversationHistory: true,
+  updatedAt: new Date()
 };
 
-export class SettingsService {
-  // Auth state kontrol helper
-  private static async ensureAuth(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (auth.currentUser) {
-        resolve(true);
-        return;
-      }
-      
-      // Auth state değişikliğini dinle
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-        unsubscribe();
-        resolve(!!user);
-      });
-      
-      // 2 saniye timeout
-      setTimeout(() => {
-        unsubscribe();
-        resolve(false);
-      }, 2000);
-    });
+class SettingsService {
+  private getSettingsDocRef(userId: string) {
+    return doc(db, 'users', userId, 'settings', 'preferences');
   }
 
-  // Kullanıcı ayarlarını getir
-  static async getUserSettings(userId: string): Promise<UserSettings> {
+  async getUserSettings(userId: string): Promise<UserSettings> {
     try {
-      // Auth durumunu kontrol et
-      const isAuthenticated = await this.ensureAuth();
-      if (!isAuthenticated) {
-        console.warn('User not authenticated, returning default settings');
-        return defaultSettings;
-      }
-
-      const settingsRef = doc(db, 'userSettings', userId);
-      const settingsDoc = await getDoc(settingsRef);
+      console.log('🔧 Loading user settings for:', userId);
       
-      if (settingsDoc.exists()) {
-        return settingsDoc.data() as UserSettings;
+      const settingsRef = this.getSettingsDocRef(userId);
+      const docSnap = await getDoc(settingsRef);
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        console.log('✅ Settings loaded from Firestore:', data);
+        
+        return {
+          ...defaultSettings,
+          ...data,
+          updatedAt: data.updatedAt?.toDate() || new Date()
+        };
       } else {
-        // Ayarlar yoksa varsayılan ayarları oluştur
+        console.log('📝 No settings found, creating default settings');
         await this.createDefaultSettings(userId);
         return defaultSettings;
       }
     } catch (error) {
-      console.error('Error fetching user settings:', error);
+      console.error('❌ Error loading user settings:', error);
       return defaultSettings;
     }
   }
 
-  // Varsayılan ayarları oluştur
-  static async createDefaultSettings(userId: string): Promise<void> {
+  async updateUserSettings(userId: string, settings: Partial<UserSettings>): Promise<boolean> {
     try {
-      const settingsRef = doc(db, 'userSettings', userId);
-      const settingsWithTimestamp = {
-        ...defaultSettings,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
-      };
+      console.log('🔧 Updating user settings:', { userId, settings });
       
-      await setDoc(settingsRef, settingsWithTimestamp);
-    } catch (error) {
-      console.error('Error creating default settings:', error);
-      throw error;
-    }
-  }
-
-  // Ayarları güncelle
-  static async updateUserSettings(userId: string, settings: Partial<UserSettings>): Promise<void> {
-    try {
-      const settingsRef = doc(db, 'userSettings', userId);
+      const settingsRef = this.getSettingsDocRef(userId);
       const updateData = {
         ...settings,
-        updatedAt: Timestamp.now()
+        updatedAt: new Date()
       };
       
       await updateDoc(settingsRef, updateData);
+      console.log('✅ Settings updated successfully');
+      
+      return true;
     } catch (error) {
-      console.error('Error updating user settings:', error);
-      throw error;
+      console.error('❌ Error updating user settings:', error);
+      return false;
     }
   }
 
-  // Belirli bir ayar kategorisini güncelle
-  static async updateSettingCategory(
-    userId: string, 
-    category: keyof UserSettings, 
-    categoryData: any
-  ): Promise<void> {
+  async updateSingleSetting(userId: string, key: keyof UserSettings, value: any): Promise<boolean> {
     try {
-      const settingsRef = doc(db, 'userSettings', userId);
-      const updateData = {
-        [category]: categoryData,
-        updatedAt: Timestamp.now()
-      };
+      console.log('🔧 Updating single setting:', { userId, key, value });
+      console.log('🔧 Firebase connection check:', {
+        dbInstance: !!db,
+        userId: userId,
+        settingsPath: `users/${userId}/settings/preferences`
+      });
       
-      await updateDoc(settingsRef, updateData);
-    } catch (error) {
-      console.error(`Error updating ${category} settings:`, error);
-      throw error;
-    }
-  }
-
-  // Tek bir ayarı değiştir
-  static async toggleSetting(
-    userId: string,
-    category: keyof UserSettings,
-    setting: string,
-    value: boolean
-  ): Promise<void> {
-    try {
-      const settingsRef = doc(db, 'userSettings', userId);
-      const updateData = {
-        [`${category}.${setting}`]: value,
-        updatedAt: Timestamp.now()
-      };
+      const settingsRef = this.getSettingsDocRef(userId);
+      console.log('🔧 Document reference created:', settingsRef.path);
       
-      await updateDoc(settingsRef, updateData);
-    } catch (error) {
-      console.error(`Error toggling ${category}.${setting}:`, error);
-      throw error;
-    }
-  }
-
-  // Ayarlarda gerçek zamanlı dinleme
-  static subscribeToUserSettings(
-    userId: string, 
-    callback: (settings: UserSettings) => void
-  ): () => void {
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    const createSubscription = (): (() => void) => {
-      // Auth kontrolü
-      if (!auth.currentUser || auth.currentUser.uid !== userId) {
-        console.warn('Auth mismatch or no current user, calling callback with defaults', {
-          currentUserUid: auth.currentUser?.uid,
-          requestedUserId: userId
-        });
-        callback(defaultSettings);
-        return () => {}; // Empty unsubscribe function
+      // First check if document exists
+      const docSnap = await getDoc(settingsRef);
+      
+      if (!docSnap.exists()) {
+        console.log('📝 Document does not exist, creating with default settings first');
+        await this.createDefaultSettings(userId);
       }
-
-      const settingsRef = doc(db, 'userSettings', userId);
       
-      return onSnapshot(settingsRef, (doc) => {
-        if (doc.exists()) {
-          callback(doc.data() as UserSettings);
-        } else {
-          // Ayarlar yoksa varsayılan ayarları oluştur
-          this.createDefaultSettings(userId).then(() => {
-            callback(defaultSettings);
-          }).catch((error) => {
-            console.error('Error creating default settings:', error);
-            callback(defaultSettings);
-          });
-        }
-      }, (error) => {
-        console.error('Error listening to settings changes:', error);
-        
-        // Permission denied error'ında retry yap
-        if (error.code === 'permission-denied' && retryCount < maxRetries) {
-          retryCount++;
-          console.warn(`Permission denied, retrying (${retryCount}/${maxRetries})...`);
-          
-          // 1 saniye bekle ve tekrar dene
-          setTimeout(() => {
-            if (auth.currentUser) {
-              createSubscription();
-            } else {
-              callback(defaultSettings);
-            }
-          }, 1000 * retryCount);
-          
-          return;
-        }
-        
-        // Hata durumunda sessizce default settings'i callback et
-        callback(defaultSettings);
-        
-        // Debug info
-        if (error.code === 'permission-denied') {
-          console.warn('Permission denied for user settings. User may need to re-authenticate.');
-          console.warn('Current auth state:', {
-            currentUser: !!auth.currentUser,
-            requestedUserId: userId,
-            currentUserId: auth.currentUser?.uid,
-            retryCount
-          });
-        }
-      });
-    };
-
-    return createSubscription();
-  }
-
-  // Kullanıcı verilerini dışa aktar
-  static async exportUserData(userId: string): Promise<any> {
-    try {
-      const settingsRef = doc(db, 'userSettings', userId);
-      const settingsDoc = await getDoc(settingsRef);
-      
-      // Diğer kullanıcı verilerini de ekleyebiliriz
-      const userData = {
-        settings: settingsDoc.exists() ? settingsDoc.data() : defaultSettings,
-        exportedAt: new Date().toISOString(),
-        userId: userId
+      const updateData = {
+        [key]: value,
+        updatedAt: new Date()
       };
       
-      return userData;
+      console.log('🔧 Update data prepared:', updateData);
+      
+      await updateDoc(settingsRef, updateData);
+      console.log('✅ Single setting updated successfully');
+      
+      return true;
     } catch (error) {
-      console.error('Error exporting user data:', error);
-      throw error;
-    }
-  }
-
-  // Hesap silme işlemi
-  static async deleteUserAccount(userId: string): Promise<void> {
-    try {
-      // Önce ayarları sil
-      const settingsRef = doc(db, 'userSettings', userId);
-      await setDoc(settingsRef, {
-        deleted: true,
-        deletedAt: Timestamp.now()
+      console.error('❌ Error updating single setting:', error);
+      console.error('❌ Detailed error info:', {
+        code: error.code,
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        userId,
+        key,
+        value
       });
       
-      // Diğer kullanıcı verilerini de silme işlemi buraya eklenebilir
-      console.log(`Account deletion initiated for user: ${userId}`);
-    } catch (error) {
-      console.error('Error deleting user account:', error);
-      throw error;
+      // Check specific Firebase errors
+      if (error.code === 'permission-denied') {
+        console.error('🚫 PERMISSION DENIED - Check Firestore security rules');
+        console.error('💡 Tip: Make sure you are authenticated and have write access');
+      } else if (error.code === 'unavailable') {
+        console.error('🌐 FIREBASE UNAVAILABLE - Check network connection');
+      } else if (error.code === 'not-found') {
+        console.error('📁 DOCUMENT NOT FOUND - Document path may be incorrect');
+        // Try to create the document if it doesn't exist
+        try {
+          console.log('🔄 Attempting to create missing document...');
+          await this.createDefaultSettings(userId);
+          // Retry the update
+          const retryData = {
+            [key]: value,
+            updatedAt: new Date()
+          };
+          await updateDoc(this.getSettingsDocRef(userId), retryData);
+          console.log('✅ Document created and setting updated successfully');
+          return true;
+        } catch (retryError) {
+          console.error('❌ Failed to create document and retry:', retryError);
+        }
+      }
+      
+      return false;
     }
   }
 
-  // Bildirim tercihlerini al
-  static async getNotificationPreferences(userId: string): Promise<UserSettings['notifications']> {
+  private async createDefaultSettings(userId: string): Promise<void> {
     try {
-      const settings = await this.getUserSettings(userId);
-      return settings.notifications;
+      const settingsRef = this.getSettingsDocRef(userId);
+      await setDoc(settingsRef, defaultSettings);
+      console.log('✅ Default settings created');
     } catch (error) {
-      console.error('Error fetching notification preferences:', error);
-      return defaultSettings.notifications;
+      console.error('❌ Error creating default settings:', error);
     }
   }
 
-  // Gizlilik ayarlarını al  
-  static async getPrivacySettings(userId: string): Promise<UserSettings['privacy']> {
+  async resetSettings(userId: string): Promise<boolean> {
     try {
-      const settings = await this.getUserSettings(userId);
-      return settings.privacy;
+      console.log('🔄 Resetting settings to default for:', userId);
+      
+      const settingsRef = this.getSettingsDocRef(userId);
+      await setDoc(settingsRef, defaultSettings);
+      
+      console.log('✅ Settings reset to default');
+      return true;
     } catch (error) {
-      console.error('Error fetching privacy settings:', error);
-      return defaultSettings.privacy;
+      console.error('❌ Error resetting settings:', error);
+      return false;
     }
   }
-} 
+}
+
+export const settingsService = new SettingsService(); 
