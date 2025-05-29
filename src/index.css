@@ -292,20 +292,10 @@
 }
 
 .gemini-message-assistant::before {
-  content: "💖";
-  font-size: 16px;
+  content: "🤍";
+  font-size: 17px;
   margin-top: 2px;
   flex-shrink: 0;
-  animation: heart-spin 1.5s linear infinite;
-}
-
-@keyframes heart-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .gemini-input-container {
@@ -498,8 +488,8 @@
 }
 
 .gemini-thinking::before {
-  content: "💖";
-  font-size: 16px;
+  content: "🤍";
+  font-size: 14px;
   animation: heart-spin 1.5s linear infinite;
   flex-shrink: 0;
 }
@@ -1295,5 +1285,14 @@
     width: 16px;
     height: 16px;
     flex-shrink: 0;
+  }
+}
+
+@keyframes heart-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
