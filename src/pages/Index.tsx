@@ -968,14 +968,14 @@ const Index = () => {
                     
                     {/* Package Cards */}
                     {message.packages && message.packages.length > 0 && (
-                      <div className="mt-6 mb-2">
-                        <div className="flex items-center gap-2 mb-4">
+                      <div className="package-cards-container">
+                        <div className="package-cards-header">
                           <Sparkles className="w-5 h-5 text-yellow-400" />
                           <h3 className="text-lg font-semibold text-white">
                             ✨ Curated Honeymoon Experiences
                           </h3>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="package-cards-grid">
                           {message.packages.map((pkg) => (
                             <PackageCard
                               key={pkg.id}
@@ -988,7 +988,7 @@ const Index = () => {
                             />
                           ))}
                         </div>
-                        <div className="mt-4 text-center">
+                        <div className="package-cards-footer">
                           <p className="text-sm text-gray-400">
                             💫 Tap any package to explore magical details
                           </p>

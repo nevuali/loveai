@@ -381,8 +381,9 @@ export const getHoneymoonPackages = onCall<PackageRequestData, Promise<PackageRe
         query = query.where("duration", "==", duration);
       }
 
-      // Order by rating and limit results
-      query = query.orderBy("rating", "desc").limit(limit);
+      // Temporarily remove orderBy to avoid index requirement
+      // TODO: Add composite index for availability + rating
+      query = query.limit(limit);
 
       const snapshot = await query.get();
       const packages: HoneymoonPackage[] = [];
@@ -393,6 +394,9 @@ export const getHoneymoonPackages = onCall<PackageRequestData, Promise<PackageRe
           ...doc.data()
         } as HoneymoonPackage);
       });
+
+      // Sort by rating in JavaScript instead of Firestore
+      packages.sort((a, b) => b.rating - a.rating);
 
       logger.info(`Retrieved ${packages.length} packages`);
       return { success: true, packages };

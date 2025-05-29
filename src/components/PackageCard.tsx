@@ -55,44 +55,59 @@ const PackageCard: React.FC<PackageCardProps> = ({
   if (compact) {
     return (
       <div 
-        className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:border-white/20 hover:bg-gradient-to-br hover:from-gray-700/50 hover:to-gray-800/50 hover:transform hover:scale-[1.02]"
+        className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-white/20 hover:bg-gradient-to-br hover:from-gray-700/50 hover:to-gray-800/50 hover:transform hover:scale-[1.02] h-32"
         onClick={handleCardClick}
       >
-        <div className="flex gap-3">
-          {/* Image */}
-          <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-            <img 
-              src={pkg.images[0]} 
-              alt={pkg.title}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1571417904834-b745c0359781?w=400&h=400&fit=crop`;
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          </div>
-          
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-1">
-              <h4 className="font-semibold text-white text-sm truncate group-hover:text-yellow-300 transition-colors">
-                {pkg.title}
-              </h4>
-              <Heart className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:text-pink-400 transition-all duration-300" />
-            </div>
-            
-            <div className="flex items-center gap-1 mb-2">
-              <MapPin className="w-3 h-3 text-gray-400" />
-              <span className="text-xs text-gray-300">{pkg.location}, {pkg.country}</span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                <span className="text-xs text-gray-300">{pkg.rating}</span>
+        <div className="p-4 h-full">
+          <div className="flex gap-3 h-full">
+            {/* Image */}
+            <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+              <img 
+                src={pkg.images[0]} 
+                alt={pkg.title}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1571417904834-b745c0359781?w=400&h=400&fit=crop`;
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              {/* Category Badge on Image */}
+              <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs ${getCategoryColor(pkg.category)} backdrop-blur-sm`}>
+                {getCategoryIcon(pkg.category)}
               </div>
-              <div className="text-sm font-bold text-yellow-300">
-                {formatPrice(pkg.price)}
+            </div>
+            
+            {/* Content */}
+            <div className="flex-1 min-w-0 flex flex-col justify-between h-full">
+              <div className="flex-1">
+                <div className="flex items-start justify-between mb-1">
+                  <h4 className="font-semibold text-white text-sm leading-tight line-clamp-2 group-hover:text-yellow-300 transition-colors pr-2">
+                    {pkg.title}
+                  </h4>
+                  <Heart className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:text-pink-400 transition-all duration-300 flex-shrink-0 mt-1" />
+                </div>
+                
+                <div className="flex items-center gap-1 mb-2">
+                  <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                  <span className="text-xs text-gray-300 truncate">{pkg.location}, {pkg.country}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between mt-auto">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                    <span className="text-xs text-gray-300">{pkg.rating}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-gray-400" />
+                    <span className="text-xs text-gray-300">{pkg.duration}d</span>
+                  </div>
+                </div>
+                <div className="text-sm font-bold text-yellow-300">
+                  {formatPrice(pkg.price)}
+                </div>
               </div>
             </div>
           </div>
