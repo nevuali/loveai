@@ -413,21 +413,21 @@
 .gemini-toolbox-button {
   background: transparent;
   border: 1px solid #444;
-  padding: 20px 32px;
-  border-radius: 14px;
+  padding: 16px 24px;
+  border-radius: 20px;
   cursor: pointer;
   color: #9aa0a6;
   transition: all 0.2s;
-  font-size: 16px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   font-family: 'Google Sans', sans-serif;
-  height: 56px;
+  height: 48px;
   white-space: nowrap;
-  min-width: 180px;
-  max-width: 220px;
+  min-width: 160px;
+  max-width: 200px;
   flex: 1;
   text-align: center;
   overflow: hidden;
@@ -1020,7 +1020,7 @@
 
   .gemini-toolbox-button {
     padding: 20px 32px;
-    font-size: 18px;
+    font-size: 14px;
     height: 56px;
     min-width: 180px;
     max-width: 220px;
@@ -1226,7 +1226,7 @@
 
   .gemini-toolbox-button {
     padding: 16px 24px;
-    font-size: 15px;
+    font-size: 14px;
     height: 48px;
     min-width: 140px;
     max-width: 170px;
@@ -1271,7 +1271,7 @@
 
   .gemini-toolbox-button {
     padding: 18px 28px;
-    font-size: 15px;
+    font-size: 14px;
     height: 50px;
     min-width: 160px;
     max-width: 190px;
