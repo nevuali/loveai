@@ -687,7 +687,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 360px; /* Increased from 340px to 360px */
+    width: 320px;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
   }
 
@@ -701,154 +701,164 @@
   }
 
   .gemini-header {
-    padding: 14px 16px;
-    height: 60px;
-    gap: 12px;
+    padding: 12px 14px;
+    height: 56px;
+    gap: 8px;
   }
 
   .gemini-title {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .gemini-model-selector {
     padding: 6px 10px;
-    font-size: 13px;
+    font-size: 12px;
     border-radius: 16px;
   }
 
   .gemini-profile {
-    width: 34px;
-    height: 34px;
-    font-size: 15px;
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
 
   .gemini-dropdown-menu {
-    width: 240px;
+    width: 220px;
     right: 0;
   }
 
   .gemini-welcome {
-    padding: 32px 20px;
+    padding: 24px 16px;
     min-height: auto;
   }
 
   .gemini-welcome-title {
-    font-size: 32px;
+    font-size: 28px;
     line-height: 1.2;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
 
   .gemini-welcome-subtitle {
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.4;
     max-width: 100%;
   }
 
   .gemini-messages {
-    padding: 18px 16px;
-    gap: 26px;
+    padding: 16px 12px;
+    gap: 20px;
     max-width: 100%;
   }
 
   .gemini-message {
-    gap: 18px;
+    gap: 14px;
   }
 
   .gemini-message-user {
-    max-width: 80%;
-    padding: 14px 18px;
-    font-size: 15px;
+    max-width: 85%;
+    padding: 12px 16px;
+    font-size: 14px;
     line-height: 1.4;
   }
 
   .gemini-message-assistant {
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1.5;
     max-width: 95%;
   }
 
   .gemini-input-container {
-    padding: 16px;
+    padding: 12px;
     max-width: 100%;
   }
 
   .gemini-toolbox {
-    gap: 6px;
-    margin-bottom: 16px;
+    gap: 4px;
+    margin-bottom: 14px;
     flex-wrap: wrap;
     justify-content: center;
     max-width: 100%;
+    padding: 0 8px;
   }
 
   .gemini-toolbox-button {
     padding: 8px 12px;
-    font-size: 12px;
+    font-size: 11px;
     height: 32px;
-    min-width: 70px;
+    min-width: 80px;
+    max-width: 110px;
     border-radius: 16px;
+    gap: 4px;
+    flex-shrink: 1;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
   }
 
   .gemini-input-wrapper {
-    min-height: 48px;
+    min-height: 44px;
     max-width: 100%;
   }
 
   .gemini-input {
-    font-size: 15px;
-    padding: 14px 54px 14px 54px;
-    min-height: 48px;
-    border-radius: 24px;
+    font-size: 14px;
+    padding: 12px 48px;
+    min-height: 44px;
+    border-radius: 22px;
   }
 
   .gemini-input::placeholder {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .gemini-plus-button,
   .gemini-mic-button {
-    width: 40px;
-    height: 40px;
-    padding: 10px;
+    width: 36px;
+    height: 36px;
+    padding: 8px;
   }
 
   .gemini-footer-text {
-    font-size: 12px;
-    margin-top: 12px;
-    padding: 0 12px;
+    font-size: 11px;
+    margin-top: 10px;
+    padding: 0 8px;
   }
 
   .gemini-thinking {
-    font-size: 14px;
-    gap: 10px;
-    margin-bottom: 12px;
+    font-size: 13px;
+    gap: 8px;
+    margin-bottom: 10px;
   }
 
   .gemini-thinking::before {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .gemini-sidebar-top {
-    padding: 16px;
+    padding: 14px;
   }
 
   .gemini-new-chat {
-    padding: 12px 16px;
-    font-size: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
   }
 
   .gemini-sidebar-section {
-    font-size: 13px;
-    padding: 10px 16px 6px;
+    font-size: 12px;
+    padding: 8px 14px 4px;
   }
 
   .gemini-chat-item {
-    padding: 12px 16px;
-    font-size: 14px;
-    margin-bottom: 3px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 2px;
   }
 
   .gemini-sidebar-footer {
-    padding: 16px;
+    padding: 14px;
   }
 
   /* Remove text truncation on mobile to show full text */
@@ -860,7 +870,7 @@
 
   /* Improve mobile touch targets */
   .gemini-chat-item {
-    min-height: 44px;
+    min-height: 40px;
     display: flex;
     align-items: center;
     white-space: normal;
@@ -869,13 +879,13 @@
 
   .gemini-hamburger,
   .gemini-search-icon {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 40px;
+    min-height: 40px;
   }
 
   /* Better mobile dropdown positioning */
   .gemini-model-dropdown {
-    width: 160px;
+    width: 140px;
     left: 0;
     right: auto;
   }
@@ -901,57 +911,76 @@
 /* Additional responsive breakpoints */
 @media (max-width: 480px) {
   .gemini-sidebar {
-    width: 340px;
+    width: 300px;
   }
 
   .gemini-header {
-    padding: 12px 14px;
-    height: 56px;
-    gap: 8px;
+    padding: 10px 12px;
+    height: 52px;
+    gap: 6px;
   }
 
   .gemini-title {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .gemini-welcome {
-    padding: 24px 16px;
+    padding: 20px 12px;
   }
 
   .gemini-welcome-title {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .gemini-welcome-subtitle {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .gemini-input-container {
-    padding: 12px 14px 16px;
+    padding: 10px 12px 14px;
+  }
+
+  .gemini-toolbox {
+    gap: 3px;
+    padding: 0 4px;
+    margin-bottom: 12px;
   }
 
   .gemini-toolbox-button {
-    padding: 8px 12px;
-    font-size: 12px;
-    height: 32px;
-    min-width: 70px;
+    padding: 6px 8px;
+    font-size: 10px;
+    height: 28px;
+    min-width: 65px;
+    max-width: 90px;
+    border-radius: 14px;
+    gap: 3px;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 10px;
+    height: 10px;
   }
 
   .gemini-input {
-    font-size: 14px;
-    padding: 12px 48px;
-    min-height: 44px;
+    font-size: 13px;
+    padding: 10px 44px;
+    min-height: 40px;
+    border-radius: 20px;
+  }
+
+  .gemini-input::placeholder {
+    font-size: 13px;
   }
 
   .gemini-plus-button,
   .gemini-mic-button {
-    width: 36px;
-    height: 36px;
-    padding: 8px;
+    width: 32px;
+    height: 32px;
+    padding: 6px;
   }
 
   .gemini-footer-text {
-    font-size: 11px;
+    font-size: 10px;
   }
 }
 
@@ -1103,4 +1132,30 @@
 .gemini-dropdown-header .user-email {
   font-size: 12px;
   color: #9aa0a6;
+}
+
+/* Tablet responsive */
+@media (min-width: 641px) and (max-width: 768px) {
+  .gemini-toolbox {
+    max-width: 550px;
+    gap: 8px;
+  }
+
+  .gemini-toolbox-button {
+    padding: 14px 20px;
+    font-size: 14px;
+    height: 44px;
+    min-width: 120px;
+    max-width: 150px;
+    gap: 6px;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .gemini-input-container {
+    max-width: 600px;
+  }
 }
