@@ -4,12 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, MessageSquare, Edit, Plus } from 'lucide-react';
 import { generateGeminiStream, getChatHistory } from '../services/geminiService';
 import { authService } from '../services/authService';
+import PackageCard from '../components/PackageCard';
+import { packageService, HoneymoonPackage } from '../services/packageService';
 
 type Message = {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
   isThinking?: boolean;
+  packages?: HoneymoonPackage[];
 };
 
 type Chat = {
@@ -127,6 +130,50 @@ const Index = () => {
     return titles[Math.floor(Math.random() * titles.length)];
   });
   const [isMobile, setIsMobile] = useState(false);
+
+  // Parse package recommendations from AI response
+  const parsePackageRecommendations = async (responseContent: string): Promise<HoneymoonPackage[]> => {
+    try {
+      // Look for **SHOW_PACKAGES:xxx** patterns in the response
+      const packageMatches = responseContent.match(/\*\*SHOW_PACKAGES:([^*]+)\*\*/g);
+      
+      if (!packageMatches) {
+        return [];
+      }
+
+      const allPackages: HoneymoonPackage[] = [];
+      
+      for (const match of packageMatches) {
+        // Extract the parameter (category, location, or "featured")
+        const param = match.replace(/\*\*SHOW_PACKAGES:|\*\*/g, '').trim();
+        
+        let packages: HoneymoonPackage[] = [];
+        
+        if (param.toLowerCase() === 'featured') {
+          packages = await packageService.getFeaturedPackages();
+        } else if (['luxury', 'romantic', 'adventure', 'cultural', 'beach', 'city'].includes(param.toLowerCase())) {
+          packages = await packageService.getPackagesByCategory(param.toLowerCase());
+        } else {
+          // Assume it's a location
+          packages = await packageService.getPackagesByLocation(param);
+        }
+        
+        // Add packages avoiding duplicates
+        packages.forEach(pkg => {
+          if (!allPackages.find(existing => existing.id === pkg.id)) {
+            allPackages.push(pkg);
+          }
+        });
+      }
+      
+      // Limit to 6 packages maximum for clean display
+      return allPackages.slice(0, 6);
+      
+    } catch (error) {
+      console.error('Error parsing package recommendations:', error);
+      return [];
+    }
+  };
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -406,6 +453,12 @@ const Index = () => {
         timestamp: new Date().toISOString(),
         isThinking: false
       };
+
+      // Parse package recommendations from response
+      const packages = await parsePackageRecommendations(responseContent);
+      if (packages.length > 0) {
+        assistantMessage.packages = packages;
+      }
 
       // Replace typing indicator with final message
       setMessages(prev => prev.slice(0, -1).concat(assistantMessage));
@@ -900,10 +953,11 @@ const Index = () => {
                       wordSpacing: '0.1em'
                     }}>
                       {message.content
+                        .replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '') // Remove package commands from display
                         .split('\n\n')
                         .map((paragraph, index) => (
                           <p key={index} style={{ 
-                            marginBottom: index === message.content.split('\n\n').length - 1 ? '0' : '16px',
+                            marginBottom: index === message.content.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').split('\n\n').length - 1 ? '0' : '16px',
                             textAlign: 'left'
                           }}>
                             {paragraph.trim()}
@@ -911,6 +965,36 @@ const Index = () => {
                         ))
                       }
                     </div>
+                    
+                    {/* Package Cards */}
+                    {message.packages && message.packages.length > 0 && (
+                      <div className="mt-6 mb-2">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Sparkles className="w-5 h-5 text-yellow-400" />
+                          <h3 className="text-lg font-semibold text-white">
+                            ✨ Curated Honeymoon Experiences
+                          </h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {message.packages.map((pkg) => (
+                            <PackageCard
+                              key={pkg.id}
+                              package={pkg}
+                              compact={true}
+                              onSelect={(packageId) => {
+                                console.log('Package selected:', packageId);
+                                // Here you could open a detailed view or add to favorites
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div className="mt-4 text-center">
+                          <p className="text-sm text-gray-400">
+                            💫 Tap any package to explore magical details
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

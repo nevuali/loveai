@@ -51,6 +51,44 @@ interface AppMessage {
   createdAt?: Timestamp;
 }
 
+// Honeymoon Package Interfaces
+interface HoneymoonPackage {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  country: string;
+  duration: number; // days
+  price: number; // USD
+  currency: string;
+  category: 'luxury' | 'adventure' | 'romantic' | 'cultural' | 'beach' | 'city';
+  features: string[];
+  inclusions: string[];
+  images: string[];
+  rating: number;
+  reviews: number;
+  availability: boolean;
+  seasonality: string[];
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+interface PackageRequestData {
+  category?: string;
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  duration?: number;
+  limit?: number;
+}
+
+interface PackageResponse {
+  success: boolean;
+  packages?: HoneymoonPackage[];
+  message?: string;
+  error?: unknown;
+}
+
 interface GeminiRequestData {
   messages: AppMessage[]; // Messages from client (last one is user's new message)
   sessionId: string;
@@ -303,4 +341,272 @@ export const getGeminiChatHistory = onCall<ChatHistoryRequestData, Promise<ChatH
       throw new HttpsError("internal", message, details);
     }
   },
+);
+
+/**
+ * Get honeymoon packages from Firestore with optional filtering
+ */
+export const getHoneymoonPackages = onCall<PackageRequestData, Promise<PackageResponse>>(
+  {
+    region: "europe-west1",
+    enforceAppCheck: false,
+    cors: true
+  },
+  async (request) => {
+    logger.info("getHoneymoonPackages called", { 
+      hasData: !!request.data,
+      filters: request.data
+    });
+
+    try {
+      const { category, location, minPrice, maxPrice, duration, limit = 20 } = request.data || {};
+
+      let query = db.collection("honeymoonPackages")
+        .where("availability", "==", true);
+
+      // Apply filters
+      if (category) {
+        query = query.where("category", "==", category);
+      }
+      if (location) {
+        query = query.where("location", "==", location);
+      }
+      if (minPrice !== undefined) {
+        query = query.where("price", ">=", minPrice);
+      }
+      if (maxPrice !== undefined) {
+        query = query.where("price", "<=", maxPrice);
+      }
+      if (duration) {
+        query = query.where("duration", "==", duration);
+      }
+
+      // Order by rating and limit results
+      query = query.orderBy("rating", "desc").limit(limit);
+
+      const snapshot = await query.get();
+      const packages: HoneymoonPackage[] = [];
+
+      snapshot.forEach((doc) => {
+        packages.push({
+          id: doc.id,
+          ...doc.data()
+        } as HoneymoonPackage);
+      });
+
+      logger.info(`Retrieved ${packages.length} packages`);
+      return { success: true, packages };
+
+    } catch (error) {
+      logger.error("Error fetching honeymoon packages:", error);
+      let message = "Failed to fetch packages";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      throw new HttpsError("internal", message);
+    }
+  }
+);
+
+/**
+ * Get a single honeymoon package by ID
+ */
+export const getHoneymoonPackage = onCall<{packageId: string}, Promise<{success: boolean; package?: HoneymoonPackage; message?: string}>>(
+  {
+    region: "europe-west1",
+    enforceAppCheck: false,
+    cors: true
+  },
+  async (request) => {
+    logger.info("getHoneymoonPackage called", { 
+      packageId: request.data?.packageId
+    });
+
+    const { packageId } = request.data || {};
+
+    if (!packageId) {
+      throw new HttpsError("invalid-argument", "Package ID is required");
+    }
+
+    try {
+      const doc = await db.collection("honeymoonPackages").doc(packageId).get();
+      
+      if (!doc.exists) {
+        return { success: false, message: "Package not found" };
+      }
+
+      const packageData = {
+        id: doc.id,
+        ...doc.data()
+      } as HoneymoonPackage;
+
+      return { success: true, package: packageData };
+
+    } catch (error) {
+      logger.error("Error fetching honeymoon package:", error);
+      let message = "Failed to fetch package";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      throw new HttpsError("internal", message);
+    }
+  }
+);
+
+/**
+ * Initialize sample honeymoon packages (admin only)
+ */
+export const initializeHoneymoonPackages = onCall<{}, Promise<{success: boolean; message: string}>>(
+  {
+    region: "europe-west1",
+    enforceAppCheck: false,
+    cors: true
+  },
+  async () => {
+    logger.info("initializeHoneymoonPackages called");
+
+    try {
+      const packagesCollection = db.collection("honeymoonPackages");
+      
+      // Check if packages already exist
+      const existingPackages = await packagesCollection.limit(1).get();
+      if (!existingPackages.empty) {
+        return { success: true, message: "Packages already initialized" };
+      }
+
+      const samplePackages: Omit<HoneymoonPackage, 'id' | 'createdAt' | 'updatedAt'>[] = [
+        {
+          title: "Romantic Santorini Escape",
+          description: "Experience the magic of Santorini with stunning sunset views, luxury accommodations, and private vineyard tours. Perfect for couples seeking romance and breathtaking beauty.",
+          location: "Santorini",
+          country: "Greece",
+          duration: 7,
+          price: 4500,
+          currency: "USD",
+          category: "romantic",
+          features: ["Private Villa", "Sunset Views", "Wine Tasting", "Couples Spa", "Private Chef"],
+          inclusions: ["Luxury accommodation", "Daily breakfast", "Airport transfers", "Wine tour", "Couples massage"],
+          images: ["https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?w=800", "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=800"],
+          rating: 4.9,
+          reviews: 127,
+          availability: true,
+          seasonality: ["Spring", "Summer", "Fall"]
+        },
+        {
+          title: "Maldives Paradise Retreat",
+          description: "Overwater bungalows, crystal-clear waters, and world-class diving. The ultimate luxury beach honeymoon in an untouched tropical paradise.",
+          location: "Maldives",
+          country: "Maldives",
+          duration: 10,
+          price: 8500,
+          currency: "USD", 
+          category: "luxury",
+          features: ["Overwater Villa", "Private Beach", "Diving", "Spa Treatments", "Butler Service"],
+          inclusions: ["Overwater accommodation", "All meals included", "Seaplane transfers", "Diving equipment", "Spa credits"],
+          images: ["https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=800", "https://images.unsplash.com/photo-1571417904834-b745c0359781?w=800"],
+          rating: 4.8,
+          reviews: 89,
+          availability: true,
+          seasonality: ["Year-round"]
+        },
+        {
+          title: "Paris City of Love",
+          description: "Classic Parisian romance with luxury hotels, Michelin-starred dining, private museum tours, and charming walks along the Seine.",
+          location: "Paris",
+          country: "France",
+          duration: 5,
+          price: 3200,
+          currency: "USD",
+          category: "city",
+          features: ["Luxury Hotel", "Michelin Dining", "Private Tours", "Seine Cruise", "Shopping"],
+          inclusions: ["5-star hotel", "Daily breakfast", "Museum passes", "Seine dinner cruise", "Shopping guide"],
+          images: ["https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=800", "https://images.unsplash.com/photo-1471623320832-752e8bbf8413?w=800"],
+          rating: 4.7,
+          reviews: 156,
+          availability: true,
+          seasonality: ["Spring", "Summer", "Fall"]
+        },
+        {
+          title: "Bali Adventure & Romance",
+          description: "Combine adventure with romance in Bali. Luxury resorts, temple visits, rice terrace tours, and traditional spa treatments in tropical paradise.",
+          location: "Ubud",
+          country: "Indonesia",
+          duration: 8,
+          price: 2800,
+          currency: "USD",
+          category: "adventure",
+          features: ["Jungle Villa", "Temple Tours", "Rice Terraces", "Traditional Spa", "Cooking Classes"],
+          inclusions: ["Luxury resort", "Daily breakfast", "Cultural tours", "Spa treatments", "Cooking experience"],
+          images: ["https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800", "https://images.unsplash.com/photo-1580227475780-8c6e62ae5b4a?w=800"],
+          rating: 4.6,
+          reviews: 203,
+          availability: true,
+          seasonality: ["Year-round"]
+        },
+        {
+          title: "Tuscany Wine & Romance",
+          description: "Rolling hills, world-class wineries, charming villages, and exquisite Italian cuisine. Perfect blend of culture, romance, and gastronomy.",
+          location: "Tuscany",
+          country: "Italy",
+          duration: 6,
+          price: 3800,
+          currency: "USD",
+          category: "cultural",
+          features: ["Wine Estate", "Cooking Classes", "Historic Tours", "Vineyard Views", "Private Tastings"],
+          inclusions: ["Boutique hotel", "Daily breakfast", "Wine tours", "Cooking class", "Private transfers"],
+          images: ["https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800", "https://images.unsplash.com/photo-1534445638895-b7bb0ba9da00?w=800"],
+          rating: 4.8,
+          reviews: 94,
+          availability: true,
+          seasonality: ["Spring", "Summer", "Fall"]
+        },
+        {
+          title: "Dubai Luxury Experience",
+          description: "Ultra-luxury in the desert oasis. Sky-high accommodations, world-class shopping, desert safaris, and exclusive dining experiences.",
+          location: "Dubai",
+          country: "UAE",
+          duration: 5,
+          price: 5200,
+          currency: "USD",
+          category: "luxury",
+          features: ["Burj Al Arab", "Desert Safari", "Luxury Shopping", "Fine Dining", "Private Beach"],
+          inclusions: ["7-star hotel", "All meals", "Desert experience", "Shopping credits", "Spa access"],
+          images: ["https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800", "https://images.unsplash.com/photo-1518684079-3c830dcef090?w=800"],
+          rating: 4.7,
+          reviews: 67,
+          availability: true,
+          seasonality: ["Fall", "Winter", "Spring"]
+        }
+      ];
+
+      // Add packages to Firestore
+      const batch = db.batch();
+      const now = Timestamp.now();
+
+      samplePackages.forEach((packageData) => {
+        const docRef = packagesCollection.doc();
+        batch.set(docRef, {
+          ...packageData,
+          createdAt: now,
+          updatedAt: now
+        });
+      });
+
+      await batch.commit();
+      logger.info(`Successfully initialized ${samplePackages.length} honeymoon packages`);
+
+      return { 
+        success: true, 
+        message: `Successfully initialized ${samplePackages.length} honeymoon packages` 
+      };
+
+    } catch (error) {
+      logger.error("Error initializing honeymoon packages:", error);
+      let message = "Failed to initialize packages";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      throw new HttpsError("internal", message);
+    }
+  }
 );
