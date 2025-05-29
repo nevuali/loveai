@@ -999,73 +999,37 @@
   }
 }
 
-/* Larger screens optimization */
-@media (min-width: 1025px) {
-  .gemini-header {
-    padding: 16px 32px;
-  }
-
-  .gemini-welcome {
-    padding: 40px 32px;
-  }
-
-  .gemini-messages {
-    padding: 32px;
-    max-width: 700px;
-  }
-
-  .gemini-input-container {
-    max-width: 900px;
-  }
-
-  .gemini-toolbox {
-    justify-content: center;
-    max-width: 800px;
-    gap: 12px;
-  }
-
-  .gemini-toolbox-button {
-    padding: 18px 26px;
-    font-size: 16px;
-    height: 52px;
-    min-width: 160px;
-    max-width: 200px;
-    gap: 8px;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-@media (min-width: 1280px) {
+/* Ultra-wide screens optimization */
+@media (min-width: 1601px) {
   .gemini-messages {
     padding: 40px;
     max-width: 700px;
   }
 
   .gemini-input-container {
-    max-width: 1000px;
+    max-width: 1100px;
   }
 
   .gemini-toolbox {
-    max-width: 900px;
-    gap: 14px;
+    max-width: 1000px;
+    gap: 16px;
+    flex-wrap: wrap;
   }
 
   .gemini-toolbox-button {
-    padding: 20px 30px;
-    font-size: 17px;
+    padding: 20px 32px;
+    font-size: 18px;
     height: 56px;
     min-width: 180px;
     max-width: 220px;
-    gap: 9px;
+    gap: 10px;
+    flex-shrink: 1;
   }
 
   .gemini-toolbox-button svg {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
   }
 }
 
@@ -1222,5 +1186,91 @@
 
   .gemini-messages {
     max-width: 650px;
+  }
+}
+
+/* Laptop responsive */
+@media (min-width: 1025px) and (max-width: 1366px) {
+  .gemini-header {
+    padding: 16px 32px;
+  }
+
+  .gemini-welcome {
+    padding: 40px 32px;
+  }
+
+  .gemini-messages {
+    padding: 32px;
+    max-width: 700px;
+  }
+
+  .gemini-input-container {
+    max-width: 850px;
+  }
+
+  .gemini-toolbox {
+    justify-content: center;
+    max-width: 750px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .gemini-toolbox-button {
+    padding: 16px 24px;
+    font-size: 15px;
+    height: 48px;
+    min-width: 140px;
+    max-width: 170px;
+    gap: 7px;
+    flex-shrink: 1;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+}
+
+/* Large Laptop responsive */
+@media (min-width: 1367px) and (max-width: 1600px) {
+  .gemini-header {
+    padding: 16px 32px;
+  }
+
+  .gemini-welcome {
+    padding: 40px 32px;
+  }
+
+  .gemini-messages {
+    padding: 36px;
+    max-width: 700px;
+  }
+
+  .gemini-input-container {
+    max-width: 950px;
+  }
+
+  .gemini-toolbox {
+    justify-content: center;
+    max-width: 850px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .gemini-toolbox-button {
+    padding: 18px 28px;
+    font-size: 16px;
+    height: 50px;
+    min-width: 160px;
+    max-width: 190px;
+    gap: 8px;
+    flex-shrink: 1;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
   }
 }
