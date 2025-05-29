@@ -779,8 +779,11 @@ const Index = () => {
                   </div>
                 ) : (
                   <div className="gemini-message-assistant text-sm sm:text-base">
-                    <div className="message-content">
-                      {message.content.replace(/\. /g, '.\n')}
+                    <div className="message-content" style={{ whiteSpace: 'pre-wrap' }}>
+                      {message.content
+                        .replace(/\. /g, '.\n')
+                        .replace(/! /g, '!\n')
+                        .replace(/\? /g, '?\n')}
                     </div>
                   </div>
                 )}
