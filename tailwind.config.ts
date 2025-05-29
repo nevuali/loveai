@@ -1,7 +1,6 @@
-
 import type { Config } from "tailwindcss";
 
-export default {
+const config: Config = {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
@@ -25,16 +24,6 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        cappalove: {
-          peach: "#FDE1D3",
-          cream: "#FFF8F0",
-          gold: "#E2C792",
-          blue: "#D3E4FD",
-          darkblue: "#A1C6F7",
-          background: "#FFF8F5",
-          hover: "#FEF4EF",
-          border: "#F4D9CA"
-        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -52,8 +41,10 @@ export default {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          light: "#8b5cf6",
+          medium: "#7c3aed", 
+          dark: "#6b21d6",
+          darker: "#581c87",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -63,6 +54,34 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // AI Love Dark Theme Colors
+        dark: {
+          bg: "#0A0A0F",
+          surface: "#12121A",
+          elevated: "#1A1A25",
+          border: "#242430",
+        },
+        purple: {
+          50: "#faf7ff",
+          100: "#f3edff", 
+          200: "#e9d8ff",
+          300: "#d8b4fe",
+          400: "#c084fc",
+          500: "#a855f7",
+          600: "#9333ea",
+          700: "#7c3aed",
+          800: "#6b21d6",
+          900: "#581c87",
+          950: "#3b0764",
+          dark: "#2d1b69",
+          darker: "#1e1148",
+          darkest: "#120a2e",
+        },
+        glass: {
+          light: "rgba(139, 92, 246, 0.05)",
+          medium: "rgba(139, 92, 246, 0.1)",
+          dark: "rgba(0, 0, 0, 0.4)",
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -70,13 +89,79 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ['Montserrat', 'sans-serif'],
-        serif: ['Playfair Display', 'serif'],
+        'sans': ['Google Sans', 'Roboto', 'system-ui', 'sans-serif'],
+        'display': ['Google Sans Display', 'Google Sans', 'Montserrat', 'Inter', 'system-ui', 'sans-serif'],
+        'body': ['Google Sans', 'Roboto', 'Inter', 'system-ui', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'Fira Code', 'monospace'],
+        'gemini': ['Google Sans', 'system-ui', 'sans-serif'],
       },
-      backgroundImage: {
-        'romantic-pattern': "url('data:image/svg+xml;utf8,<svg width=\"100\" height=\"100\" viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M50 12.5C41.0156 12.5 33.75 19.7656 33.75 28.75C33.75 33.2031 35.5469 37.3438 38.5156 40.2344C30.2344 43.125 25 50.9375 25 60C25 71.0938 34.0625 80 45 80C50.3125 80 55.2344 78.125 59.0625 74.9219C60.3906 76.5625 62.7344 77.5 65 77.5C70.1562 77.5 74.375 73.2812 74.375 68.125C74.375 65.8594 73.5156 63.5156 71.875 62.1875C76.7969 57.1875 78.75 50.5469 76.7969 43.8281C74.8438 37.1094 69.2188 32.1094 62.5 30.8594C60.8594 20.7031 56.0156 12.5 50 12.5Z\" fill=\"%23FDE1D3\" fill-opacity=\"0.2\"/></svg>')"
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.5s ease-out",
+        "slide-up": "slide-up 0.3s ease-out",
+        "pulse-glow": "pulse-glow 2s infinite",
+        "float": "float 3s ease-in-out infinite",
+        "electric-pulse": "electric-pulse 1.5s ease-in-out infinite",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-up": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(0, 212, 255, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(0, 212, 255, 0.6)" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "electric-pulse": {
+          "0%, 100%": { opacity: "0.5" },
+          "50%": { opacity: "1" },
+        },
+      },
+      backdropBlur: {
+        'xs': '2px',
+        'glass': '16px',
+      },
+      boxShadow: {
+        'glass': '0 8px 32px rgba(0, 0, 0, 0.3)',
+        'glass-lg': '0 20px 40px rgba(0, 0, 0, 0.4)',
+        'electric': '0 0 20px rgba(0, 212, 255, 0.5)',
+        'electric-lg': '0 0 40px rgba(0, 212, 255, 0.7)',
+        'neon-blue': '0 0 30px rgba(0, 240, 255, 0.6)',
+        'neon-purple': '0 0 30px rgba(168, 85, 247, 0.6)',
       }
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function({ addUtilities }: any) {
+      addUtilities({
+        '.scrollbar-hide': {
+          '-ms-overflow-style': 'none',
+          'scrollbar-width': 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          }
+        }
+      })
+    }
+  ],
 } satisfies Config;
+
+export default config;

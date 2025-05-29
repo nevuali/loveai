@@ -1,4 +1,3 @@
-
 import { AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ const UnderConstructionModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md glass-panel">
         <DialogHeader>
-          <DialogTitle className="text-center font-serif text-xl">{title}</DialogTitle>
+          <DialogTitle className="text-center font-display text-xl">{title}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center py-4">
           <div className="rounded-full bg-cappalove-peach/30 p-3 mb-4">

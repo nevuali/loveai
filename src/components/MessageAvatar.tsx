@@ -1,4 +1,3 @@
-
 import { Heart, User } from "lucide-react";
 
 type MessageAvatarProps = {
@@ -9,7 +8,7 @@ const MessageAvatar = ({ isAssistant }: MessageAvatarProps) => {
   return (
     <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
       isAssistant 
-        ? 'bg-gradient-to-r from-cappalove-peach to-cappalove-blue'
+        ? 'bg-gradient-to-r from-ailovve-peach to-ailovve-blue'
         : 'bg-gradient-to-r from-cappalove-blue to-cappalove-darkblue'
     } shadow-sm`}>
       {isAssistant ? (

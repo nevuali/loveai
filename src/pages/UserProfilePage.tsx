@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, UserPlus, LogIn, Home, ChevronRight, Loader2 } from "lucide-react";
+import { Mail, Lock, UserPlus, LogIn, Home, ChevronRight, Loader2, ArrowLeft, Sparkles, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+// import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth"; // Firebase importları yorum satırı yapıldı
+
+// const auth = getAuth(); // auth tanımı kaldırıldı
 
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px">
@@ -32,206 +35,213 @@ const UserProfilePage = () => {
   // Demo login handler
   const handleDemoLogin = () => {
     localStorage.setItem('userMockAuthenticated', 'true');
-    localStorage.setItem('userEmail', 'demo@cappalove.com');
+    localStorage.setItem('userEmail', 'demo@ailovve.com');
     localStorage.setItem('userName', 'Demo User');
     window.location.reload();
   };
 
-  // Firebase auth action handler - artık sadece demo login çalışacak
+  // Firebase auth action handler
   const handleAuthAction = async () => {
-    // Firebase kimlik doğrulama mantığı kaldırıldı
-    toast.error("Firebase kimlik doğrulama şu anda aktif değil.");
-    // isLogin mantığı korunabilir ancak herhangi bir işlem yapmayacak
-    // setIsLoading(false); // Yükleme durumunu sıfırlama kaldırıldı
-
+    toast.error("Firebase authentication is currently disabled.");
+    
     // Demo login (başarılı olursa ana sayfaya yönlendirir)
     if (isLogin && email === 'test@test.com' && password === 'password') {
       toast.success("Demo sign in successful!");
-      // Kullanıcı kimlik doğrulama durumu localStorage'da tutuluyor (demo amaçlı)
       localStorage.setItem('userMockAuthenticated', 'true');
       localStorage.setItem('userEmail', email);
-      navigate('/'); // Ana sayfaya yönlendir
+      navigate('/');
     } else if (!isLogin && email === 'test@test.com' && password === 'password') {
         toast.success("Demo sign up successful!");
         localStorage.setItem('userMockAuthenticated', 'true');
         localStorage.setItem('userEmail', email);
-        navigate('/'); // Ana sayfaya yönlendir
+        navigate('/');
     } else {
         toast.error("Invalid credentials or user not found.");
-        // setIsLoading(false); // Yükleme durumunu sıfırlama kaldırıldı
     }
   };
 
-  // Google ile giriş butonu action handler
-  const handleGoogleSignIn = async () => {
-    // Firebase Google Sign-In mantığı kaldırıldı
-    toast.info("Google Sign-In şu anda aktif değil.");
-  };
-
-  // Firebase social login handler - Google login
+  // Social login handler
   const handleSocialLogin = async (provider: 'google' | 'apple') => {
     setIsLoading(true);
     if (provider === 'google') {
       try {
-        const googleProvider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, googleProvider);
-        if (result.user) {
-          toast.success("Signed in with Google!");
-          // localStorage yerine Firebase Authentication state persistent kullanacağız
-          // localStorage.setItem('userMockAuthenticated', 'true');
-          // localStorage.setItem('userEmail', result.user.email || '');
-          // localStorage.setItem('userName', result.user.displayName || '');
-          navigate('/');
+        toast.info("Google Sign-In is not configured yet.");
+      } catch (error: unknown) {
+        let errorMessage = "Failed to sign in with Google.";
+        if (error instanceof Error) {
+          errorMessage = error.message;
         }
-      } catch (error: any) {
-        toast.error(error.message || "Failed to sign in with Google.");
+        toast.error(errorMessage);
       } finally {
         setIsLoading(false);
       }
-    } else { // Apple
-      toast.error("Apple ile giriş şu anda desteklenmiyor.");
+    } else {
+      toast.error("Apple login is not currently supported.");
       setIsLoading(false);
     }
   };
 
-  // Firebase sign out logic - artık sadece demo log out çalışacak
+  // Sign out handler
   const handleSignOut = () => {
-    // Firebase sign out mantığı kaldırıldı
     toast.success("Demo signed out!");
     localStorage.removeItem('userMockAuthenticated');
     localStorage.removeItem('userEmail');
-    navigate('/profile'); // Profil sayfasına yönlendir
+    navigate('/profile');
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-cappalove-background px-4 py-12">
-      <div className="w-full max-w-md">
-        <button 
-          onClick={() => navigate('/')} 
-          className="absolute top-6 left-6 p-2 text-gray-500 hover:text-cappalove-darkblue transition-colors disabled:opacity-50"
-          aria-label="Return to Homepage"
-          disabled={isLoading}
-        >
-          <Home className="h-6 w-6" />
-        </button>
-
-        {/* Demo login button */}
-        <div className="mb-4">
-          <button
-            onClick={handleDemoLogin}
-            className="w-full py-3 rounded-xl bg-cappalove-blue text-white font-semibold text-base shadow hover:bg-cappalove-darkblue transition-all mb-2"
-            disabled={isLoading}
-          >
-            Sign in with Demo Account
-          </button>
-        </div>
-
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-1">
-            {isLogin ? "Sign In" : "Create Account"}
-          </h1>
-          <p className="text-gray-500 text-base">
-            {isLogin ? "Use your account" : "Join us today"}
-          </p>
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <Button 
-            variant="outline"
-            onClick={() => handleSocialLogin('apple')}
-            className="w-full py-5 text-base border-gray-300 rounded-xl hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center gap-2 shadow-sm text-gray-700 hover:text-gray-900 disabled:opacity-75"
-            disabled={isLoading}
-          >
-            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <AppleIcon />}
-            <span className="font-medium">Continue with Apple</span>
-          </Button>
-          
-          <Button 
-            variant="outline"
-            onClick={() => handleSocialLogin('google')}
-            className="w-full py-5 text-base border-gray-300 rounded-xl hover:bg-gray-100 transition-colors duration-200 flex items-center justify-center gap-2 shadow-sm text-gray-700 hover:text-gray-900 disabled:opacity-75"
-            disabled={isLoading}
-          >
-            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
-            <span className="font-medium">Continue with Google</span>
-          </Button>
-        </div>
-
-        <div className="flex items-center my-6">
-          <Separator className="flex-grow bg-cappalove-border" />
-          <span className="mx-4 text-sm text-gray-400 font-medium">or</span>
-          <Separator className="flex-grow bg-cappalove-border" />
-        </div>
-
-        <form onSubmit={(e) => { e.preventDefault(); handleAuthAction(); }} className="space-y-4">
-          {!isLogin && (
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="py-5 px-4 text-base bg-cappalove-cream border-cappalove-border rounded-xl focus:ring-2 focus:ring-cappalove-peach focus:border-cappalove-peach transition-all disabled:opacity-75"
-                required
-                disabled={isLoading}
-              />
-            </div>
-          )}
-          <div className="relative">
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="py-5 px-4 text-base bg-cappalove-cream border-cappalove-border rounded-xl focus:ring-2 focus:ring-cappalove-peach focus:border-cappalove-peach transition-all disabled:opacity-75"
-              required
-              disabled={isLoading}
-            />
-          </div>
-          <div className="relative">
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="py-5 px-4 text-base bg-cappalove-cream border-cappalove-border rounded-xl focus:ring-2 focus:ring-cappalove-peach focus:border-cappalove-peach transition-all disabled:opacity-75"
-              required
-              disabled={isLoading}
-            />
-          </div>
-
-          {isLogin && (
-            <div className="flex justify-end">
-              <button type="button" className="text-sm text-cappalove-blue hover:text-cappalove-darkblue font-medium disabled:opacity-50" disabled={isLoading}>
-                Forgot Password?
-              </button>
-            </div>
-          )}
-
-          <Button 
-            type="submit" 
-            className="w-full bg-cappalove-darkblue hover:bg-cappalove-blue text-white font-medium text-base py-5 rounded-xl shadow-sm transition-colors mt-2 flex items-center justify-center gap-2 disabled:opacity-75"
-            disabled={isLoading}
-          >
-            {isLoading && !isLogin ? <Loader2 className="h-5 w-5 animate-spin" /> : (isLogin ? "Sign In" : "Create Account")}
-            {!isLoading && <ChevronRight className="h-5 w-5 ml-1" />}
-            {isLoading && isLogin && <Loader2 className="h-5 w-5 animate-spin mr-2" />} 
-            {isLoading && isLogin && <span>Signing In...</span>} 
-            {isLoading && !isLogin && <span>Creating Account...</span>} 
-          </Button>
-        </form>
-
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              onClick={() => {if (!isLoading) setIsLogin(!isLogin);}}
-              className="font-semibold text-cappalove-blue hover:text-cappalove-darkblue disabled:opacity-50"
+    <div className="min-h-screen bg-[#1f1f1f] text-white font-gemini flex flex-col">
+      {/* Header */}
+      <div className="border-b border-gray-700 sidebar-header-glow">
+        <div className="max-w-md mx-auto px-6 py-4">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => navigate('/')} 
+              className="p-2 rounded-xl hover:bg-white/10 sidebar-glow transition-all duration-200 hover:scale-105"
+              aria-label="Return to Homepage"
               disabled={isLoading}
             >
-              {isLogin ? "Sign Up" : "Sign In"}
+              <ArrowLeft className="w-5 h-5 text-white/60 hover:text-white/90" />
             </button>
-          </p>
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-2xl bg-purple-gradient flex items-center justify-center shadow-lg sidebar-icon-glow">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent glow-text">
+                  AI LOVE
+                </h1>
+                <p className="text-xs text-gray-400">Authentication</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-md">
+          {/* Demo Login Button */}
+          <div className="mb-6">
+            <button
+              onClick={handleDemoLogin}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 luxury-button gentle-floating soft-glow flex items-center justify-center gap-2"
+              disabled={isLoading}
+            >
+              <Sparkles className="w-5 h-5" />
+              Continue with Demo Account
+            </button>
+          </div>
+
+          {/* Auth Form */}
+          <div className="glass-card rounded-2xl p-6 backdrop-blur-xl border border-white/10 sidebar-glow">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-semibold text-white mb-2 glow-text">
+                {isLogin ? "Welcome Back" : "Join AI LOVE"}
+              </h2>
+              <p className="text-gray-400">
+                {isLogin ? "Sign in to your account" : "Create your account today"}
+              </p>
+            </div>
+
+            {/* Social Login Buttons */}
+            <div className="space-y-3 mb-6">
+              <button 
+                onClick={() => handleSocialLogin('apple')}
+                className="w-full py-3 border border-white/20 rounded-xl hover:bg-white/10 transition-all duration-200 flex items-center justify-center gap-3 text-white luxury-button sidebar-glow"
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <AppleIcon />}
+                <span className="font-medium">Continue with Apple</span>
+              </button>
+              
+              <button 
+                onClick={() => handleSocialLogin('google')}
+                className="w-full py-3 border border-white/20 rounded-xl hover:bg-white/10 transition-all duration-200 flex items-center justify-center gap-3 text-white luxury-button sidebar-glow"
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
+                <span className="font-medium">Continue with Google</span>
+              </button>
+            </div>
+
+            <div className="flex items-center my-6">
+              <div className="flex-1 h-px bg-white/20"></div>
+              <span className="mx-4 text-sm text-gray-400 font-medium">or</span>
+              <div className="flex-1 h-px bg-white/20"></div>
+            </div>
+
+            {/* Email/Password Form */}
+            <form onSubmit={(e) => { e.preventDefault(); handleAuthAction(); }} className="space-y-4">
+              {!isLogin && (
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full py-3 px-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all sidebar-glow"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              )}
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full py-3 px-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all sidebar-glow"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="relative">
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full py-3 px-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all sidebar-glow"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 luxury-button sidebar-glow flex items-center justify-center gap-2"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    {isLogin ? <LogIn className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
+                    {isLogin ? "Sign In" : "Create Account"}
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-purple-400 hover:text-purple-300 text-sm transition-colors glow-text"
+                disabled={isLoading}
+              >
+                {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
+              </button>
+            </div>
+          </div>
+
+          {/* Demo Credentials Info */}
+          <div className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10 sidebar-glow">
+            <p className="text-sm text-gray-400 mb-2 glow-text">Demo Credentials:</p>
+            <p className="text-xs text-gray-500">Email: test@test.com</p>
+            <p className="text-xs text-gray-500">Password: password</p>
+          </div>
         </div>
       </div>
     </div>

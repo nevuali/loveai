@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /conversations/{document} {
+      allow read, write: if true; // Geliştirme için, production'da auth eklenecek
+    }
+    match /users/{document} {
+      allow read, write: if true; // Geliştirme için, production'da auth eklenecek
+    }
+    
+    // User Settings - Kullanıcı sadece kendi settings'lerini okuyup yazabilir
+    match /userSettings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+} 

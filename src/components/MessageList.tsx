@@ -1,20 +1,36 @@
 import Message from './Message';
 import { useEffect, useRef, useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowDown, Bot, Sparkles, Heart, Cpu, Zap } from 'lucide-react';
 import TypingIndicator from './TypingIndicator';
+import AuthPromptCard from './AuthPromptCard';
 
 type MessageType = {
   role: 'user' | 'assistant';
   content: string;
+  timestamp?: string;
+  imageBase64?: string | null;
+  isThinking?: boolean;
 };
 
 interface MessageListProps {
   messages: MessageType[];
   isLoading?: boolean;
+  showAuthPrompt?: boolean;
+  onRegisterClick?: () => void;
+  onLoginClick?: () => void;
+  messageCount?: number;
+  maxMessages?: number;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
+const MessageList: React.FC<MessageListProps> = ({ 
+  messages, 
+  isLoading, 
+  showAuthPrompt = false,
+  onRegisterClick,
+  onLoginClick,
+  messageCount = 3,
+  maxMessages = 3
+}) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [focusedMessageIndex, setFocusedMessageIndex] = useState<number | null>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
@@ -25,14 +41,14 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
     
-    // Mesajların sayısı arttığında scroll göstergesini göster
+    // Show scroll indicator when number of messages increases
     if (messages.length > 2) {
       setShowScrollIndicator(true);
       setTimeout(() => setShowScrollIndicator(false), 3000);
     }
   }, [messages]);
 
-  // Scroll olayını dinle
+  // Listen to scroll events
   useEffect(() => {
     const container = containerRef.current;
     
@@ -55,21 +71,6 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
     }
   }, [showScrollIndicator]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05
-      }
-    }
-  };
-
-  // Get more efficient message animation
-  const getMessageAnimationDelay = (index: number) => {
-    return Math.min(index * 0.05, 0.3); // Cap at 0.3s for faster loading
-  };
-
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -78,146 +79,130 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto relative" ref={containerRef}>
-      <motion.div 
-        className="w-full max-w-2xl mx-auto px-3 flex flex-col"
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-      >
+    <div className="flex-1 overflow-y-auto relative custom-scrollbar" ref={containerRef}>
+      <div className="w-full max-w-5xl mx-auto px-4 flex flex-col">
         {messages.length === 0 && (
-          <motion.div 
-            className="flex flex-col items-center justify-center h-full opacity-80 py-8"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 0.8, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <motion.div 
-              className="text-5xl mb-3"
-              animate={{ 
-                y: [0, -5, 0]
-              }}
-              transition={{ 
-                repeat: Infinity, 
-                duration: 2,
-                repeatType: "reverse" 
-              }}
-            >
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: [0, 1.2, 1], rotate: [0, 15, 0] }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              >
-                💖
-              </motion.span>
-            </motion.div>
-            <motion.div 
-              className="p-4 rounded-xl text-center mx-4 bg-white/80 backdrop-blur-sm"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              whileHover={{ 
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                scale: 1.02
-              }}
-            >
-              <motion.h2 
-                className="text-lg font-medium mb-1 text-gray-800"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.3 }}
-              >
-                Hello!
-              </motion.h2>
-              <motion.p 
-                className="text-center text-gray-600 text-sm max-w-xs"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7, duration: 0.3 }}
-              >
-                I'm here to help with your holiday planning and honeymoon selection.
-              </motion.p>
-            </motion.div>
-          </motion.div>
+          <div className="flex flex-col items-center justify-center h-full py-12 animate-fade-in">
+            {/* AI Avatar with Electric Effects */}
+            <div className="relative mb-8">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-electric-blue to-electric-purple flex items-center justify-center shadow-electric animate-float">
+                <Bot className="w-10 h-10 text-white" />
+              </div>
+              <div className="absolute -top-2 -right-2 w-8 h-8 bg-neon-blue rounded-full animate-electric-pulse flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              
+              {/* Floating particles around avatar */}
+              <div className="absolute -inset-8 pointer-events-none">
+                <div className="absolute top-2 left-2 w-2 h-2 bg-electric-blue rounded-full animate-pulse opacity-60" />
+                <div className="absolute bottom-4 right-1 w-1.5 h-1.5 bg-electric-purple rounded-full animate-pulse opacity-40" style={{ animationDelay: '1s' }} />
+                <div className="absolute top-8 right-4 w-1 h-1 bg-neon-blue rounded-full animate-pulse opacity-80" style={{ animationDelay: '2s' }} />
+              </div>
+            </div>
+            
+            {/* Welcome Card */}
+            <div className="glass-elevated rounded-3xl p-8 mx-4 max-w-lg border border-white/20 shadow-glass-lg relative overflow-hidden">
+              {/* Background gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-electric-blue/5 to-electric-purple/5 pointer-events-none" />
+              
+              <div className="relative z-10 text-center">
+                {/* AI Status Indicator */}
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-electric-blue/20 border border-electric-blue/30">
+                    <Cpu className="w-3 h-3 text-electric-blue animate-pulse" />
+                    <span className="text-xs text-white font-medium">AI Assistant Online</span>
+                  </div>
+                </div>
+
+                <h2 className="text-2xl font-display font-bold mb-4 bg-gradient-to-r from-electric-blue to-electric-purple bg-clip-text text-transparent">
+                  Hello! I'm AI LOVE ✨
+                </h2>
+                
+                <p className="text-white/80 text-sm leading-relaxed mb-6">
+                  Your intelligent honeymoon assistant is ready to help! I'm here to design your perfect romantic getaway using advanced AI technology. 
+                  Let's create an unforgettable experience together! 💕
+                </p>
+
+                {/* Features */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="glass rounded-xl p-3 text-center border border-white/10">
+                    <Heart className="w-5 h-5 text-electric-blue mx-auto mb-1" />
+                    <span className="text-xs text-white/70">Romance</span>
+                  </div>
+                  <div className="glass rounded-xl p-3 text-center border border-white/10">
+                    <Zap className="w-5 h-5 text-electric-purple mx-auto mb-1" />
+                    <span className="text-xs text-white/70">AI-Powered</span>
+                  </div>
+                  <div className="glass rounded-xl p-3 text-center border border-white/10">
+                    <Sparkles className="w-5 h-5 text-neon-blue mx-auto mb-1" />
+                    <span className="text-xs text-white/70">Personalized</span>
+                  </div>
+                </div>
+                
+                {/* Activity indicator */}
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-electric-blue rounded-full animate-pulse" />
+                  <div className="w-2 h-2 bg-electric-purple rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
+                  <div className="w-2 h-2 bg-neon-blue rounded-full animate-pulse" style={{ animationDelay: '0.6s' }} />
+                </div>
+              </div>
+            </div>
+          </div>
         )}
         
-        <AnimatePresence mode="popLayout">
-          {messages.map((message, index) => (
-            <motion.div
-              key={index}
-              layout
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ 
-                opacity: 1, 
-                y: 0,
-                transition: { 
-                  delay: getMessageAnimationDelay(index),
-                  type: 'spring',
-                  damping: 20
-                } 
-              }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              whileHover={{ scale: 1.01 }}
-              onMouseEnter={() => setFocusedMessageIndex(index)}
-              onMouseLeave={() => setFocusedMessageIndex(null)}
-              className={`${focusedMessageIndex === index ? 'z-10' : 'z-0'}`}
-            >
-              <Message {...message} />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className="animate-fade-in"
+            style={{ animationDelay: `${index * 50}ms` }}
+            onMouseEnter={() => setFocusedMessageIndex(index)}
+            onMouseLeave={() => setFocusedMessageIndex(null)}
+          >
+            <Message {...message} imageBase64={message.imageBase64} isThinking={message.isThinking} />
+          </div>
+        ))}
         
-        <AnimatePresence>
-          {isLoading && messages.length > 0 && messages[messages.length -1]?.role === 'user' && (
-            <motion.div 
-              className="flex items-center justify-start py-2 pl-10"
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-            >
-              <motion.div 
-                className="py-2 px-4 rounded-lg bg-gray-100"
-                animate={{ 
-                  boxShadow: ["0 0 0 rgba(0,0,0,0)", "0 2px 10px rgba(0,0,0,0.1)", "0 0 0 rgba(0,0,0,0)"]
-                }}
-                transition={{ repeat: Infinity, duration: 2 }}
-              >
-                <TypingIndicator name="AI" />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Auth Prompt Card */}
+        {showAuthPrompt && onRegisterClick && onLoginClick && (
+          <div className="animate-slide-up">
+            <AuthPromptCard 
+              onRegisterClick={onRegisterClick}
+              onLoginClick={onLoginClick}
+              messageCount={messageCount}
+              maxMessages={maxMessages}
+            />
+          </div>
+        )}
         
-        {/* Scroll göstergesi */}
-        <AnimatePresence>
-          {showScrollIndicator && messages.length > 2 && (
-            <motion.div 
-              className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-30"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.2 }}
-            >
-              <motion.button
-                className="bg-white/90 backdrop-blur-sm shadow-lg rounded-full p-2 flex items-center justify-center"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={scrollToBottom}
-                animate={{ y: [0, 5, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 15L3 8H17L10 15Z" fill="#888888"/>
-                </svg>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Typing Indicator - if still loading and no thinking message */}
+        {isLoading && !messages.some(m => m.isThinking) && (
+          <div className="flex justify-start mb-4 animate-fade-in px-4 py-4">
+            <div className="glass-card rounded-2xl px-6 py-4 border border-white/10 shadow-glass">
+              <TypingIndicator />
+            </div>
+          </div>
+        )}
         
-        <div ref={messagesEndRef} className="py-1" />
-      </motion.div>
+        {/* Invisible div to maintain scroll position */}
+        <div ref={messagesEndRef} className="h-1" />
+      </div>
+      
+      {/* Scroll to Bottom Button */}
+      {showScrollIndicator && (
+        <button
+          onClick={scrollToBottom}
+          className="fixed bottom-24 right-6 w-12 h-12 bg-gradient-to-r from-electric-blue to-electric-purple 
+                     text-white rounded-2xl shadow-electric hover:shadow-electric-lg hover:scale-110 
+                     active:scale-95 transition-all duration-300 flex items-center justify-center z-40 
+                     animate-bounce border border-white/20 group"
+          aria-label="Scroll to bottom"
+        >
+          <ArrowDown className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+          
+          {/* Electric pulse effect */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-electric-blue to-electric-purple opacity-0 group-hover:opacity-30 transition-opacity animate-pulse" />
+        </button>
+      )}
     </div>
   );
 };

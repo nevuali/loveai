@@ -1,101 +1,204 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { ArrowLeft, Settings, Bell, Shield, Globe, User, LogOut, Eye, EyeOff, Lock, Crown, ChevronRight } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-const Settings = () => {
+const SettingsPage = () => {
   const navigate = useNavigate();
-  const userEmail = localStorage.getItem('userEmail') || 'user@example.com';
-  const userName = localStorage.getItem('userName') || 'Jane Doe';
-  const [darkMode, setDarkMode] = useState(false);
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [smsNotif, setSmsNotif] = useState(false);
-  const [marketing, setMarketing] = useState(true);
-  const [twoFA, setTwoFA] = useState(false);
+  const { user, logout } = useAuth();
+  const { toast } = useToast();
+  
+  const [settings, setSettings] = useState({
+    notifications: true,
+    emailUpdates: false,
+    darkMode: true,
+    language: 'English',
+    profileVisible: true,
+    dataCollection: true
+  });
 
-  const handleLogout = () => {
-    localStorage.removeItem('userMockAuthenticated');
-    navigate('/');
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+      toast({
+        title: "Signed out successfully",
+        description: "See you again soon!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Could not sign out",
+        variant: "destructive"
+      });
+    }
   };
 
+  const toggleSetting = (setting: string) => {
+    setSettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting as keyof typeof prev]
+    }));
+    
+    toast({
+      title: "Setting updated",
+      description: `${setting} has been ${settings[setting as keyof typeof settings] ? 'disabled' : 'enabled'}`,
+      duration: 2000
+    });
+  };
+
+  const SettingToggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
+    <button
+      onClick={onChange}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+        checked ? 'bg-blue-600' : 'bg-gray-600'
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          checked ? 'translate-x-5' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
+  );
+
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gradient-to-br from-cappalove-peach/30 via-white to-cappalove-blue/20 px-2 py-4 sm:py-8">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate('/')}
-        className="fixed top-3 left-3 z-50 p-3 bg-white/90 rounded-full shadow-lg hover:bg-cappalove-peach/40 transition-colors border border-cappalove-peach/40 sm:absolute sm:top-6 sm:left-6"
-        aria-label="Back to Home"
-      >
-        <ChevronLeft className="h-7 w-7 text-cappalove-darkblue" />
-      </button>
-      {/* Profile Card */}
-      <div className="w-full max-w-xl mb-7 px-1 sm:px-0">
-        <div className="bg-white/95 rounded-3xl shadow-2xl p-6 flex flex-col items-center gap-4 border border-cappalove-peach/40">
-          <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}`} alt="Profile" className="w-24 h-24 rounded-full border-2 border-cappalove-peach/60 shadow-lg" />
-          <div className="w-full text-center">
-            <div className="font-bold text-2xl text-cappalove-darkblue mb-1">{userName}</div>
-            <div className="text-base text-gray-600 mb-1">{userEmail}</div>
-            <div className="text-xs text-gray-400">@janedoe</div>
+    <div className="h-screen bg-[#1a1a1a] text-white overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-700">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+          <h1 className="text-lg sm:text-xl font-medium">Settings</h1>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="h-full overflow-y-auto">
+        <div className="max-w-2xl mx-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
+          {/* Profile Section */}
+          <div className="bg-[#2d2e30] rounded-xl p-3 sm:p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-base sm:text-lg font-semibold">
+                {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-medium text-sm sm:text-base truncate">{user?.displayName || 'Beloved User'}</h2>
+                <p className="text-xs sm:text-sm text-gray-400 truncate">{user?.email}</p>
+              </div>
+            </div>
           </div>
-          <button className="w-full mt-2 text-base px-4 py-3 rounded-full bg-cappalove-peach/60 text-cappalove-darkblue font-semibold hover:bg-cappalove-peach/80 transition shadow">Edit Profile</button>
-        </div>
-      </div>
 
-      {/* Settings Cards Grid */}
-      <div className="w-full max-w-xl flex flex-col gap-5 md:grid md:grid-cols-2 md:gap-6">
-        {/* Account */}
-        <div className="bg-gradient-to-br from-cappalove-peach/30 to-cappalove-blue/20 rounded-2xl shadow-xl p-5 flex flex-col gap-3 border border-cappalove-peach/30 mb-2 md:mb-0">
-          <h2 className="font-semibold text-lg text-cappalove-darkblue mb-2">Account</h2>
-          <button className="love-gradient-button w-full py-3 rounded-full font-semibold text-base shadow hover:scale-105 transition-all">Change Password</button>
-          <button className="love-gradient-button w-full py-3 rounded-full font-semibold text-base shadow hover:scale-105 transition-all">Change Email</button>
-          <button className="w-full py-3 rounded-full font-semibold text-base bg-red-100 text-red-600 hover:bg-red-200 transition-all">Delete Account</button>
-        </div>
-        {/* Notifications */}
-        <div className="bg-gradient-to-br from-cappalove-blue/20 to-cappalove-peach/20 rounded-2xl shadow-xl p-5 flex flex-col gap-3 border border-cappalove-blue/30 mb-2 md:mb-0">
-          <h2 className="font-semibold text-lg text-cappalove-darkblue mb-2">Notifications</h2>
-          <label className="flex items-center gap-3 cursor-pointer text-base">
-            <input type="checkbox" checked={emailNotif} onChange={() => setEmailNotif(v => !v)} className="accent-cappalove-peach w-5 h-5" />
-            <span>Email Notifications</span>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer text-base">
-            <input type="checkbox" checked={smsNotif} onChange={() => setSmsNotif(v => !v)} className="accent-cappalove-peach w-5 h-5" />
-            <span>SMS Notifications</span>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer text-base">
-            <input type="checkbox" checked={marketing} onChange={() => setMarketing(v => !v)} className="accent-cappalove-peach w-5 h-5" />
-            <span>Marketing Preferences</span>
-          </label>
-        </div>
-        {/* Theme & Security */}
-        <div className="bg-gradient-to-br from-cappalove-peach/20 to-cappalove-blue/20 rounded-2xl shadow-xl p-5 flex flex-col gap-3 border border-cappalove-peach/30 mb-2 md:mb-0">
-          <h2 className="font-semibold text-lg text-cappalove-darkblue mb-2">Theme & Security</h2>
-          <label className="flex items-center gap-3 cursor-pointer text-base">
-            <input type="checkbox" checked={darkMode} onChange={() => setDarkMode(v => !v)} className="accent-cappalove-blue w-5 h-5" />
-            <span>Dark Mode</span>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer text-base">
-            <input type="checkbox" checked={twoFA} onChange={() => setTwoFA(v => !v)} className="accent-cappalove-blue w-5 h-5" />
-            <span>Two-Factor Authentication (2FA)</span>
-          </label>
-          <button className="love-gradient-button w-full py-3 rounded-full font-semibold text-base shadow hover:scale-105 transition-all">Manage Sessions</button>
-        </div>
-        {/* Support & About */}
-        <div className="bg-gradient-to-br from-cappalove-blue/20 to-cappalove-peach/20 rounded-2xl shadow-xl p-5 flex flex-col gap-3 border border-cappalove-blue/30 mb-2 md:mb-0">
-          <h2 className="font-semibold text-lg text-cappalove-darkblue mb-2">Support & About</h2>
-          <a href="#" className="love-gradient-button w-full py-3 rounded-full font-semibold text-base shadow text-center">FAQ</a>
-          <a href="#" className="love-gradient-button w-full py-3 rounded-full font-semibold text-base shadow text-center">Contact Support</a>
-          <div className="text-xs text-gray-400 text-center mt-2">Version: 1.0.0</div>
-        </div>
-      </div>
+          {/* All Settings in one card */}
+          <div className="bg-[#2d2e30] rounded-xl p-3 sm:p-4">
+            <div className="space-y-3 sm:space-y-4">
+              {/* Notifications */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <Bell className="w-4 h-4 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-sm sm:text-base">Notifications</div>
+                    <div className="text-xs text-gray-400 hidden sm:block">Get notified about updates</div>
+                  </div>
+                </div>
+                <SettingToggle 
+                  checked={settings.notifications} 
+                  onChange={() => toggleSetting('notifications')} 
+                />
+              </div>
 
-      {/* Logout */}
-      <div className="w-full max-w-xl mt-8 px-1 sm:px-0">
-        <button className="w-full py-4 rounded-full font-semibold text-lg bg-red-100 text-red-600 hover:bg-red-200 transition-all shadow-xl" onClick={handleLogout}>
-          Log Out
-        </button>
+              {/* Language */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <Globe className="w-4 h-4 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-sm sm:text-base">Language</div>
+                    <div className="text-xs text-gray-400">{settings.language}</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              </div>
+
+              {/* Profile visibility */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-sm sm:text-base">Profile visibility</div>
+                    <div className="text-xs text-gray-400 hidden sm:block">Control who can see your profile</div>
+                  </div>
+                </div>
+                <SettingToggle 
+                  checked={settings.profileVisible} 
+                  onChange={() => toggleSetting('profileVisible')} 
+                />
+              </div>
+
+              {/* Data collection */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <Eye className="w-4 h-4 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-sm sm:text-base">Data collection</div>
+                    <div className="text-xs text-gray-400 hidden sm:block">Help improve AI LOVVE</div>
+                  </div>
+                </div>
+                <SettingToggle 
+                  checked={settings.dataCollection} 
+                  onChange={() => toggleSetting('dataCollection')} 
+                />
+              </div>
+
+              {/* Change password */}
+              <button className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded-lg transition-colors gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <Lock className="w-4 h-4 flex-shrink-0" />
+                  <div className="min-w-0 flex-1 text-left">
+                    <div className="font-medium text-sm sm:text-base">Change password</div>
+                    <div className="text-xs text-gray-400 hidden sm:block">Update your account security</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              </button>
+
+              {/* Premium */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-sm sm:text-base">AI LOVVE Pro</div>
+                    <div className="text-xs text-gray-400 hidden sm:block">Unlimited romantic planning</div>
+                  </div>
+                </div>
+                <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded-full flex-shrink-0">
+                  Active
+                </span>
+              </div>
+
+              {/* Sign out */}
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-between w-full p-2 hover:bg-red-900/20 rounded-lg transition-colors text-red-400 gap-3"
+              >
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <LogOut className="w-4 h-4 flex-shrink-0" />
+                  <div className="min-w-0 flex-1 text-left">
+                    <div className="font-medium text-sm sm:text-base">Sign out</div>
+                    <div className="text-xs text-gray-400 hidden sm:block">Sign out of your account</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Settings; 
+export default SettingsPage; 

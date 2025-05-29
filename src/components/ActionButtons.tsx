@@ -1,76 +1,79 @@
-import { FileIcon, PackageSearch, TestTube, Users, HelpCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { MessageSquare, MapPin, Heart, Zap } from 'lucide-react';
 
 interface ActionButtonsProps {
   onSend: (message: string) => void;
-  className?: string;
 }
 
-const ActionButtons = ({ onSend, className = "" }: ActionButtonsProps) => {
-  const actionList = [
+const ActionButtons: React.FC<ActionButtonsProps> = ({ onSend }) => {
+  const buttons = [
     {
-      icon: PackageSearch,
-      label: 'Create Holiday Package',
-      onClick: () => onSend('Create Holiday Package')
+      icon: MessageSquare,
+      label: "Plan Trip",
+      description: "AI-powered honeymoon planning",
+      message: "I want to plan my perfect honeymoon. Can you help me?",
+      gradient: "from-purple-500 to-blue-500"
     },
     {
-      icon: FileIcon,
-      label: 'Find Our Most Suitable Holiday',
-      onClick: () => onSend('Find Our Most Suitable Holiday')
+      icon: MapPin,
+      label: "Destinations", 
+      description: "Explore romantic locations",
+      message: "Show me the best honeymoon destinations you offer.",
+      gradient: "from-pink-500 to-purple-500"
     },
     {
-      icon: TestTube,
-      label: 'Which Honeymoon Couple Are You Test',
-      onClick: () => onSend('Which Honeymoon Couple Are You Test')
+      icon: Heart,
+      label: "Packages",
+      description: "Curated honeymoon experiences",
+      message: "What honeymoon packages do you have available?",
+      gradient: "from-red-500 to-pink-500"
     },
     {
-      icon: Users,
-      label: 'Family-Specific Holiday',
-      onClick: () => onSend('Family-Specific Holiday')
-    },
-    {
-      icon: HelpCircle,
-      label: 'Give Me Advice',
-      onClick: () => onSend('Give Me Advice')
+      icon: Zap,
+      label: "Quick Match",
+      description: "Instant recommendations",
+      message: "Help me find the perfect honeymoon package quickly.",
+      gradient: "from-yellow-500 to-orange-500"
     }
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-
   return (
-    <motion.div 
-      className={`w-full grid grid-cols-1 md:grid-cols-2 gap-3 ${className}`}
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-    >
-      {actionList.map((action, i) => (
-        <motion.button
-          key={i}
-          className="flex items-center gap-2 p-4 rounded-xl border border-cappalove-border bg-white hover:bg-cappalove-hover/30 transition-colors"
-          variants={itemVariants}
-          whileHover={{ scale: 1.03, boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
-          whileTap={{ scale: 0.98 }}
-          onClick={action.onClick}
-        >
-          <action.icon className="h-5 w-5 text-cappalove-blue" />
-          <span>{action.label}</span>
-        </motion.button>
-      ))}
-    </motion.div>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+      {buttons.map((button, index) => {
+        const Icon = button.icon;
+        return (
+          <button
+            key={index}
+            onClick={() => onSend(button.message)}
+            className="group relative glass-card rounded-2xl p-6 text-center transition-all duration-300 hover:glass-elevated hover:-translate-y-1 border border-white/10 hover:border-white/20"
+          >
+            {/* Background gradient overlay */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${button.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl`} />
+            
+            <div className="relative z-10 flex flex-col items-center gap-3">
+              {/* Icon container */}
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${button.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                <Icon className="w-6 h-6 text-white" />
+              </div>
+              
+              {/* Text content */}
+              <div className="space-y-1">
+                <h3 className="font-semibold text-white group-hover:text-purple-300 transition-colors">
+                  {button.label}
+                </h3>
+                <p className="text-xs text-white/60 group-hover:text-white/80 transition-colors leading-relaxed">
+                  {button.description}
+                </p>
+              </div>
+            </div>
+            
+            {/* Hover effect overlay */}
+            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <div className="absolute inset-0 rounded-2xl border border-purple-400/20" />
+            </div>
+          </button>
+        );
+      })}
+    </div>
   );
 };
 
