@@ -658,11 +658,26 @@
   }
 
   .gemini-toolbox {
-    max-width: 500px;
+    max-width: 700px;
+    gap: 10px;
+  }
+
+  .gemini-toolbox-button {
+    padding: 16px 22px;
+    font-size: 15px;
+    height: 48px;
+    min-width: 140px;
+    max-width: 180px;
+    gap: 7px;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 15px;
+    height: 15px;
   }
 
   .gemini-input-container {
-    max-width: 700px;
+    max-width: 800px;
   }
 }
 
@@ -985,7 +1000,7 @@
 }
 
 /* Larger screens optimization */
-@media (min-width: 1024px) {
+@media (min-width: 1025px) {
   .gemini-header {
     padding: 16px 32px;
   }
@@ -1006,13 +1021,21 @@
   .gemini-toolbox {
     justify-content: center;
     max-width: 800px;
+    gap: 12px;
   }
 
   .gemini-toolbox-button {
-    padding: 20px 32px;
-    font-size: 17px;
-    height: 56px;
-    min-width: 180px;
+    padding: 18px 26px;
+    font-size: 16px;
+    height: 52px;
+    min-width: 160px;
+    max-width: 200px;
+    gap: 8px;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -1028,13 +1051,21 @@
 
   .gemini-toolbox {
     max-width: 900px;
+    gap: 14px;
   }
 
   .gemini-toolbox-button {
-    padding: 22px 36px;
-    font-size: 18px;
-    height: 60px;
-    min-width: 200px;
+    padding: 20px 30px;
+    font-size: 17px;
+    height: 56px;
+    min-width: 180px;
+    max-width: 220px;
+    gap: 9px;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 17px;
+    height: 17px;
   }
 }
 
@@ -1157,5 +1188,39 @@
 
   .gemini-input-container {
     max-width: 600px;
+  }
+}
+
+/* iPad Air responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .gemini-toolbox {
+    max-width: 650px;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .gemini-toolbox-button {
+    padding: 12px 16px;
+    font-size: 13px;
+    height: 40px;
+    min-width: 100px;
+    max-width: 140px;
+    gap: 5px;
+    flex-shrink: 1;
+  }
+
+  .gemini-toolbox-button svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .gemini-input-container {
+    max-width: 700px;
+  }
+
+  .gemini-messages {
+    max-width: 650px;
   }
 }
