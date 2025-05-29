@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, MessageSquare, Edit, Plus } from 'lucide-react';
 import { generateGeminiStream, getChatHistory } from '../services/geminiService';
 import { authService } from '../services/authService';
-import { useToast } from '@/hooks/use-toast';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -74,22 +73,16 @@ const Index = () => {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredChats, setFilteredChats] = useState<Chat[]>([]);
-  const { toast } = useToast();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
-
-  // Rastgele romantik emoji seç
-  const getRandomLoveEmoji = () => {
+  const [currentEmoji] = useState(() => {
     const emojis = ['💖', '✨', '💫', '🌟', '💎', '👑', '🌹', '💝'];
     return emojis[Math.floor(Math.random() * emojis.length)];
-  };
-
-  // Rastgele lüks karşılama mesajları
-  const getRandomLuxuryGreeting = (name: string) => {
+  });
+  const [currentGreeting] = useState(() => {
+    const name = user?.displayName?.split(' ')[0] || 'soul';
     const greetings = [
       `Greetings, beloved ${name}`,
       `Welcome, magnificent ${name}`,
@@ -103,10 +96,8 @@ const Index = () => {
       `Sacred blessings, treasured ${name}`
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
-  };
-
-  // Rastgele lüks alt mesajlar
-  const getRandomLuxurySubtitle = () => {
+  });
+  const [currentSubtitle] = useState(() => {
     const subtitles = [
       "Begin crafting your dream honeymoon with AI LOVVE's luxury planning",
       "Let's design your perfect romantic escape together - start planning now",
@@ -118,12 +109,28 @@ const Index = () => {
       "Share your romantic vision and we'll craft your perfect getaway"
     ];
     return subtitles[Math.floor(Math.random() * subtitles.length)];
-  };
-
-  const [currentEmoji] = useState(getRandomLoveEmoji());
-  const [currentGreeting] = useState(() => getRandomLuxuryGreeting(user?.displayName?.split(' ')[0] || 'soul'));
-  const [currentSubtitle] = useState(getRandomLuxurySubtitle());
+  });
+  const [currentNewChatTitle, setCurrentNewChatTitle] = useState(() => {
+    const titles = [
+      "Weave New Love Story",
+      "Create Magic Together", 
+      "Begin Sacred Journey",
+      "Craft Dream Escape",
+      "Start Romance Chapter",
+      "Design Love Adventure",
+      "Open Heart's Desires",
+      "Launch Eternal Quest",
+      "Summon Love Magic",
+      "Begin Enchantment"
+    ];
+    return titles[Math.floor(Math.random() * titles.length)];
+  });
   const [isMobile, setIsMobile] = useState(false);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
 
   // Check if mobile device
   useEffect(() => {
@@ -137,19 +144,24 @@ const Index = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // New Chat ismini düzenli olarak güncelle
+  useEffect(() => {
+    const updateNewChatTitle = () => {
+      setCurrentNewChatTitle(getRandomNewChatTitle());
+    };
+    
+    // İlk yüklemede hemen güncelle
+    updateNewChatTitle();
+    
+    // Her 30 saniyede bir güncelle
+    const interval = setInterval(updateNewChatTitle, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   // Filter chats based on search query
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredChats(chats);
-    } else {
-      const filtered = chats.filter(chat => 
-        chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chat.messages.some(msg => 
-          msg.content.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-      setFilteredChats(filtered);
-    }
+    performMagicalSearch(searchQuery);
   }, [chats, searchQuery]);
 
   // Initialize session and load chat history
@@ -165,11 +177,7 @@ const Index = () => {
         
       } catch (error) {
         console.error('Error initializing app:', error);
-        toast({
-          title: "❌ Başlatma Hatası",
-          description: "Uygulama başlatılırken bir hata oluştu",
-          variant: "destructive"
-        });
+        // Sessizce logla, toast gösterme
       }
     };
 
@@ -266,24 +274,20 @@ const Index = () => {
 
   const createNewChat = async () => {
     try {
+      // Her yeni chat için yeni büyülü isim
+      const newMagicalTitle = getRandomNewChatTitle();
+      setCurrentNewChatTitle(newMagicalTitle);
+      
+      // Büyülü efekt - sidebar'ı kapat
+      setSidebarOpen(false);
+      
       // Get new session ID for new chat
       const newSessionId = await authService.getChatSessionId();
-      const newChatId = newSessionId;
-      
-      // Check if chat with this ID already exists
-      const existingChat = chats.find(chat => chat.id === newChatId);
-      if (existingChat) {
-        console.log('Chat already exists, selecting existing chat');
-        setCurrentChatId(newChatId);
-        setCurrentSessionId(newSessionId);
-        setMessages(existingChat.messages);
-        setSidebarOpen(false);
-        return;
-      }
+      const newChatId = `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       const newChat: Chat = {
         id: newChatId,
-        title: 'New Chat',
+        title: newMagicalTitle,
         messages: [],
         lastMessage: 'Now',
         sessionId: newSessionId
@@ -293,14 +297,11 @@ const Index = () => {
       setCurrentChatId(newChatId);
       setCurrentSessionId(newSessionId);
       setMessages([]);
-      setSidebarOpen(false);
+      
+      console.log(`✨ New magical chat created: ${newMagicalTitle}`);
+      
     } catch (error) {
       console.error('Error creating new chat:', error);
-      toast({
-        title: "Error",
-        description: "An error occurred while creating new chat",
-        variant: "destructive"
-      });
     }
   };
 
@@ -397,11 +398,6 @@ const Index = () => {
       ));
 
     } catch (e: any) {
-      toast({
-        title: "Error",
-        description: e.message || "An error occurred",
-        variant: "destructive"
-      });
       // Remove user message on error
       setMessages(prev => prev.slice(0, prev.length - 1));
     } finally {
@@ -419,19 +415,15 @@ const Index = () => {
   };
 
   const openActivity = () => {
-    toast({
-      title: "Activity",
-      description: "Activity page is under development...",
-    });
+    // Activity sayfası geliştiriliyor, sessizce işle
+    console.log('Activity page is under development...');
   };
 
   const handleModelChange = (model: ModelType) => {
     setSelectedModel(model);
     setModelMenuOpen(false);
-    toast({
-      title: "Model Değiştirildi",
-      description: `${model === 'ai-lovv3' ? 'Gelişmiş AI' : 'Hızlı AI'} modeli seçildi`,
-    });
+    // Toast yerine sessizce model değiştir
+    console.log(`Model changed to: ${model === 'ai-lovv3' ? 'Advanced AI' : 'Fast AI'}`);
   };
 
   const handleLogout = async () => {
@@ -439,12 +431,59 @@ const Index = () => {
       await logout();
       navigate('/');
     } catch (error) {
-      toast({
-        title: "Hata",
-        description: "Çıkış yapılamadı",
-        variant: "destructive"
-      });
+      // Sessizce logla, toast gösterme
     }
+  };
+
+  // Büyülü arama fonksiyonları
+  const handleSearchToggle = () => {
+    setIsSearchOpen(!isSearchOpen);
+    if (!isSearchOpen) {
+      setSearchInput('');
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    setIsSearching(true);
+    
+    // Büyülü arama gecikme efekti
+    setTimeout(() => {
+      setSearchQuery(value);
+      setIsSearching(false);
+    }, 300);
+  };
+
+  const performMagicalSearch = (query: string) => {
+    if (!query.trim()) {
+      setFilteredChats(chats);
+      return;
+    }
+
+    setIsSearching(true);
+    
+    // Büyülü arama algoritması
+    setTimeout(() => {
+      const filtered = chats.filter(chat => 
+        chat.title.toLowerCase().includes(query.toLowerCase()) ||
+        chat.messages.some(msg => 
+          msg.content.toLowerCase().includes(query.toLowerCase())
+        )
+      );
+      setFilteredChats(filtered);
+      setIsSearching(false);
+      console.log(`✨ Magical search found ${filtered.length} treasures for: "${query}"`);
+    }, 200);
+  };
+
+  const clearMagicalSearch = () => {
+    setSearchInput('');
+    setSearchQuery('');
+    setIsSearchOpen(false);
+    setIsSearching(false);
+    setFilteredChats(chats);
+    console.log('🧹 Search magic cleared');
   };
 
   const suggestionPrompts = [
@@ -466,6 +505,23 @@ const Index = () => {
     }
   ];
 
+  // Rastgele büyülü New Chat isimleri
+  const getRandomNewChatTitle = () => {
+    const titles = [
+      "Weave New Love Story",
+      "Create Magic Together", 
+      "Begin Sacred Journey",
+      "Craft Dream Escape",
+      "Start Romance Chapter",
+      "Design Love Adventure",
+      "Open Heart's Desires",
+      "Launch Eternal Quest",
+      "Summon Love Magic",
+      "Begin Enchantment"
+    ];
+    return titles[Math.floor(Math.random() * titles.length)];
+  };
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -479,132 +535,168 @@ const Index = () => {
             >
               <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
-            <button className="gemini-search-icon">
+            <button 
+              onClick={handleSearchToggle}
+              className={`gemini-search-icon ${isSearchOpen ? 'active' : ''}`}
+            >
               <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
           
+          {/* Büyülü Arama Kutusu */}
+          {isSearchOpen && (
+            <div className="gemini-search-box">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ color: '#f1c40f', fontSize: '11px', fontWeight: '500' }}>🔮 Magical Search</span>
+                <button 
+                  onClick={handleSearchToggle}
+                  style={{ 
+                    background: 'transparent', 
+                    border: 'none', 
+                    color: '#9aa0a6', 
+                    cursor: 'pointer', 
+                    padding: '2px',
+                    fontSize: '14px'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="Search magical conversations..."
+                  className="gemini-search-input"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      performMagicalSearch(searchInput);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => performMagicalSearch(searchInput)}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '6px',
+                    color: '#9aa0a6',
+                    opacity: '0.7',
+                    transition: 'opacity 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+                >
+                  🔍
+                </button>
+              </div>
+              {isSearching && (
+                <div className="gemini-search-loading">
+                  <span>🔮 Searching...</span>
+                </div>
+              )}
+            </div>
+          )}
+          
           <div className="gemini-new-chat-container">
             <button onClick={createNewChat} className="gemini-new-chat">
               <Edit className="w-4 h-4" />
-              <span className="full-text">Weave new love story</span>
-              <span className="short-text">New chat</span>
+              <span>{currentNewChatTitle}</span>
             </button>
           </div>
         </div>
 
         {/* Sidebar Content */}
         <div className="gemini-sidebar-section">
-          <span className="full-text">Enchanted Whispers</span>
-          <span className="short-text">Suggestions</span>
+          <span>Suggestions</span>
         </div>
         
         <div className="gemini-chat-list">
           <div 
             className="gemini-chat-item" 
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Craft a magical 5-day romantic escape to the City of Love, Paris")}
+            onClick={() => handleSendMessage("Plan romantic Paris honeymoon")}
           >
             <Heart className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Parisian Love Symphony</span>
-            <span className="short-text">Paris</span>
+            <span>Romantic Paris Honeymoon</span>
           </div>
           <div 
             className="gemini-chat-item" 
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Unveil the most enchanting honeymoon sanctuaries within $10,000")}
+            onClick={() => handleSendMessage("Budget honeymoon destinations under $5000")}
           >
             <MapPin className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Dreamy Escapes Within Reach</span>
-            <span className="short-text">Budget</span>
+            <span>Budget Honeymoon Destinations</span>
           </div>
           <div 
             className="gemini-chat-item" 
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("When should lovers journey to the Maldives paradise and what magical moments await?")}
+            onClick={() => handleSendMessage("Best time to visit Maldives for honeymoon")}
           >
             <Sparkles className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Maldivian Love Chronicles</span>
-            <span className="short-text">Maldives</span>
+            <span>Maldives Honeymoon Guide</span>
           </div>
           <div 
             className="gemini-chat-item" 
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("How to weave spellbinding romantic surprises into our honeymoon tale?")}
+            onClick={() => handleSendMessage("Romantic surprises for honeymoon")}
           >
             <Crown className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Enchanting Love Spells</span>
-            <span className="short-text">Surprises</span>
+            <span>Romantic Surprise Ideas</span>
           </div>
           <div 
             className="gemini-chat-item" 
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Design a celestial honeymoon journey through the Greek islands with sunset rituals")}
+            onClick={() => handleSendMessage("Greek islands honeymoon itinerary")}
           >
             <Star className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Greek Island Odyssey</span>
-            <span className="short-text">Greece</span>
+            <span>Greek Islands Honeymoon</span>
           </div>
           <div 
             className="gemini-chat-item" 
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Create an intimate Tuscan vineyard romance with wine tasting under moonlight")}
+            onClick={() => handleSendMessage("Tuscany wine honeymoon tour")}
           >
             <Zap className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Tuscan Wine Whispers</span>
-            <span className="short-text">Tuscany</span>
+            <span>Tuscany Wine Honeymoon</span>
           </div>
           <div 
             className="gemini-chat-item" 
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Plan a winter wonderland honeymoon in Swiss Alps with cozy fireside moments")}
+            onClick={() => handleSendMessage("Swiss Alps winter honeymoon")}
           >
             <Sparkles className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Alpine Love Castle</span>
-            <span className="short-text">Alps</span>
+            <span>Swiss Alps Winter Romance</span>
           </div>
           <div 
             className="gemini-chat-item" 
             style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Craft a tropical paradise escape in Bali with temple blessings and spa rituals")}
+            onClick={() => handleSendMessage("Bali temple honeymoon experience")}
           >
             <Heart className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Balinese Sacred Bonds</span>
-            <span className="short-text">Bali</span>
-          </div>
-          <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Design a luxury safari honeymoon in Kenya with stargazing and wildlife encounters")}
-          >
-            <Crown className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">African Love Safari</span>
-            <span className="short-text">Safari</span>
-          </div>
-          <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Create a cherry blossom honeymoon in Japan with traditional tea ceremonies")}
-          >
-            <Star className="gem-icon w-4 h-4 flex-shrink-0" />
-            <span className="full-text">Sakura Love Ceremony</span>
-            <span className="short-text">Japan</span>
+            <span>Bali Temple Honeymoon</span>
           </div>
         </div>
 
         <div className="gemini-sidebar-section">
-          <span className="full-text">Sacred Memories</span>
-          <span className="short-text">History</span>
+          <span>History</span>
         </div>
         
         <div className="gemini-chat-list">
           {isLoadingHistory ? (
             <div className="gemini-chat-item">
-              <span className="full-text">Weaving magic...</span>
-              <span className="short-text">Loading...</span>
+              <span>Weaving magic...</span>
             </div>
-          ) : chats.length > 0 ? (
-            chats.map((chat) => (
+          ) : (searchInput ? filteredChats : chats).length > 0 ? (
+            (searchInput ? filteredChats : chats).map((chat) => (
               <div
                 key={chat.id}
                 onClick={() => selectChat(chat.id)}
@@ -614,35 +706,33 @@ const Index = () => {
                 {chat.title}
               </div>
             ))
+          ) : searchInput ? (
+            <div className="gemini-chat-item">
+              <span>🔮 No magical conversations found...</span>
+            </div>
           ) : (
             <>
               <div className="gemini-chat-item truncate">
-                <span className="full-text">Journey to Forever Begins...</span>
-                <span className="short-text">Journey...</span>
+                <span>Journey to Forever Begins...</span>
               </div>
               <div className="gemini-chat-item truncate">
-                <span className="full-text">How May Love Guide You?</span>
-                <span className="short-text">Guide...</span>
+                <span>How May Love Guide You?</span>
               </div>
               <div className="gemini-chat-item truncate">
-                <span className="full-text">Whispers of the Heart</span>
-                <span className="short-text">Whispers...</span>
+                <span>Whispers of the Heart</span>
               </div>
               <div className="gemini-chat-item truncate">
-                <span className="full-text">Crafting Eternal Memories...</span>
-                <span className="short-text">Memories...</span>
+                <span>Crafting Eternal Memories...</span>
               </div>
               <div className="gemini-chat-item truncate">
-                <span className="full-text">Painting Dreams Together...</span>
-                <span className="short-text">Dreams...</span>
+                <span>Painting Dreams Together...</span>
               </div>
             </>
           )}
           
           <div className="gemini-sidebar-section">
             <button className="flex items-center w-full text-left text-sm">
-              <span className="full-text">Reveal more magic</span>
-              <span className="short-text">More</span>
+              <span>Reveal more magic</span>
               <ChevronDown className="w-3 h-3 ml-1 flex-shrink-0" />
             </button>
           </div>
@@ -656,8 +746,7 @@ const Index = () => {
               className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-lg transition-colors w-full justify-center sm:justify-start"
             >
               <Settings className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-gray-400 full-text">Sacred settings & guidance</span>
-              <span className="text-xs text-gray-400 short-text">Settings</span>
+              <span className="text-xs sm:text-sm text-gray-400">Sacred settings & guidance</span>
             </button>
           </div>
         </div>

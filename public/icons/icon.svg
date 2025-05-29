@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f1c40f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e74c3c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#grad1)" />
+  
+  <!-- Heart Shape -->
+  <path d="M256 432 C192 368, 128 304, 128 224 C128 176, 168 136, 216 136 C232 136, 248 144, 256 152 C264 144, 280 136, 296 136 C344 136, 384 176, 384 224 C384 304, 320 368, 256 432 Z" fill="white" opacity="0.95"/>
+  
+  <!-- AI Text -->
+  <text x="256" y="300" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="bold" opacity="0.9">AI</text>
+  
+  <!-- Crown -->
+  <path d="M200 100 L220 120 L240 100 L260 120 L280 100 L300 120 L312 100 L312 140 L200 140 Z" fill="gold" opacity="0.8"/>
+  <circle cx="220" cy="110" r="4" fill="#ff6b6b"/>
+  <circle cx="256" cy="110" r="4" fill="#ff6b6b"/>
+  <circle cx="292" cy="110" r="4" fill="#ff6b6b"/>
+</svg> 

@@ -129,6 +129,7 @@
 .gemini-sidebar-top {
   padding: 18px;
   border-bottom: none;
+  position: relative;
 }
 
 .gemini-sidebar-menu {
@@ -190,6 +191,13 @@
 
 .gemini-new-chat:hover {
   background: #3c4043;
+  animation: magical-glow 2s ease-in-out infinite, magical-pulse 1.5s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.gemini-new-chat:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 25px rgba(241, 196, 15, 0.8), 0 0 40px rgba(241, 196, 15, 0.6);
 }
 
 .gemini-chat-list {
@@ -198,6 +206,12 @@
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  transition: margin-top 0.3s ease;
+}
+
+/* Arama açıkken chat list'e daha fazla margin */
+.gemini-sidebar:has(.gemini-search-box) .gemini-chat-list {
+  margin-top: 0px;
 }
 
 .gemini-chat-list::-webkit-scrollbar {
@@ -1295,4 +1309,94 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes magical-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(241, 196, 15, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.6), 0 0 30px rgba(241, 196, 15, 0.4);
+  }
+}
+
+@keyframes magical-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Büyülü Arama Stilleri */
+.gemini-search-box {
+  position: absolute;
+  top: 60px;
+  left: 18px;
+  right: 18px;
+  z-index: 10;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.gemini-search-input {
+  width: 100%;
+  background: #2d2e30;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 8px 35px 8px 10px;
+  color: #e8eaed;
+  font-size: 13px;
+  font-family: 'Google Sans', sans-serif;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.gemini-search-input:focus {
+  border-color: #f1c40f;
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
+}
+
+.gemini-search-input::placeholder {
+  color: #9aa0a6;
+  font-style: italic;
+}
+
+.gemini-search-loading {
+  position: absolute;
+  bottom: 12px;
+  right: 20px;
+  font-size: 10px;
+  color: #f1c40f;
+  animation: magical-pulse 1s ease-in-out infinite;
+}
+
+.gemini-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #f1c40f;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.gemini-search-clear:hover {
+  background: rgba(241, 196, 15, 0.1);
+  transform: translateY(-50%) scale(1.2);
+}
+
+.gemini-search-icon.active {
+  color: #f1c40f;
+  background: rgba(241, 196, 15, 0.1);
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
 }
