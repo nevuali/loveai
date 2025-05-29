@@ -990,7 +990,7 @@ const Index = () => {
                         </div>
                         <div className="package-cards-footer">
                           <p className="text-sm text-gray-400">
-                            💫 Tap any package to explore magical details
+                            ✨ Kalbinizin çağırdığı büyülü yolculuğu seçin • Which enchanted journey calls to your soul? 💫
                           </p>
                         </div>
                       </div>

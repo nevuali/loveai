@@ -169,7 +169,7 @@ class PackageService {
    * Get featured packages (top rated)
    */
   async getFeaturedPackages(): Promise<HoneymoonPackage[]> {
-    return this.getPackages({ limit: 6 });
+    return this.getPackages({ limit: 20 });
   }
 
   /**
