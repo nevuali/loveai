@@ -93,11 +93,17 @@ export const generateGeminiResponse = onCall<GeminiRequestData, Promise<GeminiRe
   {
     region: "europe-west1", 
     secrets: [geminiKey],
-    memory: "512MiB", // Memory increased
-    timeoutSeconds: 60 // Timeout added
+    memory: "512MiB",
+    timeoutSeconds: 60,
+    enforceAppCheck: false,
+    cors: true
   },
   async (request) => {
-    logger.info("generateGeminiResponse called with data:", request.data);
+    // Remove auth context check - allow public access
+    logger.info("generateGeminiResponse called (public access)", { 
+      hasData: !!request.data,
+      messagesCount: request.data?.messages?.length || 0 
+    });
 
     // Get API key from secret
     const apiKey = geminiKey.value();
@@ -110,10 +116,12 @@ export const generateGeminiResponse = onCall<GeminiRequestData, Promise<GeminiRe
     const model = genAI.getGenerativeModel({
       model: MODEL_NAME,
       generationConfig: {
-        maxOutputTokens: 200, // Reduced from 512 to 200 for shorter responses
-        temperature: 0.7, // Slightly increased for more creativity
-        topP: 0.8, // Better balance
-        topK: 20 // Fewer options = faster
+        maxOutputTokens: 512, // Increased for better responses
+        temperature: 0.8, // More creativity for luxury planning
+        topP: 0.9, // Better for creative writing  
+        topK: 32, // Optimized balance
+        candidateCount: 1, // Single best response
+        stopSequences: ["END_RESPONSE"] // Emergency stop if needed
       }
     });
 
@@ -138,8 +146,8 @@ export const generateGeminiResponse = onCall<GeminiRequestData, Promise<GeminiRe
     }
 
     // Convert messages array from client to Content[] format expected by Gemini.
-    // ULTRA FAST: Use only last 3 messages
-    const recentMessages = messages.slice(-3); // Last 3 messages
+    // Improved context: Use last 6 messages for better conversation flow
+    const recentMessages = messages.slice(-6); // Increased from 3 to 6 messages
     let historyForGemini: Content[] = recentMessages.slice(0, -1).map((msg) => ({
       role: msg.role,
       parts: msg.parts as Part[], // Type casting, assuming client sends correct format
@@ -236,7 +244,7 @@ export const generateGeminiResponse = onCall<GeminiRequestData, Promise<GeminiRe
  */
 async function getChatHistoryInternal(
   sessionId: string,
-  limitCount = 5, // Reduced from 20 to 5 - minimal context
+  limitCount = 10, // Increased from 5 to 10 for better conversation memory
 ): Promise<AppMessage[]> {
   if (!sessionId) {
     logger.warn("getChatHistoryInternal: Session ID is required.");
@@ -261,9 +269,17 @@ async function getChatHistoryInternal(
 }
 
 export const getGeminiChatHistory = onCall<ChatHistoryRequestData, Promise<ChatHistoryResponse>>(
-  {region: "europe-west1"}, // Made region same as generateGeminiResponse
+  {
+    region: "europe-west1",
+    enforceAppCheck: false,
+    cors: true
+  },
   async (request) => {
-    logger.info("getGeminiChatHistory called with data:", request.data);
+    // Public access for chat history
+    logger.info("getGeminiChatHistory called (public access)", { 
+      sessionId: request.data?.sessionId?.substring(0, 8) + "...",
+      hasData: !!request.data
+    });
     const {sessionId, limit} = request.data;
 
     if (!sessionId) {

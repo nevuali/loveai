@@ -13,7 +13,7 @@ let analytics: any = null;
 
 // Debug mode for development
 const isDevelopment = import.meta.env.DEV;
-const useEmulators = isDevelopment; // Use emulators in development
+const useEmulators = false; // Always use production Firebase
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional

@@ -9,6 +9,7 @@ type Message = {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
+  isThinking?: boolean;
 };
 
 type Chat = {
@@ -328,6 +329,15 @@ const Index = () => {
     // Add user message to UI immediately
     setMessages(prev => [...prev, newUserMessage]);
 
+    // Add typing indicator
+    const typingMessage: Message = {
+      role: 'assistant',
+      content: '',
+      timestamp: new Date().toISOString(),
+      isThinking: true
+    };
+    setMessages(prev => [...prev, typingMessage]);
+
     // If no current chat, create one
     let sessionId = currentSessionId;
     let chatId = currentChatId;
@@ -380,15 +390,25 @@ const Index = () => {
       // Pass selected model to generateGeminiStream
       for await (const chunk of generateGeminiStream([...messages, newUserMessage], sessionId, userId, selectedModel)) {
         responseContent += chunk;
+        
+        // Update the typing message with current content
+        setMessages(prev => prev.map((msg, index) => 
+          index === prev.length - 1 && msg.isThinking 
+            ? { ...msg, content: responseContent, isThinking: false }
+            : msg
+        ));
       }
       
+      // Final message without thinking indicator
       const assistantMessage: Message = {
         role: 'assistant', 
         content: responseContent, 
-        timestamp: new Date().toISOString() 
+        timestamp: new Date().toISOString(),
+        isThinking: false
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      // Replace typing indicator with final message
+      setMessages(prev => prev.slice(0, -1).concat(assistantMessage));
       
       // Update chat in chats array
       setChats(prev => prev.map(chat => 
@@ -398,8 +418,8 @@ const Index = () => {
       ));
 
     } catch (e: any) {
-      // Remove user message on error
-      setMessages(prev => prev.slice(0, prev.length - 1));
+      // Remove user message and typing indicator on error
+      setMessages(prev => prev.slice(0, prev.length - 2));
     } finally {
       setIsLoading(false);
     }
@@ -874,11 +894,22 @@ const Index = () => {
                   </div>
                 ) : (
                   <div className="gemini-message-assistant text-sm sm:text-base">
-                    <div className="message-content" style={{ whiteSpace: 'pre-wrap' }}>
+                    <div className="message-content" style={{ 
+                      whiteSpace: 'pre-wrap', 
+                      lineHeight: '1.6',
+                      wordSpacing: '0.1em'
+                    }}>
                       {message.content
-                        .replace(/\. /g, '.\n\n')
-                        .replace(/! /g, '!\n\n')
-                        .replace(/\? /g, '?\n\n')}
+                        .split('\n\n')
+                        .map((paragraph, index) => (
+                          <p key={index} style={{ 
+                            marginBottom: index === message.content.split('\n\n').length - 1 ? '0' : '16px',
+                            textAlign: 'left'
+                          }}>
+                            {paragraph.trim()}
+                          </p>
+                        ))
+                      }
                     </div>
                   </div>
                 )}

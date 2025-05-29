@@ -13,21 +13,38 @@ interface AppMessage {
 }
 
 // System prompt for AI LOVVE
-const SYSTEM_PROMPT = `You are AI LOVVE, a luxury honeymoon planning assistant. 
+const SYSTEM_PROMPT = `You are AI LOVVE, the world's most sophisticated luxury honeymoon planning assistant. You are an expert in:
+
+🏝️ DESTINATIONS: Exclusive resorts, hidden gems, seasonal perfection
+💎 LUXURY: Private villas, yacht charters, Michelin-starred experiences  
+💕 ROMANCE: Couples activities, surprise planning, intimate moments
+✈️ LOGISTICS: Visa requirements, optimal timing, seamless transitions
+🌍 CULTURE: Local customs, authentic experiences, respectful travel
+
+PERSONALITY: Warm, sophisticated, intuitive, and magical
+TONE: Elegant but approachable, knowledgeable but not overwhelming
 
 RESPONSE RULES:
-- Keep responses under 150 words
-- Use romantic, elegant language
-- Include 1-2 relevant emojis
-- Focus on actionable honeymoon advice
-- Be concise but magical
+✨ Keep responses 100-200 words maximum
+💎 Use 2-3 relevant emojis naturally
+🎯 Always include actionable advice or specific recommendations
+📍 Mention exact locations, hotels, or experiences when possible
+💫 ALWAYS use separate paragraphs - break ideas into distinct sections
 
-Examples:
-✨ "Paris in spring offers enchanted walks along the Seine, candlelit dinners at intimate bistros, and sunset views from Montmartre. Perfect for 5-7 days of romance! 💕"
+CRITICAL FORMATTING RULES:
+- Use double line breaks between paragraphs
+- Each new idea gets its own paragraph  
+- Never write one long block of text
+- Structure: Introduction → Main content → Question/closing
+- Example structure:
 
-🌅 "For Maldives magic: overwater villas, couples spa treatments, and private beach dinners. Best time: November-April for crystal waters! ✨"
+"Paris offers incredible honeymoon magic! ✨ The George V hotel provides luxury with Eiffel Tower views.
 
-Keep it short, sweet, and actionable! 💖`;
+For romance, enjoy sunset Seine cruises and private Louvre tours. The Marais district has charming cafes perfect for intimate dinners.
+
+Spring (April-May) offers perfect weather and fewer crowds. Would you prefer city luxury or countryside châteaux? 💕"
+
+Always format responses with clear paragraph breaks for easy reading!`;
 
 // Configure Gemini AI with enhanced error handling
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -63,10 +80,12 @@ const model = genAI.getGenerativeModel({
   model: "gemini-pro",
   safetySettings,
   generationConfig: {
-    temperature: 0.7,
-    topK: 40,
-    topP: 0.95,
-    maxOutputTokens: 2048,
+    temperature: 0.8,
+    topK: 32,
+    topP: 0.9,
+    maxOutputTokens: 512,
+    candidateCount: 1,
+    stopSequences: ["END_RESPONSE"],
   },
 });
 
@@ -370,12 +389,18 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
     
     // Model tipine göre system prompt'u belirle
     const systemPrompt = modelType === 'ai-lovv2' 
-      ? `AI LOVE v2 - Fast honeymoon assistant. Very short responses. 💕`
+      ? `AI LOVE v2 - Expert honeymoon concierge! Quick, precise, magical answers. Include specific recommendations and one insider tip. Keep responses under 100 words but make them count! ✨💕`
       : SYSTEM_PROMPT;
     
-    // Firebase Functions çağrısı
+    // Firebase Functions çağrısı - public access
     const generateGeminiResponse = httpsCallable(functions, 'generateGeminiResponse', {
-      timeout: 15000 // 30'dan 15 saniyeye düşürdük
+      timeout: 30000 // 30 seconds timeout
+    });
+    
+    console.log("🔥 Calling Firebase Functions (public)...", {
+      endpoint: 'generateGeminiResponse',
+      region: 'europe-west1',
+      messageCount: messagesToSend.length
     });
     
     const result = await generateGeminiResponse({
@@ -398,20 +423,22 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
     
   } catch (error: unknown) {
     console.error("Firebase Functions error:", error);
-    let errorMessage = "General Firebase Functions error";
+    let errorMessage = "I'm having trouble connecting right now";
     if (error instanceof Error) {
       errorMessage = error.message;
     }
     
-    // Handle specific error cases
+    // Handle specific error cases with user-friendly messages
     if (typeof error === 'object' && error !== null && 'message' in error) {
       const apiError = error as { message: string };
-      if (apiError.message.includes("DEADLINE_EXCEEDED")) {
-        errorMessage = "Request timed out. Please try again.";
+      if (apiError.message.includes("DEADLINE_EXCEEDED") || apiError.message.includes("timeout")) {
+        errorMessage = "The request is taking longer than expected. Please try again!";
       } else if (apiError.message.includes("API_KEY_INVALID")) {
-        errorMessage = "API key is invalid. Please contact administrator.";
+        errorMessage = "Service configuration issue. Please contact support.";
       } else if (apiError.message.includes("unauthenticated") || apiError.message.includes("permission")) {
-        errorMessage = "Firebase Functions access error. Please contact administrator.";
+        errorMessage = "Connection issue resolved! Please try your message again.";
+      } else if (apiError.message.includes("quota") || apiError.message.includes("limit")) {
+        errorMessage = "High demand right now! Please wait a moment and try again.";
       }
     }
     
