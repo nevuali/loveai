@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, MessageSquare, Edit, Plus } from 'lucide-react';
 import { generateGeminiStream, getChatHistory } from '../services/geminiService';
 import { authService } from '../services/authService';
-import PackageCard from '../components/PackageCard';
+import PackageCarousel from '../components/PackageCarousel';
 import { packageService, HoneymoonPackage } from '../services/packageService';
 
 type Message = {
@@ -151,6 +151,172 @@ const Index = () => {
         
         if (param.toLowerCase() === 'featured') {
           packages = await packageService.getFeaturedPackages();
+        } else if (param.toLowerCase() === 'cities') {
+          // Show curated city destinations
+          packages = [
+            {
+              id: 'city-kapadokya',
+              title: 'Kapadokya Romance',
+              description: 'Hot air balloons & unique landscapes',
+              location: 'Kapadokya',
+              country: 'Turkey',
+              duration: '3-5 days',
+              price: 2500,
+              currency: 'USD',
+              category: 'romantic',
+              features: ['Hot Air Balloon', 'Cave Hotels', 'Sunset Views'],
+              inclusions: ['Luxury Cave Suite', 'Private Balloon Ride', 'Spa Treatment'],
+              images: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=500&h=400&fit=crop'],
+              rating: 4.9,
+              reviews: 245,
+              availability: true,
+              seasonality: ['Spring', 'Fall']
+            },
+            {
+              id: 'city-antalya',
+              title: 'Antalya Luxury',
+              description: 'Mediterranean beaches & luxury resorts',
+              location: 'Antalya',
+              country: 'Turkey',
+              duration: '5-7 days',
+              price: 3200,
+              currency: 'USD',
+              category: 'beach',
+              features: ['Private Beach', 'Spa Wellness', 'Fine Dining'],
+              inclusions: ['5-Star Resort', 'Couple Spa', 'Private Beach Access'],
+              images: ['https://images.unsplash.com/photo-1605540436563-5bca919ae766?q=80&w=500&h=400&fit=crop'],
+              rating: 4.8,
+              reviews: 312,
+              availability: true,
+              seasonality: ['Spring', 'Summer', 'Fall']
+            },
+            {
+              id: 'city-istanbul',
+              title: 'İstanbul Heritage',
+              description: 'Historic charm & Bosphorus romance',
+              location: 'İstanbul',
+              country: 'Turkey',
+              duration: '4-6 days',
+              price: 2800,
+              currency: 'USD',
+              category: 'cultural',
+              features: ['Bosphorus Cruise', 'Historic Tours', 'Turkish Baths'],
+              inclusions: ['Luxury Hotel', 'Private Tours', 'Traditional Spa'],
+              images: ['https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?q=80&w=500&h=400&fit=crop'],
+              rating: 4.7,
+              reviews: 189,
+              availability: true,
+              seasonality: ['Spring', 'Summer', 'Fall']
+            },
+            {
+              id: 'city-bodrum',
+              title: 'Bodrum Riviera',
+              description: 'Aegean coast luxury & vibrant nightlife',
+              location: 'Bodrum',
+              country: 'Turkey',
+              duration: '4-6 days',
+              price: 3500,
+              currency: 'USD',
+              category: 'beach',
+              features: ['Marina Views', 'Beach Clubs', 'Yacht Tours'],
+              inclusions: ['Boutique Hotel', 'Yacht Day Trip', 'VIP Beach Access'],
+              images: ['https://images.unsplash.com/photo-1605540436563-5bca919ae766?q=80&w=500&h=400&fit=crop'],
+              rating: 4.6,
+              reviews: 156,
+              availability: true,
+              seasonality: ['Spring', 'Summer', 'Fall']
+            },
+            {
+              id: 'city-alacati',
+              title: 'Alaçatı Boutique',
+              description: 'Windmill charm & boutique sophistication',
+              location: 'Alaçatı',
+              country: 'Turkey',
+              duration: '3-5 days',
+              price: 2200,
+              currency: 'USD',
+              category: 'romantic',
+              features: ['Stone Houses', 'Windsurfing', 'Local Vineyards'],
+              inclusions: ['Boutique Hotel', 'Wine Tasting', 'Windsurf Lessons'],
+              images: ['https://images.unsplash.com/photo-1605540436563-5bca919ae766?q=80&w=500&h=400&fit=crop'],
+              rating: 4.5,
+              reviews: 98,
+              availability: true,
+              seasonality: ['Spring', 'Summer', 'Fall']
+            },
+            {
+              id: 'city-pamukkale',
+              title: 'Pamukkale Thermal',
+              description: 'Natural thermal pools & ancient history',
+              location: 'Pamukkale',
+              country: 'Turkey',
+              duration: '2-4 days',
+              price: 1800,
+              currency: 'USD',
+              category: 'romantic',
+              features: ['Hot Air Balloon', 'Cave Hotels', 'Sunset Views'],
+              inclusions: ['Luxury Cave Suite', 'Private Balloon Ride', 'Spa Treatment'],
+              images: ['https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=500&h=400&fit=crop'],
+              rating: 4.9,
+              reviews: 245,
+              availability: true,
+              seasonality: ['Spring', 'Fall']
+            },
+            {
+              id: 'city-srilanka',
+              title: 'Sri Lanka Paradise',
+              description: 'Tropical paradise & ancient culture',
+              location: 'Sri Lanka',
+              country: 'Sri Lanka',
+              duration: '7-10 days',
+              price: 3500,
+              currency: 'USD',
+              category: 'adventure',
+              features: ['Wildlife Safari', 'Tea Plantations', 'Beach Resorts'],
+              inclusions: ['Luxury Villa', 'Safari Experience', 'Cultural Tours'],
+              images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=500&h=400&fit=crop'],
+              rating: 4.9,
+              reviews: 187,
+              availability: true,
+              seasonality: ['Winter', 'Spring']
+            },
+            {
+              id: 'city-phuket',
+              title: 'Phuket Wellness',
+              description: 'Thai beaches & luxury wellness',
+              location: 'Phuket',
+              country: 'Thailand',
+              duration: '6-8 days',
+              price: 4200,
+              currency: 'USD',
+              category: 'luxury',
+              features: ['Private Villa', 'Spa Retreat', 'Island Hopping'],
+              inclusions: ['Beachfront Villa', 'Couples Spa', 'Private Yacht'],
+              images: ['https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?q=80&w=500&h=400&fit=crop'],
+              rating: 4.8,
+              reviews: 356,
+              availability: true,
+              seasonality: ['Winter', 'Spring']
+            },
+            {
+              id: 'city-bali',
+              title: 'Bali Bliss',
+              description: 'Island of gods & romantic villas',
+              location: 'Bali',
+              country: 'Indonesia',
+              duration: '7-9 days',
+              price: 3800,
+              currency: 'USD',
+              category: 'romantic',
+              features: ['Private Villa', 'Rice Terraces', 'Temple Tours'],
+              inclusions: ['Luxury Villa', 'Spa Treatment', 'Cultural Experience'],
+              images: ['https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?q=80&w=500&h=400&fit=crop'],
+              rating: 4.9,
+              reviews: 423,
+              availability: true,
+              seasonality: ['Spring', 'Summer', 'Fall']
+            }
+          ];
         } else if (['luxury', 'romantic', 'adventure', 'cultural', 'beach', 'city'].includes(param.toLowerCase())) {
           packages = await packageService.getPackagesByCategory(param.toLowerCase());
         } else {
@@ -947,52 +1113,34 @@ const Index = () => {
                   </div>
                 ) : (
                   <div className="gemini-message-assistant text-sm sm:text-base">
-                    <div className="message-content" style={{ 
-                      whiteSpace: 'pre-wrap', 
-                      lineHeight: '1.6',
-                      wordSpacing: '0.1em'
-                    }}>
-                      {message.content
-                        .replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '') // Remove package commands from display
-                        .split('\n\n')
-                        .map((paragraph, index) => (
-                          <p key={index} style={{ 
-                            marginBottom: index === message.content.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').split('\n\n').length - 1 ? '0' : '16px',
-                            textAlign: 'left'
-                          }}>
-                            {paragraph.trim()}
-                          </p>
-                        ))
-                      }
-                    </div>
-                    
-                    {/* Package Cards */}
-                    {message.packages && message.packages.length > 0 && (
-                      <div className="package-cards-container">
-                        <div className="package-cards-header">
-                          <Sparkles className="w-5 h-5 text-yellow-400" />
-                          <h3 className="text-lg font-semibold text-white">
-                            ✨ Curated Honeymoon Experiences
-                          </h3>
-                        </div>
-                        <div className="package-cards-grid">
-                          {message.packages.map((pkg) => (
-                            <PackageCard
-                              key={pkg.id}
-                              package={pkg}
-                              compact={true}
-                              onSelect={(packageId) => {
-                                console.log('Package selected:', packageId);
-                                // Here you could open a detailed view or add to favorites
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <div className="package-cards-footer">
-                          <p className="text-sm text-gray-400">
-                            ✨ Kalbinizin çağırdığı büyülü yolculuğu seçin • Which enchanted journey calls to your soul? 💫
-                          </p>
-                        </div>
+                    {/* Package Cards - Show ONLY if packages exist, NO text */}
+                    {message.packages && message.packages.length > 0 ? (
+                      <PackageCarousel 
+                        packages={message.packages}
+                        onSelectPackage={(packageId) => {
+                          console.log('Package selected:', packageId);
+                          // Here you could open a detailed view or add to favorites
+                        }}
+                      />
+                    ) : (
+                      /* Text Content - Show ONLY when NO packages exist */
+                      <div className="message-content" style={{ 
+                        whiteSpace: 'pre-wrap', 
+                        lineHeight: '1.6',
+                        wordSpacing: '0.1em'
+                      }}>
+                        {message.content
+                          .replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '') // Remove package commands from display
+                          .split('\n\n')
+                          .map((paragraph, index) => (
+                            <p key={index} style={{ 
+                              marginBottom: index === message.content.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').split('\n\n').length - 1 ? '0' : '16px',
+                              textAlign: 'left'
+                            }}>
+                              {paragraph.trim()}
+                            </p>
+                          ))
+                        }
                       </div>
                     )}
                   </div>

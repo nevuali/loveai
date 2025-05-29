@@ -1,17 +1,27 @@
 import React from 'react';
 import { HoneymoonPackage } from '../services/packageService';
-import { MapPin, Calendar, Star, Heart, Eye } from 'lucide-react';
+import { MapPin, Calendar, Star, Heart, Eye, Sparkles, Crown, Diamond, Plane, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PackageCardProps {
   package: HoneymoonPackage;
   onSelect?: (packageId: string) => void;
   compact?: boolean;
+  isCarousel?: boolean;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  currentIndex?: number;
+  totalCount?: number;
 }
 
 const PackageCard: React.FC<PackageCardProps> = ({ 
   package: pkg, 
   onSelect,
-  compact = false 
+  compact = false,
+  isCarousel = false,
+  onPrevious,
+  onNext,
+  currentIndex = 0,
+  totalCount = 1
 }) => {
   const formatPrice = (price: number, currency: string = 'USD'): string => {
     return new Intl.NumberFormat('en-US', {
@@ -21,6 +31,196 @@ const PackageCard: React.FC<PackageCardProps> = ({
       maximumFractionDigits: 0,
     }).format(price);
   };
+
+  const getCategoryStyles = (category: string) => {
+    const styles: Record<string, { bg: string; text: string; icon: string; gradient: string }> = {
+      luxury: {
+        bg: 'bg-gradient-to-r from-yellow-400/20 to-amber-500/20',
+        text: 'text-yellow-300',
+        icon: '👑',
+        gradient: 'from-yellow-400/10 via-amber-400/5 to-yellow-500/10'
+      },
+      adventure: {
+        bg: 'bg-gradient-to-r from-emerald-400/20 to-teal-500/20',
+        text: 'text-emerald-300',
+        icon: '🏔️',
+        gradient: 'from-emerald-400/10 via-teal-400/5 to-green-500/10'
+      },
+      romantic: {
+        bg: 'bg-gradient-to-r from-pink-400/20 to-rose-500/20',
+        text: 'text-pink-300',
+        icon: '💕',
+        gradient: 'from-pink-400/10 via-rose-400/5 to-red-500/10'
+      },
+      cultural: {
+        bg: 'bg-gradient-to-r from-purple-400/20 to-violet-500/20',
+        text: 'text-purple-300',
+        icon: '🏛️',
+        gradient: 'from-purple-400/10 via-violet-400/5 to-indigo-500/10'
+      },
+      beach: {
+        bg: 'bg-gradient-to-r from-cyan-400/20 to-blue-500/20',
+        text: 'text-cyan-300',
+        icon: '🏖️',
+        gradient: 'from-cyan-400/10 via-blue-400/5 to-sky-500/10'
+      },
+      city: {
+        bg: 'bg-gradient-to-r from-blue-400/20 to-indigo-500/20',
+        text: 'text-blue-300',
+        icon: '🏙️',
+        gradient: 'from-blue-400/10 via-indigo-400/5 to-purple-500/10'
+      }
+    };
+    return styles[category] || styles.luxury;
+  };
+
+  const handleCardClick = () => {
+    if (onSelect && !isCarousel) {
+      onSelect(pkg.id);
+    }
+  };
+
+  const categoryStyle = getCategoryStyles(pkg.category);
+
+  if (isCarousel) {
+    return (
+      <div className="carousel-package-card group relative">
+        {onPrevious && (
+          <button
+            onClick={onPrevious}
+            className="carousel-nav-button carousel-nav-left"
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+        
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="carousel-nav-button carousel-nav-right"
+            disabled={currentIndex === totalCount - 1}
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        )}
+
+        <div 
+          className="carousel-card-container"
+          onClick={handleCardClick}
+        >
+          <div className="relative h-48 overflow-hidden">
+            <img 
+              src={pkg.images[0]} 
+              alt={pkg.title}
+              className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110 group-hover:brightness-110"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1571417904834-b745c0359781?w=600&h=400&fit=crop`;
+              }}
+            />
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/50" />
+            
+            <div className={`absolute top-3 left-3 px-3 py-2 rounded-xl text-xs font-bold border border-white/20 backdrop-blur-lg ${categoryStyle.bg} ${categoryStyle.text} shadow-lg`}>
+              <div className="flex items-center gap-1.5">
+                <span className="text-base">{categoryStyle.icon}</span>
+                <span className="capitalize tracking-wide">{pkg.category}</span>
+              </div>
+            </div>
+            
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-xl px-3 py-2 rounded-xl border border-white/20">
+              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+              <span className="text-xs text-white font-bold">{pkg.rating}</span>
+              <span className="text-xs text-gray-300">({pkg.reviews})</span>
+            </div>
+            
+            <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-500 transform scale-50 group-hover:scale-100">
+              <div className="w-10 h-10 bg-gradient-to-r from-pink-500/30 to-red-500/30 backdrop-blur-lg rounded-full flex items-center justify-center border border-pink-400/30 shadow-lg">
+                <Heart className="w-5 h-5 text-pink-400 group-hover:fill-pink-400 transition-all duration-300 animate-pulse" />
+              </div>
+            </div>
+
+            <div className="absolute bottom-3 left-3 bg-gradient-to-r from-yellow-500/20 to-amber-600/20 backdrop-blur-xl px-3 py-2 rounded-xl border border-yellow-400/30">
+              <div className="flex items-center gap-1.5">
+                <Crown className="w-4 h-4 text-yellow-400" />
+                <span className="text-xs text-yellow-300 font-medium">Premium</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4">
+            <div className="mb-3">
+              <h2 className="font-bold text-base text-white mb-2 group-hover:text-yellow-300 transition-colors duration-300 leading-tight">
+                {pkg.title}
+              </h2>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gray-300">
+                  <MapPin className="w-5 h-5 text-cyan-400" />
+                  <span className="text-sm font-medium">{pkg.location}, {pkg.country}</span>
+                </div>
+                <Plane className="w-4 h-4 text-gray-500" />
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-300 mb-3 leading-relaxed">
+              {pkg.description}
+            </p>
+            
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-2">
+                {pkg.features.slice(0, 3).map((feature, index) => (
+                  <span 
+                    key={index}
+                    className="px-3 py-1.5 bg-gradient-to-r from-white/10 to-white/5 text-xs text-gray-300 rounded-full backdrop-blur-sm border border-white/10 font-medium hover:border-white/20 transition-colors duration-300"
+                  >
+                    ✨ {feature}
+                  </span>
+                ))}
+                {pkg.features.length > 3 && (
+                  <span className="px-3 py-1.5 bg-gradient-to-r from-yellow-500/20 to-amber-600/20 text-xs text-yellow-300 rounded-full backdrop-blur-sm border border-yellow-400/30 font-medium">
+                    +{pkg.features.length - 3} more
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+              <div className="flex items-center gap-6 text-sm text-gray-300">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-cyan-400" />
+                  <span className="font-medium">{pkg.duration}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Eye className="w-4 h-4 text-purple-400" />
+                  <span className="font-medium">{pkg.reviews} reviews</span>
+                </div>
+              </div>
+              
+              <div className="text-right">
+                <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Starting from</div>
+                <div className="font-bold text-xl bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                  {formatPrice(pkg.price)}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4">
+              <button 
+                onClick={() => onSelect && onSelect(pkg.id)}
+                className="w-full py-2 bg-gradient-to-r from-yellow-500/20 via-amber-500/30 to-yellow-600/20 border border-yellow-400/40 rounded-xl backdrop-blur-sm shadow-lg hover:from-yellow-500/30 hover:via-amber-500/40 hover:to-yellow-600/30 hover:border-yellow-400/60 transition-all duration-300">
+                <div className="flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4 text-yellow-300 animate-spin" />
+                  <span className="text-xs text-yellow-300 font-semibold tracking-wide">✨ Begin Your Dream Journey ✨</span>
+                  <Diamond className="w-4 h-4 text-yellow-300 animate-pulse" />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getCategoryColor = (category: string): string => {
     const colors: Record<string, string> = {
@@ -46,59 +246,47 @@ const PackageCard: React.FC<PackageCardProps> = ({
     return icons[category] || '✨';
   };
 
-  const handleCardClick = () => {
-    if (onSelect) {
-      onSelect(pkg.id);
-    }
-  };
-
   if (compact) {
     return (
       <div 
-        className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-white/20 hover:bg-gradient-to-br hover:from-gray-700/50 hover:to-gray-800/50 hover:transform hover:scale-[1.02] h-32 flex"
+        className="group relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-white/10 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:border-white/20 hover:bg-gradient-to-br hover:from-gray-700/50 hover:to-gray-800/50 hover:transform hover:scale-[1.02]"
         onClick={handleCardClick}
       >
-        <div className="p-4 h-full w-full">
-          <div className="flex gap-3 h-full w-full">
-            {/* Image */}
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-              <img 
-                src={pkg.images[0]} 
-                alt={pkg.title}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-              />
-              <div className="absolute top-1 right-1">
-                <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(pkg.category)}`}>
-                  {pkg.category}
-                </span>
-              </div>
+        <div className="flex gap-3">
+          {/* Image */}
+          <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+            <img 
+              src={pkg.images[0]} 
+              alt={pkg.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://images.unsplash.com/photo-1571417904834-b745c0359781?w=400&h=400&fit=crop`;
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </div>
+          
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between mb-1">
+              <h4 className="font-semibold text-white text-sm truncate group-hover:text-yellow-300 transition-colors">
+                {pkg.title}
+              </h4>
+              <Heart className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:text-pink-400 transition-all duration-300" />
             </div>
             
-            {/* Content */}
-            <div className="flex-1 min-w-0 flex flex-col justify-between">
-              <div className="flex-1">
-                <div className="flex items-start justify-between mb-1">
-                  <h3 className="text-sm font-semibold text-white line-clamp-1 pr-2">{pkg.title}</h3>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                    <span className="text-xs text-gray-300">{pkg.rating}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-1 mb-2">
-                  <MapPin className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                  <span className="text-xs text-gray-400 line-clamp-1">{pkg.location}, {pkg.country}</span>
-                </div>
-                
-                <p className="text-xs text-gray-300 line-clamp-2 mb-2">{pkg.description}</p>
+            <div className="flex items-center gap-1 mb-2">
+              <MapPin className="w-3 h-3 text-gray-400" />
+              <span className="text-xs text-gray-300">{pkg.location}, {pkg.country}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                <span className="text-xs text-gray-300">{pkg.rating}</span>
               </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-white">{formatPrice(pkg.price, pkg.currency)}</span>
-                  <span className="text-xs text-gray-400">• {pkg.duration} days</span>
-                </div>
-                <Eye className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+              <div className="text-sm font-bold text-yellow-300">
+                {formatPrice(pkg.price)}
               </div>
             </div>
           </div>
