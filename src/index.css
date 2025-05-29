@@ -230,7 +230,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 800px;
+  max-width: 700px;
   margin: 0 auto;
   width: 100%;
 }
@@ -282,6 +282,13 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* Nokta sonrası satır atlatma */
+.gemini-message-assistant .message-content::after {
+  content: "";
+  white-space: pre;
 }
 
 .gemini-message-assistant::before {
@@ -407,7 +414,7 @@
   justify-content: center;
   gap: 8px;
   margin-bottom: 18px;
-  max-width: 400px;
+  max-width: 350px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -616,7 +623,7 @@
   .gemini-messages {
     padding: 40px;
     gap: 28px;
-    max-width: 900px;
+    max-width: 700px;
   }
 
   .gemini-message {
@@ -642,10 +649,19 @@
 
   .gemini-message-assistant .message-content {
     max-width: calc(100% - 36px);
+    line-height: 1.6;
   }
 
   .gemini-message-assistant::before {
     font-size: 17px;
+  }
+
+  .gemini-toolbox {
+    max-width: 500px;
+  }
+
+  .gemini-input-container {
+    max-width: 700px;
   }
 }
 
@@ -738,7 +754,7 @@
   }
 
   .gemini-message-user {
-    max-width: 85%;
+    max-width: 80%;
     padding: 14px 18px;
     font-size: 15px;
     line-height: 1.4;
@@ -747,7 +763,7 @@
   .gemini-message-assistant {
     font-size: 15px;
     line-height: 1.5;
-    max-width: 90%;
+    max-width: 95%;
   }
 
   .gemini-input-container {
@@ -756,7 +772,7 @@
   }
 
   .gemini-toolbox {
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 16px;
     flex-wrap: wrap;
     justify-content: center;
@@ -764,11 +780,11 @@
   }
 
   .gemini-toolbox-button {
-    padding: 10px 14px;
-    font-size: 13px;
-    height: 36px;
-    min-width: 80px;
-    border-radius: 18px;
+    padding: 8px 12px;
+    font-size: 12px;
+    height: 32px;
+    min-width: 70px;
+    border-radius: 16px;
   }
 
   .gemini-input-wrapper {
@@ -950,11 +966,11 @@
 
   .gemini-messages {
     padding: 32px;
-    max-width: 1000px;
+    max-width: 700px;
   }
 
   .gemini-input-container {
-    max-width: 900px;
+    max-width: 700px;
   }
 
   .gemini-toolbox {
@@ -966,11 +982,15 @@
 @media (min-width: 1280px) {
   .gemini-messages {
     padding: 40px;
-    max-width: 1100px;
+    max-width: 700px;
   }
 
   .gemini-input-container {
-    max-width: 1000px;
+    max-width: 700px;
+  }
+
+  .gemini-toolbox {
+    max-width: 500px;
   }
 }
 
