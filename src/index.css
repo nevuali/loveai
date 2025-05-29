@@ -417,24 +417,31 @@
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
+  flex-wrap: wrap;
 }
 
 .gemini-toolbox-button {
   background: transparent;
   border: 1px solid #444;
-  padding: 18px 28px;
-  border-radius: 20px;
+  padding: 6px 8px;
+  border-radius: 14px;
   cursor: pointer;
   color: #9aa0a6;
   transition: all 0.2s;
-  font-size: 16px;
+  font-size: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 3px;
   font-family: 'Google Sans', sans-serif;
-  height: 52px;
+  height: 28px;
   white-space: nowrap;
-  min-width: 160px;
+  min-width: 65px;
+  max-width: 90px;
+  flex: 1;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gemini-toolbox-button:hover {
@@ -669,6 +676,9 @@
     min-width: 140px;
     max-width: 180px;
     gap: 7px;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
   }
 
   .gemini-toolbox-button svg {
@@ -804,7 +814,9 @@
     max-width: 110px;
     border-radius: 16px;
     gap: 4px;
-    flex-shrink: 1;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
   }
 
   .gemini-toolbox-button svg {
@@ -1023,7 +1035,9 @@
     min-width: 180px;
     max-width: 220px;
     gap: 10px;
-    flex-shrink: 1;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
   }
 
   .gemini-toolbox-button svg {
@@ -1143,6 +1157,9 @@
     min-width: 120px;
     max-width: 150px;
     gap: 6px;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
   }
 
   .gemini-toolbox-button svg {
@@ -1171,7 +1188,9 @@
     min-width: 100px;
     max-width: 140px;
     gap: 5px;
-    flex-shrink: 1;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
   }
 
   .gemini-toolbox-button svg {
@@ -1222,7 +1241,9 @@
     min-width: 140px;
     max-width: 170px;
     gap: 7px;
-    flex-shrink: 1;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
   }
 
   .gemini-toolbox-button svg {
@@ -1265,7 +1286,9 @@
     min-width: 160px;
     max-width: 190px;
     gap: 8px;
-    flex-shrink: 1;
+    flex: 1;
+    justify-content: center;
+    text-align: center;
   }
 
   .gemini-toolbox-button svg {
