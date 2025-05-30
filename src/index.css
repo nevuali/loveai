@@ -1510,3 +1510,46 @@
   font-size: 13px;
   color: #9aa0a6;
 }
+
+/* Loading bar animasyonu */
+@keyframes loadingBar {
+  0% {
+    width: 0%;
+    background-position: 0% 50%;
+  }
+  50% {
+    width: 70%;
+    background-position: 100% 50%;
+  }
+  100% {
+    width: 100%;
+    background-position: 0% 50%;
+  }
+}
+
+.animate-loadingBar {
+  animation: loadingBar 2s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+
+/* Gentle floating animation for login screen elements */
+@keyframes gentle-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.gentle-floating {
+  animation: gentle-float 3s ease-in-out infinite;
+}
+
+/* Glow text effect for page titles */
+.glow-text {
+  text-shadow: 0 0 10px rgba(241, 196, 15, 0.3), 0 0 20px rgba(241, 196, 15, 0.2);
+}

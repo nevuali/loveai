@@ -34,26 +34,41 @@ const queryClient = new QueryClient({
 // Luxury Loading component
 const PageLoading = () => (
   <div className="min-h-screen bg-[#1f1f1f] text-white font-gemini flex items-center justify-center">
-    <div className="flex flex-col items-center gap-6">
-      {/* AI LOVE Logo with gradient */}
-      <div className="w-16 h-16 rounded-2xl bg-purple-gradient flex items-center justify-center shadow-lg sidebar-icon-glow gentle-floating">
-        <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+    <div className="flex flex-col items-center gap-8">
+      {/* Büyülü Efektli Logo */}
+      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-500 flex items-center justify-center shadow-lg sidebar-icon-glow animate-pulse">
+        <svg className="w-10 h-10 text-white opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
         </svg>
       </div>
       
-      {/* Loading Spinner */}
+      {/* Büyülü Spinner */}
       <div className="relative">
-        <div className="w-8 h-8 border-4 border-white/20 border-t-purple-500 rounded-full animate-spin"></div>
-        <div className="absolute inset-0 w-8 h-8 border-4 border-transparent border-b-pink-500 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+        <div className="w-10 h-10 border-4 border-white/10 border-t-[#f1c40f] rounded-full animate-spin"></div>
+        <div className="absolute inset-0 w-10 h-10 border-4 border-transparent border-b-pink-500 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+        <div className="absolute inset-0 w-10 h-10 border-4 border-transparent border-l-purple-500 rounded-full animate-spin" style={{animationDuration: '3s'}}></div>
       </div>
       
-      {/* Loading Text */}
+      {/* Büyülü Yükleme Metni */}
       <div className="text-center">
-        <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent glow-text mb-2">
-          AI LOVE
+        <h2 className="text-2xl font-semibold bg-gradient-to-r from-[#f1c40f] via-yellow-400 to-amber-500 bg-clip-text text-transparent glow-text mb-3">
+          AI LOVVE
         </h2>
-        <p className="text-gray-400 text-sm">Loading your honeymoon assistant...</p>
+        <div className="flex items-center gap-2 justify-center">
+          <svg className="w-4 h-4 text-pink-500 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          <p className="text-gray-300 text-base">Weaving enchantment...</p>
+          <svg className="w-4 h-4 text-pink-500 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </div>
+        <p className="text-gray-400 text-sm mt-2">Summoning your love assistant...</p>
+      </div>
+      
+      {/* Yükleme Çizgisi */}
+      <div className="w-48 h-1 bg-gray-800 rounded-full overflow-hidden mt-2">
+        <div className="h-full bg-gradient-to-r from-[#f1c40f] via-pink-500 to-purple-500 animate-loadingBar"></div>
       </div>
     </div>
   </div>
