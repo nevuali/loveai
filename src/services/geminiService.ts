@@ -390,6 +390,39 @@ export function looksLikeLoginData(message: string): boolean {
          (lowerMessage.includes('password:') || lowerMessage.includes('şifre:'));
 }
 
+// Kullanıcı mesajının dilini tespit eden yardımcı fonksiyon
+function detectLanguage(message: string): 'tr' | 'en' {
+  // Basit bir dil algılama mantığı
+  // Türkçe'ye özgü karakterler
+  const turkishChars = ['ç', 'ğ', 'ı', 'İ', 'ö', 'ş', 'ü', 'Ç', 'Ğ', 'Ö', 'Ş', 'Ü'];
+  
+  // Türkçe yaygın kelimeler
+  const turkishWords = ['merhaba', 'selam', 'nasıl', 'iyi', 'güzel', 'teşekkür', 'ederim', 'lütfen', 
+    'tamam', 'evet', 'hayır', 'şimdi', 'sonra', 'bugün', 'yarın', 'dün', 'için', 'ile', 've', 'ama',
+    'fakat', 'çünkü', 'bu', 'şu', 'bir', 'var', 'yok', 'ben', 'sen', 'o', 'biz', 'siz', 'onlar'];
+  
+  // Mesajı küçük harfe çevir
+  const lowerMessage = message.toLowerCase();
+  
+  // Türkçe karakter içeriyor mu?
+  const hasTurkishChars = turkishChars.some(char => lowerMessage.includes(char));
+  
+  // Türkçe kelime içeriyor mu?
+  const hasTurkishWords = turkishWords.some(word => {
+    // Kelime sınırları kontrol edilmeli (kelime başı ve sonu)
+    const regex = new RegExp(`\\b${word}\\b`, 'i');
+    return regex.test(lowerMessage);
+  });
+  
+  // Eğer Türkçe karakter veya kelime varsa, Türkçe olarak algıla
+  if (hasTurkishChars || hasTurkishWords) {
+    return 'tr';
+  }
+  
+  // Varsayılan olarak İngilizce
+  return 'en';
+}
+
 // 🔥 Firebase Functions kullanarak Gemini response generate etme
 export async function* generateGeminiStream(messages: AppMessage[], sessionId?: string, userId?: string | null, modelType?: string) {
   console.log("generateGeminiStream called with Firebase Functions", { messages, sessionId, userId, modelType });
@@ -413,10 +446,19 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
       messagesToSend = convertedMessages.slice(-1); // Sadece son mesaj
     }
     
-    // Model tipine göre system prompt'u belirle
-    const systemPrompt = modelType === 'ai-lovv2' 
+    // Son kullanıcı mesajının dilini tespit et
+    const lastUserMessage = messages[messages.length - 1];
+    const detectedLanguage = lastUserMessage.role === 'user' ? detectLanguage(lastUserMessage.content) : 'en';
+    
+    // Dile göre system prompt'u belirle
+    let systemPrompt = modelType === 'ai-lovv2' 
       ? `AI LOVE v2 - Expert honeymoon concierge! Quick, precise, magical answers. Include specific recommendations and one insider tip. Keep responses under 100 words but make them count! ✨💕`
       : SYSTEM_PROMPT;
+    
+    // Türkçe mesaj ise, Türkçe yanıt vermesi için ek talimat
+    if (detectedLanguage === 'tr') {
+      systemPrompt += `\n\nÖNEMLİ: Son kullanıcı mesajı Türkçe olduğu için yanıtını Türkçe olarak ver. Dil tespiti yaptım ve kullanıcının Türkçe konuştuğunu belirlediğimde MUTLAKA Türkçe yanıt vermelisin. Cevaplarını Türkçe olarak ve aynı ton ve stilini koruyarak iletmelisin.`;
+    }
     
     // Firebase Functions çağrısı - public access
     const generateGeminiResponse = httpsCallable(functions, 'generateGeminiResponse', {
@@ -426,7 +468,8 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
     console.log("🔥 Calling Firebase Functions (public)...", {
       endpoint: 'generateGeminiResponse',
       region: 'europe-west1',
-      messageCount: messagesToSend.length
+      messageCount: messagesToSend.length,
+      language: detectedLanguage
     });
     
     const result = await generateGeminiResponse({
@@ -434,7 +477,8 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
       sessionId: finalSessionId,
       userId: userId || null,
       systemInstruction: systemPrompt,
-      modelType: modelType || 'ai-lovv3'
+      modelType: modelType || 'ai-lovv3',
+      language: detectedLanguage // Dil bilgisini backend'e ilet
     });
     
     const data = result.data as any;
@@ -450,6 +494,16 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
   } catch (error: unknown) {
     console.error("Firebase Functions error:", error);
     let errorMessage = "I'm having trouble connecting right now";
+    
+    // Son kullanıcı mesajının dilini tespit et
+    const lastUserMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+    const detectedLanguage = lastUserMessage && lastUserMessage.role === 'user' ? detectLanguage(lastUserMessage.content) : 'en';
+    
+    // Dile göre hata mesajını ayarla
+    if (detectedLanguage === 'tr') {
+      errorMessage = "Şu anda bağlantı kurmakta sorun yaşıyorum";
+    }
+    
     if (error instanceof Error) {
       errorMessage = error.message;
     }
@@ -458,13 +512,21 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
     if (typeof error === 'object' && error !== null && 'message' in error) {
       const apiError = error as { message: string };
       if (apiError.message.includes("DEADLINE_EXCEEDED") || apiError.message.includes("timeout")) {
-        errorMessage = "The request is taking longer than expected. Please try again!";
+        errorMessage = detectedLanguage === 'tr' 
+          ? "İsteğiniz beklenenden uzun sürüyor. Lütfen tekrar deneyin!"
+          : "The request is taking longer than expected. Please try again!";
       } else if (apiError.message.includes("API_KEY_INVALID")) {
-        errorMessage = "Service configuration issue. Please contact support.";
+        errorMessage = detectedLanguage === 'tr'
+          ? "Servis yapılandırma sorunu. Lütfen destek ile iletişime geçin."
+          : "Service configuration issue. Please contact support.";
       } else if (apiError.message.includes("unauthenticated") || apiError.message.includes("permission")) {
-        errorMessage = "Connection issue resolved! Please try your message again.";
+        errorMessage = detectedLanguage === 'tr'
+          ? "Bağlantı sorunu çözüldü! Lütfen mesajınızı tekrar deneyin."
+          : "Connection issue resolved! Please try your message again.";
       } else if (apiError.message.includes("quota") || apiError.message.includes("limit")) {
-        errorMessage = "High demand right now! Please wait a moment and try again.";
+        errorMessage = detectedLanguage === 'tr'
+          ? "Şu anda yoğun talep var! Lütfen bir süre bekleyip tekrar deneyin."
+          : "High demand right now! Please wait a moment and try again.";
       }
     }
     
