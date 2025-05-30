@@ -12,12 +12,31 @@
   }
 
   html, body {
-    height: 100%;
-    font-family: 'Google Sans', sans-serif;
-    background: #1a1a1a;
+    margin: 0;
+    padding: 0;
+    font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #1f1f1f;
     color: #e8eaed;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
-    overflow-y: auto; /* Allow vertical scrolling */
+    height: 100%;
+    overflow: hidden; /* Prevent page level scrolling */
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    /* iOS Safari specific styles */
+    html, body {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    .gemini-main {
+      height: calc(var(--vh, 1vh) * 100);
+    }
   }
 }
 
@@ -32,18 +51,39 @@
   flex-direction: column;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
+  -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+  z-index: 1000; /* Increase z-index to ensure it's above other elements */
 }
 
 .gemini-sidebar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
 
+/* iOS Safari specific fixes for sidebar */
+@supports (-webkit-touch-callout: none) {
+  .gemini-sidebar {
+    height: calc(var(--vh, 1vh) * 100);
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateZ(0); /* Fix Safari rendering issues */
+    -webkit-backface-visibility: hidden; /* Fix Safari rendering issues */
+  }
+  
+  /* Fix for sidebar scroll in iOS Safari */
+  .gemini-chat-list {
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(var(--vh, 1vh) * 100 - 150px); /* Account for header and footer */
+  }
+}
+
 .gemini-main {
-  background: transparent !important; /* Force transparent background */
-  flex: 1;
-  height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  position: relative;
+  height: 100vh;
+  overflow: hidden; /* Prevent outer container from scrolling */
 }
 
 .gemini-header {
@@ -244,10 +284,11 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-width: 700px;
+  gap: 24px;
   margin: 0 auto;
   width: 100%;
+  max-width: 800px;
+  -webkit-overflow-scrolling: touch; /* For smooth scrolling in iOS */
 }
 
 .gemini-message {
@@ -460,15 +501,23 @@
   justify-content: center;
   max-width: none;
   margin: 0;
-  padding: 60px 200px;
+  padding: 20px 200px 60px; /* Top padding reduced to move content up */
   text-align: center;
+}
+
+/* Wrapper for welcome title and subtitle to control spacing */
+.welcome-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .gemini-welcome-title {
   color: #f1c40f;
   font-size: 52px;
   font-weight: 400;
-  margin-bottom: 18px;
+  margin-bottom: 4px; /* 0'dan 4px'e çıkardım, orta seviye bir boşluk */
   text-shadow: 0 2px 8px rgba(241, 196, 15, 0.3);
   text-align: center;
   width: 100%;
@@ -478,6 +527,7 @@
   color: #c4c7c5;
   font-size: 16px;
   margin-bottom: 24px;
+  margin-top: -2px; /* -8px'den -2px'e değiştirdim, daha az negatif */
   text-align: center;
   width: 100%;
   max-width: 600px;
@@ -731,27 +781,56 @@
   .gemini-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
-    z-index: 50;
+    z-index: 1000; /* Higher z-index to be above all elements */
     position: fixed;
     top: 0;
     left: 0;
     width: 320px;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    height: 100%;
+    -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+    -webkit-transform: translateX(-100%) translateZ(0);
+    -webkit-backface-visibility: hidden;
   }
 
+  .mobile-overlay {
+    z-index: 999; /* Just below sidebar but above other elements */
+  }
+  
   .gemini-sidebar.open {
     transform: translateX(0);
+    -webkit-transform: translateX(0) translateZ(0);
+  }
+  
+  /* Fix for sidebar in iOS Safari when open */
+  @supports (-webkit-touch-callout: none) {
+    .gemini-sidebar.open {
+      bottom: 0;
+      height: 100%;
+      -webkit-transform: translateX(0) translateZ(0);
+      -webkit-backface-visibility: hidden;
+    }
+    
+    .mobile-overlay.open {
+      z-index: 40; /* Ensure overlay is below sidebar but above other elements */
+    }
   }
 
   .gemini-main {
-    width: 100%;
-    margin-left: 0;
+    height: 100%;
+    overflow: hidden;
   }
 
   .gemini-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100; /* Below sidebar but above other content */
     padding: 12px 14px;
     height: 56px;
     gap: 8px;
+    background-color: #1f1f1f; /* Add background color to prevent content showing through */
   }
 
   .gemini-title {
@@ -776,26 +855,57 @@
   }
 
   .gemini-welcome {
-    padding: 24px 16px;
-    min-height: auto;
+    width: 100%;
+    text-align: center;
+    padding: 0 16px 30px !important; /* Reduced padding top and bottom */
+    margin-top: -100px !important; /* Move up significantly to center better */
+    justify-content: center;
+    min-height: calc(100vh - 130px); /* Account for header and input */
+    display: flex;
+    flex-direction: column;
   }
 
   .gemini-welcome-title {
     font-size: 28px;
     line-height: 1.2;
-    margin-bottom: 14px;
+    margin-bottom: 3px; /* 0'dan 3px'e çıkardım, orta seviye boşluk */
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
   }
-
+  
   .gemini-welcome-subtitle {
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
     font-size: 14px;
     line-height: 1.4;
-    max-width: 100%;
+    margin-top: -1px; /* -6px'den -1px'e değiştirdim, daha az negatif */
+  }
+  
+  /* Center message content but keep text left-aligned */
+  .gemini-message-assistant {
+    text-align: left; /* Keep message alignment left */
+  }
+  
+  /* Center the gemini-messages container */
+  .gemini-messages {
+    text-align: center; /* Center the container */
+    padding: 12px 8px;
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 100px !important; /* Add padding to prevent messages from being hidden behind the input container */
+    margin-top: 52px; /* Account for fixed header */
+    height: calc(100% - 52px); /* Subtract header height */
+    padding-top: 0; /* Remove top padding to move messages up */
   }
 
-  .gemini-messages {
-    padding: 16px 12px;
-    gap: 20px;
-    max-width: 100%;
+  .gemini-chat-list {
+    padding: 8px 16px;
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(100% - 130px); /* Account for header and footer on mobile */
   }
 
   .gemini-message {
@@ -823,10 +933,46 @@
     border: none !important; /* Remove all borders */
     backdrop-filter: none !important; /* Remove backdrop filter */
     box-shadow: none !important; /* Remove shadows */
-    position: relative; /* Keep position for child elements */
+    position: fixed !important; /* Fix to bottom of viewport */
     display: flex; /* Keep flex for layout */
     flex-direction: column; /* Keep column direction */
     align-items: center; /* Center align items */
+    bottom: 20px !important; /* Position higher from bottom */
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 50 !important; /* Lower z-index than sidebar but above content */
+    width: 100% !important; /* Full width */
+    
+    /* Safari-specific fixes */
+    -webkit-transform: translateZ(0); /* Fix Safari rendering issues */
+    -webkit-backface-visibility: hidden; /* Fix Safari rendering issues */
+  }
+  
+  /* Adjust main container height and position */
+  .gemini-main {
+    justify-content: center;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Adjust header height and z-index */
+  .gemini-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100; /* Below sidebar but above other content */
+    padding: 12px 14px;
+    height: 56px;
+    gap: 8px;
+    background-color: #1f1f1f; /* Add background color to prevent content showing through */
+  }
+  
+  /* Give more vertical space in welcome title */
+  .gemini-welcome-title {
+    margin-bottom: 25px;
   }
 
   .gemini-toolbox {
@@ -898,11 +1044,13 @@
 
   .gemini-sidebar-top {
     padding: 14px;
+    -webkit-transform: translateZ(0);
   }
 
   .gemini-new-chat {
     padding: 10px 14px;
     font-size: 13px;
+    -webkit-transform: translateZ(0); /* Prevent Safari rendering issues */
   }
 
   .gemini-sidebar-section {
@@ -918,6 +1066,13 @@
 
   .gemini-sidebar-footer {
     padding: 14px;
+  }
+
+  /* Fix for iOS Safari bottom padding in sidebar */
+  @supports (-webkit-touch-callout: none) {
+    .gemini-sidebar-footer {
+      padding-bottom: 30px; /* Extra padding for iOS Safari */
+    }
   }
 
   /* Remove text truncation on mobile to show full text */
@@ -989,10 +1144,12 @@
 
   .gemini-welcome-title {
     font-size: 24px;
+    margin-bottom: 2px; /* 0'dan 2px'e çıkardım */
   }
 
   .gemini-welcome-subtitle {
     font-size: 13px;
+    margin-top: -1px; /* -4px'den -1px'e değiştirdim, daha az negatif */
   }
 
   .gemini-input-container {
@@ -1003,10 +1160,18 @@
     border: none !important; /* Remove all borders */
     backdrop-filter: none !important; /* Remove backdrop filter */
     box-shadow: none !important; /* Remove shadows */
-    position: relative; /* Keep position for child elements */
+    position: fixed !important; /* Fix to bottom of viewport */
     display: flex; /* Keep flex for layout */
     flex-direction: column; /* Keep column direction */
     align-items: center; /* Center align items */
+    bottom: 10px !important; /* Position higher from bottom for smaller screens */
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 20 !important; /* Ensure it's above other elements */
+    
+    /* Safari-specific fixes */
+    -webkit-transform: translateZ(0); /* Fix Safari rendering issues */
+    -webkit-backface-visibility: hidden; /* Fix Safari rendering issues */
   }
 
   .gemini-toolbox {
@@ -1050,6 +1215,25 @@
 
   .gemini-footer-text {
     font-size: 10px;
+  }
+
+  .gemini-messages {
+    padding-bottom: 90px !important; /* Slightly less padding for smaller screens */
+  }
+}
+
+/* Add Safari-specific media query for additional fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari only */
+  @media (max-width: 640px) {
+    .gemini-input-container {
+      bottom: 10px !important; /* Even closer to bottom for iOS Safari */
+    }
+    
+    .gemini-messages {
+      height: calc(100% - 56px); /* Use exact header height */
+      padding-bottom: 130px !important; /* More padding to ensure messages don't go behind the input */
+    }
   }
 }
 
@@ -1119,7 +1303,38 @@
 .mobile-overlay.open {
   opacity: 1;
   visibility: visible;
+}
+
+/* iOS Safari specific fixes for mobile overlay */
+@supports (-webkit-touch-callout: none) {
+  .mobile-overlay {
+    -webkit-transform: translateZ(0); /* Fix Safari rendering issues */
+    -webkit-backface-visibility: hidden;
   }
+  
+  .mobile-overlay.open + .gemini-main {
+    pointer-events: none; /* Prevent interaction with main content when overlay is open */
+  }
+}
+
+/* When sidebar is open, prevent main content scrolling */
+@media (max-width: 640px) {
+  body.sidebar-open {
+    overflow: hidden;
+  }
+  
+  body.sidebar-open .gemini-main {
+    pointer-events: none; /* Prevent interaction with main content when sidebar is open */
+  }
+  
+  @supports (-webkit-touch-callout: none) {
+    body.sidebar-open {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
@@ -1134,935 +1349,3 @@
   background: #5f6368;
     border-radius: 3px;
   }
-
-::-webkit-scrollbar-thumb:hover {
-  background: #8ab4f8;
-}
-
-.gemini-dropdown-menu {
-  position: absolute;
-  background: #2d2e30;
-  border: 1px solid #444;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  z-index: 50;
-  overflow: hidden;
-  min-width: 200px;
-}
-
-.gemini-dropdown-item {
-  width: 100%;
-  padding: 12px 16px;
-  text-align: left;
-  font-size: 14px;
-  color: #e8eaed;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-family: 'Google Sans', sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.gemini-dropdown-item:hover {
-  background: #3c4043;
-}
-
-.gemini-dropdown-item.danger {
-  color: #f28b82;
-}
-
-.gemini-dropdown-item.danger:hover {
-  background: rgba(242, 139, 130, 0.1);
-}
-
-.gemini-dropdown-separator {
-  height: 1px;
-  background: #444;
-  margin: 8px 0;
-}
-
-.gemini-dropdown-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid #444;
-  background: #2d2e30;
-}
-
-.gemini-dropdown-header .user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #e8eaed;
-  margin-bottom: 4px;
-}
-
-.gemini-dropdown-header .user-email {
-  font-size: 12px;
-  color: #9aa0a6;
-}
-
-/* Tablet responsive */
-@media (min-width: 641px) and (max-width: 768px) {
-  .gemini-toolbox {
-    max-width: 550px;
-    gap: 8px;
-  }
-
-  .gemini-toolbox-button {
-    padding: 14px 20px;
-    font-size: 14px;
-    height: 44px;
-    min-width: 120px;
-    max-width: 150px;
-    gap: 6px;
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .gemini-input-container {
-    background: none !important; /* Keep background transparent */
-    padding: 20px !important; /* Restore tablet padding for toolkit UX */
-    margin: 0 auto !important; /* Center with auto margin */
-    max-width: 600px; /* Keep max-width */
-    border: none !important; /* Remove all borders */
-    backdrop-filter: none !important; /* Remove backdrop filter */
-    box-shadow: none !important; /* Remove shadows */
-    position: relative; /* Keep position for child elements */
-    display: flex; /* Keep flex for layout */
-    flex-direction: column; /* Keep column direction */
-    align-items: center; /* Center align items */
-    overflow-x: hidden !important; /* Prevent horizontal scrolling */
-    width: 100% !important; /* Full width */
-    box-sizing: border-box !important; /* Prevent overflow */
-  }
-
-  .gemini-input-wrapper {
-    max-width: 550px; /* Match toolbox tablet max-width */
-  }
-}
-
-/* iPad Air responsive */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .gemini-toolbox {
-    max-width: 650px;
-    gap: 6px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .gemini-toolbox-button {
-    padding: 12px 16px;
-    font-size: 14px;
-    height: 40px;
-    min-width: 100px;
-    max-width: 140px;
-    gap: 5px;
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 13px;
-    height: 13px;
-    flex-shrink: 0;
-  }
-
-  .gemini-input-container {
-    background: none !important; /* Keep background transparent */
-    padding: 24px !important; /* Restore iPad padding for toolkit UX */
-    margin: 0 auto !important; /* Center with auto margin */
-    max-width: 700px; /* Keep max-width */
-    border: none !important; /* Remove all borders */
-    backdrop-filter: none !important; /* Remove backdrop filter */
-    box-shadow: none !important; /* Remove shadows */
-    position: relative; /* Keep position for child elements */
-    display: flex; /* Keep flex for layout */
-    flex-direction: column; /* Keep column direction */
-    align-items: center; /* Center align items */
-    overflow-x: hidden !important; /* Prevent horizontal scrolling */
-    width: 100% !important; /* Full width */
-    box-sizing: border-box !important; /* Prevent overflow */
-  }
-
-  .gemini-input-wrapper {
-    max-width: 650px; /* Match toolbox iPad Air max-width */
-  }
-
-  .gemini-messages {
-    max-width: 650px;
-  }
-}
-
-/* Laptop responsive */
-@media (min-width: 1025px) and (max-width: 1366px) {
-  .gemini-header {
-    padding: 16px 32px;
-  }
-
-  .gemini-welcome {
-    padding: 40px 32px;
-  }
-
-  .gemini-messages {
-    padding: 32px;
-    max-width: 700px;
-  }
-
-  .gemini-input-container {
-    background: none !important; /* Keep background transparent */
-    padding: 28px !important; /* Restore laptop padding for toolkit UX */
-    margin: 0 auto !important; /* Center with auto margin */
-    max-width: 850px; /* Keep max-width */
-    border: none !important; /* Remove all borders */
-    backdrop-filter: none !important; /* Remove backdrop filter */
-    box-shadow: none !important; /* Remove shadows */
-    position: relative; /* Keep position for child elements */
-    display: flex; /* Keep flex for layout */
-    flex-direction: column; /* Keep column direction */
-    align-items: center; /* Center align items */
-    overflow-x: hidden !important; /* Prevent horizontal scrolling */
-    width: 100% !important; /* Full width */
-    box-sizing: border-box !important; /* Prevent overflow */
-  }
-
-  .gemini-toolbox {
-    justify-content: center;
-    max-width: 750px;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .gemini-toolbox-button {
-    padding: 16px 24px;
-    font-size: 14px;
-    height: 48px;
-    min-width: 140px;
-    max-width: 170px;
-    gap: 7px;
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-  }
-
-  .gemini-input-wrapper {
-    max-width: 750px; /* Match toolbox laptop max-width */
-  }
-}
-
-/* Large Laptop responsive */
-@media (min-width: 1367px) and (max-width: 1600px) {
-  .gemini-header {
-    padding: 16px 32px;
-  }
-
-  .gemini-welcome {
-    padding: 40px 32px;
-  }
-
-  .gemini-messages {
-    padding: 36px;
-    max-width: 700px;
-  }
-
-  .gemini-input-container {
-    background: none !important; /* Keep background transparent */
-    padding: 30px !important; /* Restore large laptop padding for toolkit UX */
-    margin: 0 auto !important; /* Center with auto margin */
-    max-width: 950px; /* Keep max-width */
-    border: none !important; /* Remove all borders */
-    backdrop-filter: none !important; /* Remove backdrop filter */
-    box-shadow: none !important; /* Remove shadows */
-    position: relative; /* Keep position for child elements */
-    display: flex; /* Keep flex for layout */
-    flex-direction: column; /* Keep column direction */
-    align-items: center; /* Center align items */
-    overflow-x: hidden !important; /* Prevent horizontal scrolling */
-    width: 100% !important; /* Full width */
-    box-sizing: border-box !important; /* Prevent overflow */
-  }
-
-  .gemini-toolbox {
-    justify-content: center;
-    max-width: 850px;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-
-  .gemini-toolbox-button {
-    padding: 18px 28px;
-    font-size: 14px;
-    height: 50px;
-    min-width: 160px;
-    max-width: 190px;
-    gap: 8px;
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-  }
-
-  .gemini-input-wrapper {
-    max-width: 850px; /* Match toolbox large laptop max-width */
-  }
-}
-
-@keyframes heart-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes magical-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px rgba(241, 196, 15, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(241, 196, 15, 0.6), 0 0 30px rgba(241, 196, 15, 0.4);
-  }
-}
-
-@keyframes magical-pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-/* Büyülü Arama Stilleri */
-.gemini-search-box {
-  position: absolute;
-  top: 60px;
-  left: 18px;
-  right: 18px;
-  z-index: 10;
-  background: #1a1a1a;
-  border: 1px solid #444;
-  border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
-.gemini-search-input {
-  width: 100%;
-  background: #2d2e30;
-  border: 1px solid #444;
-  border-radius: 6px;
-  padding: 8px 35px 8px 10px;
-  color: #e8eaed;
-  font-size: 13px;
-  font-family: 'Google Sans', sans-serif;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.gemini-search-input:focus {
-  border-color: #f1c40f;
-  box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
-}
-
-.gemini-search-input::placeholder {
-  color: #9aa0a6;
-  font-style: italic;
-}
-
-.gemini-search-loading {
-  position: absolute;
-  bottom: 12px;
-  right: 20px;
-  font-size: 10px;
-  color: #f1c40f;
-  animation: magical-pulse 1s ease-in-out infinite;
-}
-
-.gemini-search-clear {
-  position: absolute;
-  top: 50%;
-  right: 18px;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: #f1c40f;
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.gemini-search-clear:hover {
-  background: rgba(241, 196, 15, 0.1);
-  transform: translateY(-50%) scale(1.2);
-}
-
-.gemini-search-icon.active {
-  color: #f1c40f;
-  background: rgba(241, 196, 15, 0.1);
-  box-shadow: 0 0 10px rgba(241, 196, 15, 0.3);
-}
-
-/* 🎨 UI Polish - Subtle Improvements (NO COLORS) */
-
-/* Settings Modal Enhancements */
-.settings-sidebar-item {
-  transition: all 0.3s ease;
-}
-
-.settings-sidebar-item:hover {
-  background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.08) 100%);
-  transform: translateX(2px);
-}
-
-.settings-sidebar-item.active {
-  box-shadow: inset 3px 0 0 #e8eaed;
-}
-
-/* Toggle Button Polish */
-.settings-toggle {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.settings-toggle:hover:not(:disabled) {
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.settings-toggle:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.3);
-  outline-offset: 2px;
-}
-
-/* Settings Item Hover Effect */
-.settings-item {
-  transition: all 0.2s ease;
-  border-radius: 8px;
-  padding: 16px 12px;
-  margin: 4px 0;
-}
-
-.settings-item:hover {
-  background: rgba(255,255,255,0.03);
-  transform: translateY(-1px);
-}
-
-/* Modal Container Shadow Enhancement */
-.settings-modal-backdrop {
-  backdrop-filter: blur(12px);
-  background: rgba(0,0,0,0.6);
-  transition: all 0.3s ease;
-}
-
-.settings-modal-container {
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
-  transform: scale(0.95);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: settings-modal-enter 0.3s ease-out;
-}
-
-@keyframes settings-modal-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-/* Loading Spinner Enhancement */
-.settings-loading-spinner {
-  animation: gentle-spin 1.5s linear infinite;
-}
-
-@keyframes gentle-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Close Button Hover Effect */
-.settings-close-button {
-  transition: all 0.2s ease;
-  border-radius: 50%;
-  padding: 8px;
-}
-
-.settings-close-button:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  transform: rotate(90deg);
-}
-
-/* Category Icon Animation */
-.settings-category-icon {
-  transition: transform 0.2s ease;
-}
-
-/* Package Carousel Styles - Luxury Design */
-.package-cards-carousel-container {
-  background: linear-gradient(135deg, rgba(26, 35, 126, 0.1) 0%, rgba(74, 20, 140, 0.1) 50%, rgba(139, 69, 19, 0.1) 100%) !important;
-  border: 1px solid rgba(255, 215, 0, 0.2) !important; /* Gold accent border */
-  border-radius: 24px;
-  padding: 20px 16px; /* Balanced padding for luxury feel */
-  margin: 20px auto; /* Perfect centering with breathing room */
-  max-width: 98vw; /* Maximum horizontal expansion */
-  width: 98vw; /* Force maximum width utilization */
-  overflow: visible; /* Allow luxury shadows to show */
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Perfect vertical centering */
-  align-items: center; /* Perfect horizontal centering */
-  box-sizing: border-box; /* Ensure proper sizing calculation */
-  backdrop-filter: blur(20px); /* Premium glass effect */
-  box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 215, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1); /* Luxury multi-layer shadow */
-  transform: translateZ(0); /* GPU acceleration for smoothness */
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Premium transition */
-}
-
-.carousel-header {
-  text-align: center;
-  margin-bottom: 16px; /* Increased for luxury spacing */
-  width: 100%; /* Ensure full width */
-  padding: 0 20px; /* Luxurious padding */
-}
-
-.carousel-title {
-  font-size: 22px; /* Increased for premium feel */
-  font-weight: 600; /* Bolder weight for luxury */
-  background: linear-gradient(135deg, #ffd700, #ffed4e, #f1c40f); /* Gold gradient text */
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 8px; /* Luxurious spacing */
-  text-shadow: 0 2px 4px rgba(255, 215, 0, 0.3); /* Subtle gold glow */
-  letter-spacing: 0.5px; /* Premium letter spacing */
-}
-
-.carousel-subtitle {
-  font-size: 14px; /* Slightly larger */
-  color: rgba(255, 255, 255, 0.8); /* Premium white with opacity */
-  font-weight: 400;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); /* Subtle depth */
-  letter-spacing: 0.3px; /* Refined spacing */
-}
-
-.carousel-wrapper {
-  position: relative;
-  width: 100%; /* Use full container width */
-  max-width: 100%; /* Ensure maximum expansion */
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Perfect centering */
-  justify-content: center; /* Perfect vertical alignment */
-  padding: 0 10px; /* Luxury breathing room */
-}
-
-.carousel-content {
-  position: relative;
-  width: 75%; /* Reduced from 95% to make card smaller */
-  max-width: 700px; /* Reduced from 1000px for smaller card */
-  min-width: 280px; /* Slightly reduced minimum */
-  overflow-x: hidden; /* Clean horizontal edges */
-  overflow-y: hidden; /* Prevent any vertical scrolling */
-  display: flex;
-  justify-content: center; /* Perfect card centering */
-  align-items: center; /* Perfect vertical alignment */
-  padding: 10px 0; /* Luxury vertical spacing */
-  border-radius: 16px; /* Rounded content area */
-  background: rgba(255, 255, 255, 0.02); /* Subtle content background */
-  backdrop-filter: blur(10px); /* Additional glass effect */
-}
-
-.carousel-package-card {
-  background: rgba(30, 30, 30, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  overflow: hidden;
-  position: relative;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease; /* Faster, simpler transition */
-  transform: translateZ(0); /* GPU acceleration only */
-}
-
-.carousel-package-card:hover {
-  transform: translateY(-2px) translateZ(0); /* Minimal hover effect */
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Lighter shadow */
-}
-
-.carousel-card-container {
-  cursor: pointer;
-  transition: all 0.15s ease-out; /* Ultra-fast transition */
-  transform: translateZ(0);
-}
-
-.carousel-nav-button {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%) translateZ(0);
-  z-index: 20;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.95) 0%, 
-    rgba(255, 255, 255, 0.85) 50%, 
-    rgba(255, 255, 255, 0.75) 100%);
-  border: 2px solid rgba(255, 215, 0, 0.4);
-  border-radius: 50%;
-  width: 52px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #2c3e50;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.carousel-nav-button:hover {
-  background: linear-gradient(135deg, 
-    rgba(255, 215, 0, 0.9) 0%, 
-    rgba(255, 215, 0, 0.8) 50%, 
-    rgba(255, 215, 0, 0.7) 100%);
-  border-color: rgba(255, 215, 0, 0.8);
-  color: #ffffff;
-  transform: translateY(-50%) scale(1.12);
-  box-shadow: 
-    0 16px 50px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 0 0 6px rgba(255, 215, 0, 0.2),
-    0 0 20px rgba(255, 215, 0, 0.4);
-}
-
-.carousel-nav-button:active {
-  transform: translateY(-50%) scale(1.05);
-  box-shadow: 
-    0 8px 25px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    0 0 0 3px rgba(255, 215, 0, 0.15);
-}
-
-.carousel-nav-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: translateY(-50%) scale(0.9);
-  background: rgba(200, 200, 200, 0.3);
-  border-color: rgba(200, 200, 200, 0.4);
-  color: rgba(100, 100, 100, 0.6);
-}
-
-.carousel-nav-left {
-  left: -40px;
-}
-
-.carousel-nav-right {
-  right: -40px;
-}
-
-.carousel-progress {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 18px;
-  width: 100%;
-  padding: 0 20px;
-}
-
-.progress-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid rgba(255, 215, 0, 0.1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transform: translateZ(0);
-}
-
-.progress-dot::before {
-  display: none;
-}
-
-/* Auto-play with ultra-fast professional transitions */
-@keyframes autoSlide {
-  0% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  96% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  97% {
-    transform: translateX(-30px);
-    opacity: 0;
-  }
-  98% {
-    transform: translateX(30px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Light cloud effect only during card change */
-.carousel-card-container::after {
-  content: '☁️';
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 12px;
-  opacity: 0;
-  animation: gentleClouds 7s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Simple cloud animation only during transitions */
-@keyframes gentleClouds {
-  0%, 100% { 
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  50% { 
-    opacity: 0.3;
-    transform: translateX(20px);
-  }
-}
-
-/* Pause animation on hover for better UX */
-.carousel-content:hover .carousel-card-container {
-  animation-play-state: paused;
-}
-
-/* Progress indicator animation for auto-play */
-@keyframes progressFill {
-  0% { width: 0%; }
-  100% { width: 100%; }
-}
-
-/* Mobile optimization for luxury package carousel */
-@media (max-width: 640px) {
-  .package-cards-carousel-container {
-    max-width: 99vw !important;
-    width: 99vw !important;
-    padding: 16px 12px !important;
-    margin: 16px auto !important;
-    border-radius: 20px !important;
-  }
-  
-  .carousel-content {
-    width: 85% !important;
-    min-width: 260px !important;
-    max-width: 450px !important;
-  }
-  
-  .carousel-nav-button {
-    width: 46px !important;
-    height: 46px !important;
-    font-size: 18px !important;
-    border-width: 2px !important;
-  }
-  
-  .carousel-nav-left {
-    left: -35px !important;
-  }
-  
-  .carousel-nav-right {
-    right: -35px !important;
-  }
-  
-  .carousel-header {
-    margin-bottom: 12px !important;
-    padding: 0 15px !important;
-  }
-  
-  .carousel-title {
-    font-size: 20px !important;
-  }
-  
-  .carousel-subtitle {
-    font-size: 13px !important;
-  }
-  
-  .carousel-progress {
-    margin-top: 14px !important;
-    padding: 0 15px !important;
-  }
-  
-  .progress-dot {
-    width: 8px !important;
-    height: 8px !important;
-  }
-}
-
-/* Tablet optimization for luxury package carousel */
-@media (min-width: 641px) and (max-width: 1024px) {
-  .package-cards-carousel-container {
-    max-width: 98vw !important;
-    width: 98vw !important;
-    padding: 18px 14px !important;
-  }
-  
-  .carousel-content {
-    width: 80% !important;
-    max-width: 600px !important;
-  }
-  
-  .carousel-nav-button {
-    width: 50px !important;
-    height: 50px !important;
-    font-size: 19px !important;
-    border-width: 2px !important;
-  }
-  
-  .carousel-nav-left {
-    left: -38px !important;
-  }
-  
-  .carousel-nav-right {
-    right: -38px !important;
-  }
-  
-  .carousel-title {
-    font-size: 21px !important;
-  }
-}
-
-/* Desktop optimization for luxury package carousel */
-@media (min-width: 1025px) {
-  .package-cards-carousel-container {
-    max-width: 96vw !important;
-    width: 96vw !important;
-    padding: 24px 20px !important;
-  }
-  
-  .carousel-content {
-    width: 70% !important;
-    max-width: 650px !important;
-  }
-  
-  .carousel-nav-button {
-    width: 54px !important;
-    height: 54px !important;
-    font-size: 21px !important;
-    border-width: 2px !important;
-  }
-  
-  .carousel-nav-left {
-    left: -42px !important;
-  }
-  
-  .carousel-nav-right {
-    right: -42px !important;
-  }
-  
-  .carousel-title {
-    font-size: 24px !important;
-  }
-  
-  .carousel-subtitle {
-    font-size: 15px !important;
-  }
-}
-
-/* Card entrance animation */
-@keyframes cardSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(100px) scale(0.95) rotateY(15deg);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1) rotateY(0deg);
-  }
-}
-
-/* Card exit animation */
-@keyframes cardSlideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0) scale(1) rotateY(0deg);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-100px) scale(0.95) rotateY(-15deg);
-  }
-}
-
-/* Apply smooth entering animation to cards */
-.carousel-package-card {
-  animation: cardSlideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-/* Smooth transition wrapper for entire content */
-.carousel-content-wrapper {
-  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transform-style: preserve-3d;
-  perspective: 1000px;
-}
-
-/* Enhanced magical progress dot states */
-.progress-dot.active {
-  background: linear-gradient(135deg, #ffd700, #f1c40f);
-  border-color: rgba(255, 215, 0, 0.5);
-  transform: scale(1.2) translateZ(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.progress-dot.active::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.3);
-  animation: progressFill 7s linear infinite;
-  border-radius: 50%;
-}
-
-.progress-dot:hover {
-  background: rgba(255, 215, 0, 0.3);
-  border-color: rgba(255, 215, 0, 0.3);
-  transform: scale(1.1) translateZ(0);
-}
-
-/* Remove all heavy overlay effects */
-.package-cards-carousel-container::before,
-.package-cards-carousel-container::after {
-  display: none;
-}
