@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, MessageSquare, Edit, Plus } from 'lucide-react';
@@ -130,6 +130,64 @@ const Index = () => {
     return titles[Math.floor(Math.random() * titles.length)];
   });
   const [isMobile, setIsMobile] = useState(false);
+
+  // Büyülü ve sürekli değişen placeholder için state ve metinler
+  const [placeholderText, setPlaceholderText] = useState("Whisper your heart's desires to AI LOVVE...");
+  
+  // Büyülü placeholder mesajları
+  const magicalPlaceholders = useMemo(() => [
+    "✨ Whisper your enchanted wishes here...",
+    "💫 Tell me your wildest romantic dreams...",
+    "🔮 Unveil your heart's deepest desires...",
+    "💕 What magical journey shall we plan today?",
+    "✨ Speak, and let's weave your love story...",
+    "🌟 What paradise awaits your eternal bond?",
+    "💎 Command me to craft your perfect escape...",
+    "🧙‍♂️ Your magical honeymoon awaits a word...",
+    "🏝️ Where shall your love story unfold?",
+    "🌹 Let your romantic adventure begin here...",
+    "🌈 Ask, and I'll conjure honeymoon wonders...",
+    "🧚 Your wish is my enchantment to create...",
+    "🌙 What blissful moments shall we design?",
+    "🧡 Your love deserves the perfect setting...",
+    "⭐ Your romantic tale starts with your words..."
+  ], []);
+  
+  // Placeholder mesajlarını düzenli olarak değiştir
+  useEffect(() => {
+    const placeholderInterval = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * magicalPlaceholders.length);
+      setPlaceholderText(magicalPlaceholders[randomIndex]);
+    }, 5000); // Her 5 saniyede bir değiştir
+    
+    return () => clearInterval(placeholderInterval);
+  }, [magicalPlaceholders]);
+  
+  // Mobil cihazlar için daha kısa büyülü mesajlar
+  const mobilemagicalPlaceholders = useMemo(() => [
+    "✨ Make a wish...",
+    "💫 Dream with me...",
+    "🔮 Ask your heart...",
+    "💕 Your journey begins...",
+    "✨ Tell me your desire...",
+    "🌟 Where to, my love?",
+    "💎 Command my magic...",
+    "🧙‍♂️ Speak your wish...",
+    "🏝️ Dream destination?",
+    "🌹 Start the magic..."
+  ], []);
+  
+  // Mobil placeholder mesajlarını düzenli olarak değiştir
+  const [mobilePlaceholderText, setMobilePlaceholderText] = useState("Message AI LOVVE...");
+  
+  useEffect(() => {
+    const mobilePlaceholderInterval = setInterval(() => {
+      const randomIndex = Math.floor(Math.random() * mobilemagicalPlaceholders.length);
+      setMobilePlaceholderText(mobilemagicalPlaceholders[randomIndex]);
+    }, 4000); // Her 4 saniyede bir değiştir
+    
+    return () => clearInterval(mobilePlaceholderInterval);
+  }, [mobilemagicalPlaceholders]);
 
   // Parse package recommendations from AI response
   const parsePackageRecommendations = async (responseContent: string): Promise<HoneymoonPackage[]> => {
@@ -1225,7 +1283,7 @@ const Index = () => {
             <textarea
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder={isMobile ? "Message AI LOVVE..." : "Whisper your heart's desires to AI LOVVE..."}
+              placeholder={isMobile ? mobilePlaceholderText : placeholderText}
               className="gemini-input text-sm sm:text-base"
               disabled={isLoading}
               rows={1}
