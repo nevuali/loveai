@@ -378,7 +378,7 @@
   background: #2d2e30;
   border: 1px solid #444;
   border-radius: 24px;
-  padding: 18px 56px; /* Adjusted padding to work with repositioned buttons */
+  padding: 18px 100px 18px 56px; /* Sağ padding artırıldı iki buton için */
   width: 100%;
   color: #e8eaed;
   font-size: 17px;
@@ -458,6 +458,41 @@
   color: #e8eaed;
 }
 
+.gemini-send-button {
+  position: absolute;
+  right: 56px; /* Mic butonu ile arasında mesafe bırakmak için */
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%); /* Altın-sarı gradient */
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #1f1f1f; /* Koyu arka plan üzerinde ikon */
+  transition: all 0.3s;
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(241, 196, 15, 0.3);
+}
+
+.gemini-send-button:hover {
+  background: linear-gradient(135deg, #f39c12 0%, #d35400 100%); /* Hover durumunda daha koyu tonlar */
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 3px 12px rgba(241, 196, 15, 0.5);
+}
+
+.gemini-send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #3c3c3c;
+  color: #666;
+  box-shadow: none;
+}
+
 .gemini-toolbox {
   display: flex;
   gap: 8px;
@@ -471,8 +506,8 @@
 .gemini-toolbox-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px; /* Increase padding for better touch targets */
+  gap: 8px;
+  padding: 10px 20px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -731,7 +766,7 @@
     height: 48px;
     min-width: 140px;
     max-width: 180px;
-    gap: 7px;
+    gap: 10px;
     flex: 1;
     justify-content: center;
     text-align: center;
@@ -985,13 +1020,13 @@
   }
 
   .gemini-toolbox-button {
-    padding: 6px 8px;
+    padding: 6px 12px;
     font-size: 11px;
-    height: 28px;
-    min-width: 65px;
-    max-width: 90px;
-    border-radius: 14px;
-    gap: 3px;
+    height: 30px;
+    min-width: 70px;
+    max-width: 95px;
+    border-radius: 15px;
+    gap: 5px;
     flex: 1;
     justify-content: center;
     text-align: center;
@@ -1120,6 +1155,17 @@
   .short-text {
     display: inline;
   }
+
+  .gemini-send-button {
+    right: 48px; /* Mobil görünümde biraz daha sola */
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+  }
+  
+  .gemini-input {
+    padding-right: 90px; /* Mobil için sağ padding düzenlemesi */
+  }
 }
 
 /* Additional responsive breakpoints */
@@ -1181,13 +1227,13 @@
   }
 
   .gemini-toolbox-button {
-    padding: 6px 8px;
-    font-size: 10px;
-    height: 28px;
-    min-width: 65px;
-    max-width: 90px;
-    border-radius: 14px;
-    gap: 3px;
+    padding: 6px 14px;
+    font-size: 11px;
+    height: 32px;
+    min-width: 75px;
+    max-width: 100px;
+    border-radius: 15px;
+    gap: 5px;
   }
 
   .gemini-toolbox-button svg {
@@ -1219,6 +1265,18 @@
 
   .gemini-messages {
     padding-bottom: 90px !important; /* Slightly less padding for smaller screens */
+  }
+
+  .gemini-send-button {
+    right: 46px; /* En küçük ekranlarda butonları yaklaştıralım */
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+  }
+  
+  .gemini-input {
+    padding-right: 82px; /* En küçük ekranlar için sağ padding azaltma */
+    font-size: 13px; /* Font size da küçültelim */
   }
 }
 

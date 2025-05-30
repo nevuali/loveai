@@ -358,6 +358,16 @@ const Index = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Sidebar durumunu izleyen ve body class'ını güncelleyen effect
+  useEffect(() => {
+    // Safari düzeltmeleri için sidebar açıkken body'ye class ekle
+    if (sidebarOpen) {
+      document.body.classList.add('sidebar-open');
+    } else {
+      document.body.classList.remove('sidebar-open');
+    }
+  }, [sidebarOpen]);
+
   // New Chat ismini düzenli olarak güncelle
   useEffect(() => {
     const updateNewChatTitle = () => {
@@ -1096,11 +1106,13 @@ const Index = () => {
         {/* Messages or Welcome */}
         {messages.length === 0 ? (
           <div className="gemini-welcome px-4 sm:px-8">
-            <div className="gemini-welcome-title text-center text-2xl sm:text-3xl lg:text-4xl">
-              {currentGreeting} {currentEmoji}
-            </div>
-            <div className="gemini-welcome-subtitle text-center text-sm sm:text-base lg:text-lg max-w-3xl mx-auto">
-              {currentSubtitle}
+            <div className="welcome-content-wrapper">
+              <div className="gemini-welcome-title text-center text-2xl sm:text-3xl lg:text-4xl">
+                {currentGreeting} {currentEmoji}
+              </div>
+              <div className="gemini-welcome-subtitle text-center text-sm sm:text-base lg:text-lg max-w-3xl mx-auto">
+                {currentSubtitle}
+              </div>
             </div>
           </div>
         ) : (
@@ -1221,6 +1233,14 @@ const Index = () => {
                 }
               }}
             />
+            
+            <button
+              type="submit"
+              className="gemini-send-button"
+              disabled={isLoading || !inputValue.trim()}
+            >
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
             
             <button
               type="button"
