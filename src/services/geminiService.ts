@@ -391,36 +391,91 @@ export function looksLikeLoginData(message: string): boolean {
 }
 
 // Kullanıcı mesajının dilini tespit eden yardımcı fonksiyon
-function detectLanguage(message: string): 'tr' | 'en' {
-  // Basit bir dil algılama mantığı
-  // Türkçe'ye özgü karakterler
-  const turkishChars = ['ç', 'ğ', 'ı', 'İ', 'ö', 'ş', 'ü', 'Ç', 'Ğ', 'Ö', 'Ş', 'Ü'];
-  
-  // Türkçe yaygın kelimeler
-  const turkishWords = ['merhaba', 'selam', 'nasıl', 'iyi', 'güzel', 'teşekkür', 'ederim', 'lütfen', 
-    'tamam', 'evet', 'hayır', 'şimdi', 'sonra', 'bugün', 'yarın', 'dün', 'için', 'ile', 've', 'ama',
-    'fakat', 'çünkü', 'bu', 'şu', 'bir', 'var', 'yok', 'ben', 'sen', 'o', 'biz', 'siz', 'onlar'];
-  
+function detectLanguage(message: string): string {
+  // Yaygın diller için karakter ve kelime tabanlı tespitler
+  const languagePatterns: Record<string, { chars: string[], words: string[] }> = {
+    'tr': { // Türkçe
+      chars: ['ç', 'ğ', 'ı', 'İ', 'ö', 'ş', 'ü', 'Ç', 'Ğ', 'Ö', 'Ş', 'Ü'],
+      words: ['merhaba', 'selam', 'nasıl', 'iyi', 'teşekkür', 'ederim', 'lütfen', 've', 'ama', 'için']
+    },
+    'es': { // İspanyolca
+      chars: ['á', 'é', 'í', 'ó', 'ú', 'ñ', '¿', '¡', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'],
+      words: ['hola', 'gracias', 'buenos', 'días', 'cómo', 'está', 'por', 'favor', 'adiós', 'amigo']
+    },
+    'fr': { // Fransızca
+      chars: ['é', 'è', 'ê', 'à', 'â', 'ç', 'ô', 'œ', 'ù', 'û', 'É', 'È', 'Ê', 'À', 'Â', 'Ç', 'Ô', 'Œ', 'Ù', 'Û'],
+      words: ['bonjour', 'merci', 'comment', 'ça', 'va', 's\'il', 'vous', 'plaît', 'au', 'revoir']
+    },
+    'de': { // Almanca
+      chars: ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'],
+      words: ['hallo', 'danke', 'bitte', 'guten', 'tag', 'wie', 'geht', 'es', 'ihnen', 'auf', 'wiedersehen']
+    },
+    'ru': { // Rusça (Kiril alfabesi)
+      chars: ['а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я'],
+      words: ['привет', 'спасибо', 'пожалуйста', 'как', 'дела', 'хорошо', 'да', 'нет', 'здравствуйте', 'до', 'свидания']
+    },
+    'ar': { // Arapça
+      chars: ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', 'ء', 'ة'],
+      words: ['مرحبا', 'شكرا', 'من', 'فضلك', 'كيف', 'حالك', 'نعم', 'لا', 'السلام', 'عليكم', 'وداعا']
+    },
+    'zh': { // Çince (Basitleştirilmiş)
+      chars: ['你', '好', '谢', '请', '再', '见', '吗', '是', '的', '我'],
+      words: ['你好', '谢谢', '请', '再见', '是的', '不是', '我', '你', '他', '她']
+    },
+    'ja': { // Japonca
+      chars: ['あ', 'い', 'う', 'え', 'お', 'か', 'き', 'く', 'け', 'こ', 'さ', 'し', 'す', 'せ', 'そ', 'た', 'ち', 'つ', 'て', 'と', 'な', 'に', 'ぬ', 'ね', 'の', 'は', 'ひ', 'ふ', 'へ', 'ほ', 'ま', 'み', 'む', 'め', 'も', 'や', 'ゆ', 'よ', 'ら', 'り', 'る', 'れ', 'ろ', 'わ', 'を', 'ん'],
+      words: ['こんにちは', 'ありがとう', 'お願いします', 'はい', 'いいえ', 'さようなら', 'おはよう', 'こんばんは', 'すみません', 'ごめんなさい']
+    },
+    'it': { // İtalyanca
+      chars: ['à', 'è', 'é', 'ì', 'í', 'ò', 'ó', 'ù', 'ú', 'À', 'È', 'É', 'Ì', 'Í', 'Ò', 'Ó', 'Ù', 'Ú'],
+      words: ['ciao', 'grazie', 'per', 'favore', 'come', 'stai', 'buongiorno', 'buonasera', 'arrivederci', 'prego']
+    }
+  };
+
   // Mesajı küçük harfe çevir
   const lowerMessage = message.toLowerCase();
   
-  // Türkçe karakter içeriyor mu?
-  const hasTurkishChars = turkishChars.some(char => lowerMessage.includes(char));
+  // Her dil için puan hesapla
+  const scores: Record<string, number> = {};
   
-  // Türkçe kelime içeriyor mu?
-  const hasTurkishWords = turkishWords.some(word => {
-    // Kelime sınırları kontrol edilmeli (kelime başı ve sonu)
-    const regex = new RegExp(`\\b${word}\\b`, 'i');
-    return regex.test(lowerMessage);
-  });
-  
-  // Eğer Türkçe karakter veya kelime varsa, Türkçe olarak algıla
-  if (hasTurkishChars || hasTurkishWords) {
-    return 'tr';
+  for (const [lang, pattern] of Object.entries(languagePatterns)) {
+    // Karakterler için puan
+    let charScore = 0;
+    for (const char of pattern.chars) {
+      const count = (lowerMessage.match(new RegExp(char, 'g')) || []).length;
+      charScore += count;
+    }
+    
+    // Kelimeler için puan
+    let wordScore = 0;
+    for (const word of pattern.words) {
+      const regex = new RegExp(`\\b${word}\\b`, 'i');
+      if (regex.test(lowerMessage)) {
+        wordScore += 10; // Kelime eşleşmesine daha yüksek puan
+      }
+    }
+    
+    scores[lang] = charScore + wordScore;
   }
   
-  // Varsayılan olarak İngilizce
-  return 'en';
+  // En yüksek puanlı dili bul
+  let detectedLanguage = 'en'; // Varsayılan olarak İngilizce
+  let highestScore = 0;
+  
+  for (const [lang, score] of Object.entries(scores)) {
+    if (score > highestScore) {
+      highestScore = score;
+      detectedLanguage = lang;
+    }
+  }
+  
+  // Eğer hiçbir dil belirli bir eşiği geçemediyse İngilizce kabul et
+  if (highestScore < 5) {
+    return 'en';
+  }
+  
+  console.log(`Detected language: ${detectedLanguage} (score: ${highestScore})`);
+  return detectedLanguage;
 }
 
 // 🔥 Firebase Functions kullanarak Gemini response generate etme
@@ -455,9 +510,9 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
       ? `AI LOVE v2 - Expert honeymoon concierge! Quick, precise, magical answers. Include specific recommendations and one insider tip. Keep responses under 100 words but make them count! ✨💕`
       : SYSTEM_PROMPT;
     
-    // Türkçe mesaj ise, Türkçe yanıt vermesi için ek talimat
-    if (detectedLanguage === 'tr') {
-      systemPrompt += `\n\nÖNEMLİ: Son kullanıcı mesajı Türkçe olduğu için yanıtını Türkçe olarak ver. Dil tespiti yaptım ve kullanıcının Türkçe konuştuğunu belirlediğimde MUTLAKA Türkçe yanıt vermelisin. Cevaplarını Türkçe olarak ve aynı ton ve stilini koruyarak iletmelisin.`;
+    // Kullanıcının dili İngilizce değilse, ek talimat ekle
+    if (detectedLanguage !== 'en') {
+      systemPrompt += `\n\nIMPORTANT: I've detected that the user is writing in a language that appears to be '${detectedLanguage}'. Please respond in the SAME LANGUAGE that the user is using. Match their language, tone, and style while maintaining your helpful persona. If you're unsure about the language, respond in the language the user last used.`;
     }
     
     // Firebase Functions çağrısı - public access
@@ -499,34 +554,93 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
     const lastUserMessage = messages.length > 0 ? messages[messages.length - 1] : null;
     const detectedLanguage = lastUserMessage && lastUserMessage.role === 'user' ? detectLanguage(lastUserMessage.content) : 'en';
     
-    // Dile göre hata mesajını ayarla
-    if (detectedLanguage === 'tr') {
-      errorMessage = "Şu anda bağlantı kurmakta sorun yaşıyorum";
+    // Bazı yaygın dillerde hata mesajları
+    const errorMessages: Record<string, string> = {
+      'en': "I'm having trouble connecting right now",
+      'tr': "Şu anda bağlantı kurmakta sorun yaşıyorum",
+      'es': "Estoy teniendo problemas para conectarme en este momento",
+      'fr': "J'ai des difficultés à me connecter en ce moment",
+      'de': "Ich habe im Moment Schwierigkeiten, eine Verbindung herzustellen",
+      'ru': "У меня сейчас проблемы с подключением",
+      'it': "Sto avendo problemi di connessione in questo momento",
+      'zh': "我现在连接有问题",
+      'ja': "現在接続に問題があります",
+      'ar': "أواجه مشكلة في الاتصال الآن"
+    };
+    
+    // Tespit edilen dilde hata mesajı varsa kullan
+    if (errorMessages[detectedLanguage]) {
+      errorMessage = errorMessages[detectedLanguage];
     }
     
     if (error instanceof Error) {
       errorMessage = error.message;
     }
     
+    // Hata mesajlarını çok dilli hale getir
+    const timeoutErrors: Record<string, string> = {
+      'en': "The request is taking longer than expected. Please try again!",
+      'tr': "İsteğiniz beklenenden uzun sürüyor. Lütfen tekrar deneyin!",
+      'es': "La solicitud está tardando más de lo esperado. ¡Inténtalo de nuevo!",
+      'fr': "La requête prend plus de temps que prévu. Veuillez réessayer !",
+      'de': "Die Anfrage dauert länger als erwartet. Bitte versuche es erneut!",
+      'ru': "Запрос занимает больше времени, чем ожидалось. Пожалуйста, попробуйте снова!",
+      'it': "La richiesta sta impiegando più tempo del previsto. Per favore riprova!",
+      'zh': "请求花费的时间比预期的长。请再试一次！",
+      'ja': "リクエストに予想以上に時間がかかっています。もう一度お試しください！",
+      'ar': "يستغرق الطلب وقتًا أطول من المتوقع. يرجى المحاولة مرة أخرى!"
+    };
+
+    const configErrors: Record<string, string> = {
+      'en': "Service configuration issue. Please contact support.",
+      'tr': "Servis yapılandırma sorunu. Lütfen destek ile iletişime geçin.",
+      'es': "Problema de configuración del servicio. Póngase en contacto con soporte.",
+      'fr': "Problème de configuration du service. Veuillez contacter le support.",
+      'de': "Problem mit der Servicekonfiguration. Bitte kontaktieren Sie den Support.",
+      'ru': "Проблема с конфигурацией сервиса. Пожалуйста, обратитесь в службу поддержки.",
+      'it': "Problema di configurazione del servizio. Si prega di contattare l'assistenza.",
+      'zh': "服务配置问题。请联系支持。",
+      'ja': "サービス構成の問題。サポートにお問い合わせください。",
+      'ar': "مشكلة في تكوين الخدمة. يرجى الاتصال بالدعم."
+    };
+
+    const authErrors: Record<string, string> = {
+      'en': "Connection issue resolved! Please try your message again.",
+      'tr': "Bağlantı sorunu çözüldü! Lütfen mesajınızı tekrar deneyin.",
+      'es': "¡Problema de conexión resuelto! Intenta enviar tu mensaje nuevamente.",
+      'fr': "Problème de connexion résolu ! Veuillez réessayer votre message.",
+      'de': "Verbindungsproblem behoben! Bitte versuche es erneut mit deiner Nachricht.",
+      'ru': "Проблема с подключением решена! Пожалуйста, попробуйте отправить сообщение снова.",
+      'it': "Problema di connessione risolto! Riprova con il tuo messaggio.",
+      'zh': "连接问题已解决！请再次尝试您的消息。",
+      'ja': "接続の問題が解決しました！メッセージをもう一度お試しください。",
+      'ar': "تم حل مشكلة الاتصال! يرجى تجربة رسالتك مرة أخرى."
+    };
+
+    const quotaErrors: Record<string, string> = {
+      'en': "High demand right now! Please wait a moment and try again.",
+      'tr': "Şu anda yoğun talep var! Lütfen bir süre bekleyip tekrar deneyin.",
+      'es': "¡Alta demanda en este momento! Espera un momento y vuelve a intentarlo.",
+      'fr': "Forte demande en ce moment ! Veuillez patienter un instant et réessayer.",
+      'de': "Hohe Nachfrage im Moment! Bitte warte einen Moment und versuche es erneut.",
+      'ru': "Высокий спрос прямо сейчас! Подождите немного и попробуйте снова.",
+      'it': "Alta richiesta in questo momento! Attendi un attimo e riprova.",
+      'zh': "现在需求很高！请稍等片刻，然后重试。",
+      'ja': "現在需要が高いです！少し待ってからもう一度お試しください。",
+      'ar': "الطلب مرتفع الآن! يرجى الانتظار لحظة والمحاولة مرة أخرى."
+    };
+    
     // Handle specific error cases with user-friendly messages
     if (typeof error === 'object' && error !== null && 'message' in error) {
       const apiError = error as { message: string };
       if (apiError.message.includes("DEADLINE_EXCEEDED") || apiError.message.includes("timeout")) {
-        errorMessage = detectedLanguage === 'tr' 
-          ? "İsteğiniz beklenenden uzun sürüyor. Lütfen tekrar deneyin!"
-          : "The request is taking longer than expected. Please try again!";
+        errorMessage = timeoutErrors[detectedLanguage] || timeoutErrors['en'];
       } else if (apiError.message.includes("API_KEY_INVALID")) {
-        errorMessage = detectedLanguage === 'tr'
-          ? "Servis yapılandırma sorunu. Lütfen destek ile iletişime geçin."
-          : "Service configuration issue. Please contact support.";
+        errorMessage = configErrors[detectedLanguage] || configErrors['en'];
       } else if (apiError.message.includes("unauthenticated") || apiError.message.includes("permission")) {
-        errorMessage = detectedLanguage === 'tr'
-          ? "Bağlantı sorunu çözüldü! Lütfen mesajınızı tekrar deneyin."
-          : "Connection issue resolved! Please try your message again.";
+        errorMessage = authErrors[detectedLanguage] || authErrors['en'];
       } else if (apiError.message.includes("quota") || apiError.message.includes("limit")) {
-        errorMessage = detectedLanguage === 'tr'
-          ? "Şu anda yoğun talep var! Lütfen bir süre bekleyip tekrar deneyin."
-          : "High demand right now! Please wait a moment and try again.";
+        errorMessage = quotaErrors[detectedLanguage] || quotaErrors['en'];
       }
     }
     
