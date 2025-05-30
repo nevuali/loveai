@@ -1055,7 +1055,7 @@ const Index = () => {
             <div className="profile-menu-container relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                className="gemini-profile hover:ring-2 hover:ring-blue-400 transition-all text-sm sm:text-base"
+                className="gemini-profile text-sm sm:text-base"
               >
                 {getUserInitial()}
               </button>

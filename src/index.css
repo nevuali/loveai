@@ -646,6 +646,18 @@
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
+  border: none; /* Sınır çizgisini kaldırıyoruz */
+  transition: none; /* Tüm animasyonları devre dışı bırakıyoruz */
+  box-shadow: none; /* Gölgeyi kaldırıyoruz */
+}
+
+/* Hover efektini devre dışı bırakıyoruz */
+.gemini-profile:hover {
+  box-shadow: none;
+  border: none;
+  outline: none;
+  transform: none;
+  transition: none;
 }
 
 .gemini-sidebar-section {
@@ -883,6 +895,9 @@
     width: 32px;
     height: 32px;
     font-size: 14px;
+    background: #4285f4; /* Mavi arka plan rengini koruyoruz */
+    border: none; /* Sınır çizgisini kaldırıyoruz */
+    transition: none; /* Animasyon efektlerini kaldırıyoruz */
   }
 
   .gemini-dropdown-menu {
