@@ -463,32 +463,33 @@
   right: 56px; /* Mic butonu ile arasında mesafe bırakmak için */
   top: 50%;
   transform: translateY(-50%);
-  background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%); /* Altın-sarı gradient */
+  background: transparent; /* Gradient yerine transparan arka plan */
   border: none;
   padding: 8px;
   border-radius: 50%;
   cursor: pointer;
-  color: #1f1f1f; /* Koyu arka plan üzerinde ikon */
-  transition: all 0.3s;
+  color: #9aa0a6; /* Mic butonu ile aynı renk */
+  transition: all 0.2s;
   height: 36px;
   width: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(241, 196, 15, 0.3);
+  box-shadow: none; /* Gölgeyi kaldır */
 }
 
 .gemini-send-button:hover {
-  background: linear-gradient(135deg, #f39c12 0%, #d35400 100%); /* Hover durumunda daha koyu tonlar */
-  transform: translateY(-50%) scale(1.05);
-  box-shadow: 0 3px 12px rgba(241, 196, 15, 0.5);
+  background: #3c4043; /* Hover durumunda aynı hover efekti */
+  color: #e8eaed;
+  transform: translateY(-50%); /* Scale efektini kaldır */
+  box-shadow: none; /* Gölgeyi kaldır */
 }
 
 .gemini-send-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #3c3c3c;
+  background: transparent; /* Disable durumunda da transparan */
   color: #666;
   box-shadow: none;
 }
