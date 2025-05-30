@@ -1184,6 +1184,7 @@ const Index = () => {
               type="button"
               className="gemini-toolbox-button"
               disabled={isLoading}
+              onClick={() => handleSendMessage("Suggest romantic luxury honeymoon experiences and activities for couples")}
             >
               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Love's Symphony</span>
@@ -1194,6 +1195,7 @@ const Index = () => {
               type="button"
               className="gemini-toolbox-button"
               disabled={isLoading}
+              onClick={() => handleSendMessage("Recommend top 5 dreamy honeymoon destinations with unique experiences")}
             >
               <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Enchanted Realms</span>
@@ -1204,6 +1206,7 @@ const Index = () => {
               type="button"
               className="gemini-toolbox-button"
               disabled={isLoading}
+              onClick={() => handleSendMessage("Suggest luxury honeymoon packages and exclusive experiences for couples")}
             >
               <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Royal Romance</span>
