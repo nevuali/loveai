@@ -901,8 +901,19 @@
   }
 
   .gemini-dropdown-menu {
-    width: 220px;
-    right: 0;
+    width: 280px;
+    right: -8px; /* Menüyü biraz sağa kaydır */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    margin-top: 12px;
+  }
+
+  .gemini-dropdown-header {
+    padding: 10px 14px;
+  }
+
+  .gemini-dropdown-item {
+    padding: 14px 16px; /* Mobilde dokunma alanını büyüt */
+    font-size: 14px;
   }
 
   .gemini-welcome {
@@ -1294,6 +1305,19 @@
     padding-right: 82px; /* En küçük ekranlar için sağ padding azaltma */
     font-size: 13px; /* Font size da küçültelim */
   }
+
+  .gemini-dropdown-menu {
+    width: 260px;
+    right: -10px;
+  }
+
+  .user-name {
+    font-size: 14px;
+  }
+
+  .user-email {
+    font-size: 12px;
+  }
 }
 
 /* Add Safari-specific media query for additional fixes */
@@ -1423,3 +1447,66 @@
   background: #5f6368;
     border-radius: 3px;
   }
+
+/* Dropdown menu styling */
+.gemini-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 220px;
+  background: #2d2e30;
+  border: 1px solid #444;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 120; /* Ensure it's above other elements */
+  overflow: hidden;
+}
+
+.gemini-dropdown-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #444;
+  background: #2d2e30;
+}
+
+.gemini-dropdown-item {
+  width: 100%;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 15px;
+  color: #e8eaed;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Google Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gemini-dropdown-item:hover {
+  background: #3c4043;
+}
+
+.gemini-dropdown-separator {
+  height: 1px;
+  background: #444;
+  margin: 8px 0;
+}
+
+.gemini-dropdown-item.danger {
+  color: #ff5252;
+}
+
+.user-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #e8eaed;
+  margin-bottom: 4px;
+}
+
+.user-email {
+  font-size: 13px;
+  color: #9aa0a6;
+}
