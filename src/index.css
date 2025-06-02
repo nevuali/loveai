@@ -2312,13 +2312,6 @@ body.sidebar-open .gemini-header .gemini-menu-button {
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* Enhanced Mobile Overlay */
-body.sidebar-open {
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-}
 
 body.sidebar-open .gemini-main {
   opacity: 1;
@@ -2353,4 +2346,56 @@ body.sidebar-open .mobile-overlay {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* === DESKTOP FIXES === */
+@media (min-width: 1024px) {
+  /* Remove blur effect on desktop when sidebar is open */
+  body.sidebar-open .mobile-overlay {
+    display: none !important;
+  }
+  
+  body.sidebar-open .gemini-main {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Desktop sidebar behavior - no blur needed */
+  .gemini-sidebar.open {
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Keep desktop responsive without blur */
+  body.sidebar-open {
+    overflow: visible;
+    position: static;
+    width: auto;
+    height: auto;
+  }
+}
+
+/* Mobile blur effects - ONLY for mobile */
+@media (max-width: 1023px) {
+  /* Enhanced Mobile Overlay - ONLY ON MOBILE */
+  body.sidebar-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+
+  body.sidebar-open .gemini-main {
+    opacity: 1;
+    pointer-events: none;
+  }
+
+  body.sidebar-open .mobile-overlay {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.6);
+    display: block;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
 }
