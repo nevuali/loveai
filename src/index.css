@@ -843,29 +843,51 @@
 .gemini-message-user {
   @apply message-user;
   margin: var(--space-2) 0 var(--space-2) auto;
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
+  font-weight: 500; /* Medium font weight */
+  padding: var(--space-4) var(--space-8);
 }
 
 .gemini-message-assistant {
-  @apply message-assistant;
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
+  font-weight: 500; /* Medium font weight */
+  padding: var(--space-6) var(--space-8);
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
-  position: relative;
+  max-width: 85%;
+  word-wrap: break-word;
+  line-height: 1.6;
+  background: transparent; /* Remove background */
+  border: none; /* Remove border */
+  box-shadow: none; /* Remove shadow */
+  border-radius: 0; /* Remove border radius */
+  color: var(--color-text-primary);
 }
 
 .gemini-message-assistant:hover {
-  background: var(--color-surface-glass-elevated);
-  border-color: var(--color-border-strong);
-  transform: translateY(-1px);
+  background: transparent; /* Keep transparent on hover */
+  border-color: transparent;
+  transform: none; /* Remove hover transform */
 }
 
 .gemini-message-assistant::before {
-  content: "🤍";
-  font-size: var(--text-lg);
-  margin-top: var(--space-1);
+  content: "💖";
+  font-size: 24px; /* Larger size for profile picture effect */
+  width: 40px;
+  height: 40px;
+  border-radius: 50%; /* Make it circular like a profile picture */
+  background: linear-gradient(135deg, #d4af37, #ffd700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  margin-top: 0;
+  box-shadow: 
+    0 4px 12px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.3));
 }
 
 /* === GEMINI INPUT === */
@@ -1006,12 +1028,14 @@
   border-radius: var(--radius-2xl);
   margin: var(--space-2) 0;
   width: fit-content;
+  font-weight: 500; /* Medium font weight */
 }
 
 .gemini-thinking::before {
-  content: "🤖";
+  content: "✨";
   font-size: var(--text-lg);
   @apply animate-float;
+  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.4));
 }
 
 .gemini-dots {
@@ -1022,9 +1046,10 @@
 .gemini-dot {
   width: 6px;
   height: 6px;
-  background: var(--color-accent-primary);
+  background: linear-gradient(135deg, #d4af37, #ffd700);
   border-radius: var(--radius-full);
   animation: gemini-pulse 1.4s infinite ease-in-out;
+  box-shadow: 0 0 4px rgba(212, 175, 55, 0.5);
 }
 
 .gemini-dot:nth-child(1) { animation-delay: -0.32s; }
@@ -1270,6 +1295,7 @@
 
   .gemini-message-user {
     font-size: 14px;
+    font-weight: 500; /* Medium font weight */
     padding: 12px 16px;
     margin: 8px 0 8px auto;
     max-width: 85%;
@@ -1279,11 +1305,19 @@
 
   .gemini-message-assistant {
     font-size: 14px;
+    font-weight: 500; /* Medium font weight */
     padding: 16px;
     align-items: flex-start;
     max-width: 95%;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    display: flex;
+    gap: 12px;
+    background: transparent; /* Remove background */
+    border: none; /* Remove border */
+    box-shadow: none; /* Remove shadow */
+    border-radius: 0; /* Remove border radius */
+    color: var(--color-text-primary);
   }
 
   .gemini-input-container {
@@ -2263,6 +2297,7 @@ body.sidebar-open .gemini-header .gemini-menu-button {
 
 .gemini-message-user {
   font-size: 14px;
+  font-weight: 500; /* Medium font weight */
   padding: 12px 16px;
   margin: 8px 0 8px auto;
   max-width: 85%;
@@ -2272,11 +2307,19 @@ body.sidebar-open .gemini-header .gemini-menu-button {
 
 .gemini-message-assistant {
   font-size: 14px;
+  font-weight: 500; /* Medium font weight */
   padding: 16px;
   align-items: flex-start;
   max-width: 95%;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  display: flex;
+  gap: 12px;
+  background: transparent; /* Remove background */
+  border: none; /* Remove border */
+  box-shadow: none; /* Remove shadow */
+  border-radius: 0; /* Remove border radius */
+  color: var(--color-text-primary);
 }
 
 .gemini-send-button {
