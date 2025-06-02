@@ -1,6 +1,6 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { GoogleAccountSelector } from './GoogleAccountSelector';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -31,15 +31,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Kullanıcı giriş yapmamışsa GoogleAccountSelector göster
+  // Kullanıcı giriş yapmamışsa /auth sayfasına yönlendir
   if (!isAuthenticated) {
-    return (
-      <GoogleAccountSelector
-        isOpen={true}
-        onClose={() => {}} // Kapatma butonu yok
-        onSuccess={() => {}} // Auth context otomatik handle edecek
-      />
-    );
+    return <Navigate to="/auth" replace />;
   }
 
   // Kullanıcı giriş yapmışsa children'ı render et

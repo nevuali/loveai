@@ -11,6 +11,7 @@ import { Toaster as HotToaster } from 'react-hot-toast';
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
 const PackageDetail = lazy(() => import("./pages/PackageDetail"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
 const HolidayPackage = lazy(() => import("./pages/HolidayPackage"));
 const FindHoliday = lazy(() => import("./pages/FindHoliday"));
 const CoupleTest = lazy(() => import("./pages/CoupleTest"));
@@ -66,6 +67,9 @@ function App() {
           }}>
             <Suspense fallback={<PageLoading />}>
               <Routes>
+                {/* Authentication page - public */}
+                <Route path="/auth" element={<AuthPage />} />
+                
                 {/* Ana chat sayfası - protected */}
                 <Route path="/" element={
                   <ProtectedRoute>

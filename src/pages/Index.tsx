@@ -1130,6 +1130,7 @@ const Index = () => {
           
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">PRO</span>
+            
             <div className="profile-menu-container relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
