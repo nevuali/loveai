@@ -612,6 +612,22 @@
   border-color: var(--color-accent-primary);
 }
 
+/* Enhanced Emoji/Icon Spacing in Sidebar */
+.gem-icon {
+  margin-right: 12px !important; /* Increased spacing */
+  color: rgba(212, 175, 55, 0.8) !important;
+  font-weight: 700 !important; /* Make icons bolder */
+  flex-shrink: 0 !important;
+  filter: drop-shadow(0 1px 2px rgba(212, 175, 55, 0.3)) !important;
+  transition: all 0.3s ease !important;
+}
+
+.gemini-chat-item:hover .gem-icon {
+  color: rgba(212, 175, 55, 1) !important;
+  transform: scale(1.1) !important;
+  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.5)) !important;
+}
+
 /* === OPTIMIZED SIDEBAR TOP SECTION === */
 .gemini-sidebar-top {
   padding: 20px 16px 18px 16px;
