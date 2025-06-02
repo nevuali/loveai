@@ -5,6 +5,81 @@
 @tailwind utilities;
 
 @layer base {
+  /* === MODERN UI FOUNDATION === */
+:root {
+    /* 8-point grid system */
+    --space-1: 0.125rem; /* 2px */
+    --space-2: 0.25rem;  /* 4px */
+    --space-3: 0.375rem; /* 6px */
+    --space-4: 0.5rem;   /* 8px */
+    --space-6: 0.75rem;  /* 12px */
+    --space-8: 1rem;     /* 16px */
+    --space-12: 1.5rem;  /* 24px */
+    --space-16: 2rem;    /* 32px */
+    --space-20: 2.5rem;  /* 40px */
+    --space-24: 3rem;    /* 48px */
+    --space-32: 4rem;    /* 64px */
+
+    /* Modern color palette (dark theme preserved) */
+    --color-background: #1f1f1f;
+    --color-surface: #2a2a2a;
+    --color-surface-elevated: #353535;
+    --color-surface-glass: rgba(255, 255, 255, 0.05);
+    --color-surface-glass-elevated: rgba(255, 255, 255, 0.08);
+    
+    --color-text-primary: #e8eaed;
+    --color-text-secondary: rgba(255, 255, 255, 0.7);
+    --color-text-tertiary: rgba(255, 255, 255, 0.5);
+    
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-border-strong: rgba(255, 255, 255, 0.2);
+    
+    /* Gold color palette instead of purple */
+    --color-accent-primary: #d4af37;    /* Rich gold */
+    --color-accent-secondary: #b8860b;  /* Dark goldenrod */
+    --color-accent-tertiary: #ffd700;   /* Gold */
+    
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    
+    /* Typography scale */
+    --text-xs: 0.75rem;     /* 12px */
+    --text-sm: 0.875rem;    /* 14px */
+    --text-base: 1rem;      /* 16px */
+    --text-lg: 1.125rem;    /* 18px */
+    --text-xl: 1.25rem;     /* 20px */
+    --text-2xl: 1.5rem;     /* 24px */
+    --text-3xl: 1.875rem;   /* 30px */
+    --text-4xl: 2.25rem;    /* 36px */
+    
+    /* Border radius scale */
+    --radius-sm: 0.375rem;  /* 6px */
+    --radius-md: 0.5rem;    /* 8px */
+    --radius-lg: 0.75rem;   /* 12px */
+    --radius-xl: 1rem;      /* 16px */
+    --radius-2xl: 1.5rem;   /* 24px */
+    --radius-full: 9999px;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
+    
+    /* Animation durations */
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+    
+    /* Z-index scale */
+    --z-dropdown: 50;
+    --z-sticky: 60;
+    --z-modal: 70;
+    --z-tooltip: 80;
+  }
+
   * {
     margin: 0;
     padding: 0;
@@ -19,14 +94,15 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #1f1f1f;
-    color: #e8eaed;
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
     height: 100%;
-    overflow: hidden; /* Prevent page level scrolling */
+    overflow: hidden;
+    font-size: var(--text-base);
+    line-height: 1.5;
   }
 
   @supports (-webkit-touch-callout: none) {
-    /* iOS Safari specific styles */
     html, body {
       position: fixed;
       width: 100%;
@@ -40,573 +116,270 @@
   }
 }
 
-/* Gemini exact styling */
-.gemini-sidebar {
-  background: #1a1a1a;
-  border-right: 1px solid #333;
-  width: 280px;
-  height: 100vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
-  z-index: 1000; /* Increase z-index to ensure it's above other elements */
-}
-
-.gemini-sidebar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
-
-/* iOS Safari specific fixes for sidebar */
-@supports (-webkit-touch-callout: none) {
-  .gemini-sidebar {
-    height: calc(var(--vh, 1vh) * 100);
-    position: fixed;
-    top: 0;
-    left: 0;
-    transform: translateZ(0); /* Fix Safari rendering issues */
-    -webkit-backface-visibility: hidden; /* Fix Safari rendering issues */
+@layer components {
+  /* === MODERN GLASS COMPONENTS === */
+  .glass {
+    background: var(--color-surface-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--color-border);
   }
   
-  /* Fix for sidebar scroll in iOS Safari */
-  .gemini-chat-list {
-    -webkit-overflow-scrolling: touch;
-    max-height: calc(var(--vh, 1vh) * 100 - 150px); /* Account for header and footer */
+  .glass-elevated {
+    background: var(--color-surface-glass-elevated);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-border-strong);
+    box-shadow: var(--shadow-glass);
+  }
+  
+  .glass-card {
+    @apply glass rounded-xl p-6;
+    transition: all var(--duration-normal) ease;
+  }
+  
+  .glass-card:hover {
+    background: var(--color-surface-glass-elevated);
+    border-color: var(--color-border-strong);
+    transform: translateY(-1px);
+  }
+
+  /* === MODERN BUTTON SYSTEM === */
+  .btn {
+    @apply inline-flex items-center justify-center;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-lg);
+    font-weight: 500;
+    font-size: var(--text-sm);
+    transition: all var(--duration-fast) ease;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    text-decoration: none;
+    user-select: none;
+  }
+  
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .btn-primary {
+    @apply btn;
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+    color: white;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .btn-ghost {
+    @apply btn glass;
+    color: var(--color-text-secondary);
+  }
+  
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-surface-glass-elevated);
+    color: var(--color-text-primary);
+  }
+
+  /* === MODERN MESSAGE SYSTEM === */
+  .message-user {
+    @apply glass-card;
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+    color: white;
+    padding: var(--space-4) var(--space-6);
+    border-radius: var(--radius-2xl);
+    border-top-right-radius: var(--radius-md);
+    font-weight: 500;
+    box-shadow: var(--shadow-md);
+    max-width: 80%;
+    word-wrap: break-word;
+    line-height: 1.4;
+  }
+  
+  .message-assistant {
+    @apply glass-card;
+    padding: var(--space-6);
+    border-radius: var(--radius-2xl);
+    border-top-left-radius: var(--radius-md);
+    max-width: 85%;
+    word-wrap: break-word;
+    line-height: 1.6;
+    color: var(--color-text-primary);
+    position: relative;
+    overflow: hidden;
+    font-weight: 500;
+    background: var(--color-surface-glass);
+  }
+  
+  .message-assistant::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, 
+      rgba(212, 175, 55, 0.05) 0%, 
+      rgba(255, 215, 0, 0.02) 50%, 
+      rgba(212, 175, 55, 0.05) 100%);
+    pointer-events: none;
+  }
+
+  /* === MODERN INPUT SYSTEM === */
+  .input-modern {
+    @apply glass;
+    padding: var(--space-4) var(--space-6);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface-glass);
+    color: var(--color-text-primary);
+    transition: all var(--duration-normal) ease;
+    outline: none;
+    width: 100%;
+  }
+  
+  .input-modern::placeholder {
+    color: var(--color-text-tertiary);
+  }
+  
+  .input-modern:focus {
+    background: var(--color-surface-glass-elevated);
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+  }
+
+  /* === MODERN ANIMATION SYSTEM === */
+  .animate-fade-in {
+    animation: fadeIn var(--duration-normal) ease-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp var(--duration-normal) ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn var(--duration-fast) ease-out;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-electric-pulse {
+    animation: electricPulse 2s ease-in-out infinite;
+  }
+
+  /* === MODERN GRADIENTS === */
+  .bg-purple-gradient {
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+  }
+  
+  .bg-electric-gradient {
+    background: linear-gradient(135deg, #d4af37, #b8860b, #ffd700);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* === MODERN SCROLLBAR === */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-full);
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
 }
 
-.gemini-main {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  position: relative;
-  height: 100vh;
-  overflow: hidden; /* Prevent outer container from scrolling */
-}
-
-.gemini-header {
-  background: #1a1a1a;
-  border-bottom: none;
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  gap: 16px;
+@layer utilities {
+  /* === RESPONSIVE SPACING === */
+  .p-mobile { padding: var(--space-4); }
+  .p-tablet { padding: var(--space-6); }
+  .p-desktop { padding: var(--space-8); }
+  
+  .m-mobile { margin: var(--space-4); }
+  .m-tablet { margin: var(--space-6); }
+  .m-desktop { margin: var(--space-8); }
+  
+  /* === MODERN FLEX UTILITIES === */
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+  
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+  
+  .flex-start {
+    @apply flex items-center justify-start;
+  }
+  
+  .flex-end {
+    @apply flex items-center justify-end;
   }
 
-.gemini-title {
-  font-size: 22px;
-  font-weight: 400;
-  color: #e8eaed;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  /* === MODERN COLORS === */
+  .text-primary { color: var(--color-text-primary); }
+  .text-secondary { color: var(--color-text-secondary); }
+  .text-tertiary { color: var(--color-text-tertiary); }
+  
+  .bg-surface { background-color: var(--color-surface); }
+  .bg-surface-elevated { background-color: var(--color-surface-elevated); }
+  
+  .border-default { border-color: var(--color-border); }
+  .border-strong { border-color: var(--color-border-strong); }
 }
 
-.gemini-model-selector {
-  background: #2d2e30;
-  border: 1px solid #444;
-  border-radius: 20px;
-  padding: 8px 14px;
-  color: #e8eaed;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: background 0.2s;
-  white-space: nowrap;
+/* === KEYFRAMES === */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.gemini-model-selector:hover {
-  background: #3c4043;
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.gemini-model-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 8px;
-  width: 200px;
-  background: #2d2e30;
-  border: 1px solid #444;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  z-index: 50;
-  overflow: hidden;
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.gemini-model-dropdown-item {
-  width: 100%;
-  padding: 12px 16px;
-  text-align: left;
-  font-size: 15px;
-  color: #e8eaed;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-family: 'Google Sans', sans-serif;
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
-.gemini-model-dropdown-item:hover {
-  background: #3c4043;
+@keyframes electricPulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
+    transform: scale(1.05);
+  }
 }
-
-.gemini-model-dropdown-item:first-child {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.gemini-model-dropdown-item:last-child {
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.gemini-sidebar-top {
-  padding: 18px;
-  border-bottom: none;
-  position: relative;
-}
-
-.gemini-sidebar-menu {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.gemini-hamburger {
-  background: transparent;
-  border: none;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #9aa0a6;
-  transition: all 0.2s;
-}
-
-.gemini-hamburger:hover {
-  background: #3c4043;
-  color: #e8eaed;
-}
-
-.gemini-hamburger:focus {
-  outline: none;
-  background: #3c4043;
-}
-
-.gemini-search-icon {
-  background: transparent;
-  border: none;
-  padding: 10px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #9aa0a6;
-  transition: all 0.2s;
-}
-
-.gemini-search-icon:hover {
-  background: #3c4043;
-  color: #e8eaed;
-}
-
-.gemini-new-chat {
-  background: #2d2e30;
-  border: 1px solid #444;
-  border-radius: 8px;
-  padding: 14px 18px;
-  color: #e8eaed;
-  width: 100%;
-  cursor: pointer;
-  font-size: 15px;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.gemini-new-chat:hover {
-  background: #3c4043;
-  animation: magical-glow 2s ease-in-out infinite, magical-pulse 1.5s ease-in-out infinite;
-  transition: all 0.3s ease;
-}
-
-.gemini-new-chat:active {
-  transform: scale(0.95);
-  box-shadow: 0 0 25px rgba(241, 196, 15, 0.8), 0 0 40px rgba(241, 196, 15, 0.6);
-}
-
-.gemini-chat-list {
-  padding: 8px 16px;
-  flex: 1;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  transition: margin-top 0.3s ease;
-}
-
-/* Arama açıkken chat list'e daha fazla margin */
-.gemini-sidebar:has(.gemini-search-box) .gemini-chat-list {
-  margin-top: 0px;
-}
-
-.gemini-chat-list::-webkit-scrollbar {
-  display: none;
-}
-
-.gemini-chat-item {
-  padding: 14px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-bottom: 4px;
-  transition: background 0.2s;
-  color: #c4c7c5;
-  font-size: 15px;
-}
-
-.gemini-chat-item:hover {
-  background: #2d2e30;
-}
-
-.gemini-chat-item.active {
-  background: #2d2e30;
-  color: #e8eaed;
-}
-
-.gemini-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 800px;
-  -webkit-overflow-scrolling: touch; /* For smooth scrolling in iOS */
-}
-
-.gemini-message {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.gemini-message-user {
-  background: linear-gradient(135deg, #1a73e8 0%, #4285f4 100%);
-  color: white;
-  padding: 12px 18px;
-  border-radius: 18px;
-  margin: 8px 0 8px auto;
-  max-width: 80%;
-  word-break: break-word;
-  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-.gemini-message-assistant {
-  color: #e8eaed;
-  font-size: 15px;
-  line-height: 1.5;
-  padding: 0;
-  margin-bottom: 12px;
-  max-width: 75%;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-  white-space: pre-wrap;
-}
-
-.gemini-message-assistant:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
-  transform: translateY(-1px);
-}
-
-.gemini-message-assistant::before {
-  content: "🤍";
-  font-size: 17px;
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
-.gemini-input-container {
-  background: transparent !important; /* Force transparent background */
-  padding: 16px !important; /* Restore minimal padding for toolkit UX */
-  margin: 0 auto !important; /* Center with auto margin */
-  max-width: 800px; /* Keep max-width */
-  border: none !important; /* Remove all borders */
-  backdrop-filter: none !important; /* Remove backdrop filter */
-  box-shadow: none !important; /* Remove shadows */
-  position: relative; /* Keep position for child elements */
-  display: flex; /* Keep flex for layout */
-  flex-direction: column; /* Keep column direction */
-  align-items: center; /* Center align items */
-  overflow-x: hidden !important; /* Prevent horizontal scrolling */
-  width: 100% !important; /* Full width */
-  box-sizing: border-box !important; /* Prevent overflow */
-}
-
-.gemini-input-wrapper {
-  background: transparent !important; /* Make input wrapper fully transparent */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 32px;
-  padding: 6px; /* Reduced padding to create a tight border around the input */
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  backdrop-filter: none; /* Remove backdrop filter as it's not needed for transparent bg */
-  box-shadow: none; /* Remove box-shadow */
-  transition: all 0.3s ease;
-  width: 100%; /* Ensure full width */
-  position: relative; /* This ensures absolutely positioned children are positioned relative to this wrapper */
-}
-
-.gemini-input {
-  background: #2d2e30;
-  border: 1px solid #444;
-  border-radius: 24px;
-  padding: 18px 100px 18px 56px; /* Sağ padding artırıldı iki buton için */
-  width: 100%;
-  color: #e8eaed;
-  font-size: 17px;
-  outline: none;
-  transition: border-color 0.2s;
-  resize: none;
-  min-height: 60px;
-  font-family: 'Google Sans', sans-serif;
-  display: flex;
-  align-items: center;
-}
-
-.gemini-input:focus {
-  border-color: #8ab4f8;
-}
-
-.gemini-input::placeholder {
-  color: #9aa0a6;
-  font-size: 17px;
-}
-
-.gemini-input::-webkit-input-placeholder {
-  content: "Message AI LOVVE...";
-}
-
-.gemini-input::-moz-placeholder {
-  content: "Message AI LOVVE...";
-}
-
-.gemini-plus-button {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #9aa0a6;
-  transition: all 0.2s;
-  z-index: 10;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.gemini-plus-button:hover {
-  background: #3c4043;
-  color: #e8eaed;
-}
-
-.gemini-mic-button {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #9aa0a6;
-  transition: all 0.2s;
-  height: 36px;
-  width: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.gemini-mic-button:hover {
-  background: #3c4043;
-  color: #e8eaed;
-}
-
-.gemini-send-button {
-  position: absolute;
-  right: 56px; /* Mic butonu ile arasında mesafe bırakmak için */
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent; /* Gradient yerine transparan arka plan */
-  border: none;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #9aa0a6; /* Mic butonu ile aynı renk */
-  transition: all 0.2s;
-  height: 36px;
-  width: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  box-shadow: none; /* Gölgeyi kaldır */
-}
-
-.gemini-send-button:hover {
-  background: #3c4043; /* Hover durumunda aynı hover efekti */
-  color: #e8eaed;
-  transform: translateY(-50%); /* Scale efektini kaldır */
-  box-shadow: none; /* Gölgeyi kaldır */
-}
-
-.gemini-send-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: transparent; /* Disable durumunda da transparan */
-  color: #666;
-  box-shadow: none;
-}
-
-.gemini-toolbox {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 12px; /* Add padding back for proper UX */
-  background: transparent !important;
-}
-
-.gemini-toolbox-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #9aa0a6;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  min-width: 120px; /* Ensure minimum width for proper layout */
-  justify-content: center; /* Center content */
-}
-
-.gemini-toolbox-button:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #e8eaed;
-  transform: translateY(-1px);
-}
-
-.gemini-welcome {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  max-width: none;
-  margin: 0;
-  padding: 20px 200px 60px; /* Top padding reduced to move content up */
-  text-align: center;
-}
-
-/* Wrapper for welcome title and subtitle to control spacing */
-.welcome-content-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.gemini-welcome-title {
-  color: #f1c40f;
-  font-size: 52px;
-  font-weight: 400;
-  margin-bottom: 4px; /* 0'dan 4px'e çıkardım, orta seviye bir boşluk */
-  text-shadow: 0 2px 8px rgba(241, 196, 15, 0.3);
-  text-align: center;
-  width: 100%;
-}
-
-.gemini-welcome-subtitle {
-  color: #c4c7c5;
-  font-size: 16px;
-  margin-bottom: 24px;
-  margin-top: -2px; /* -8px'den -2px'e değiştirdim, daha az negatif */
-  text-align: center;
-  width: 100%;
-  max-width: 600px;
-}
-
-.gemini-suggestions {
-  display: none;
-}
-
-.gemini-thinking {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #9aa0a6;
-  font-size: 15px;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  margin-bottom: 16px;
-}
-
-.gemini-thinking::before {
-  content: "🤍";
-  font-size: 14px;
-  animation: heart-spin 1.5s linear infinite;
-  flex-shrink: 0;
-}
-
-.gemini-dots {
-  display: flex;
-  gap: 4px;
-}
-
-.gemini-dot {
-  width: 6px;
-  height: 6px;
-  background: #9aa0a6;
-  border-radius: 50%;
-  animation: gemini-pulse 1.4s infinite ease-in-out;
-}
-
-.gemini-dot:nth-child(1) { animation-delay: -0.32s; }
-.gemini-dot:nth-child(2) { animation-delay: -0.16s; }
 
 @keyframes gemini-pulse {
   0%, 80%, 100% { 
@@ -619,200 +392,779 @@
   }
 }
 
+@keyframes loadingBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px); }
+  25% { transform: translateY(-3px); }
+  75% { transform: translateY(3px); }
+}
+
+/* === GEMINI SIDEBAR === */
+.gemini-sidebar {
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  width: 320px;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  @apply custom-scrollbar;
+  z-index: var(--z-sticky);
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  transition: transform var(--duration-normal) ease;
+}
+
+.gemini-sidebar.open {
+  transform: translateX(0);
+}
+
+@media (min-width: 1024px) {
+  .gemini-sidebar {
+    position: fixed;
+    transform: translateX(0);
+  }
+  
+  body.sidebar-closed .gemini-sidebar {
+    transform: translateX(-100%);
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .gemini-sidebar {
+    height: calc(var(--vh, 1vh) * 100);
+    -webkit-backface-visibility: hidden;
+  }
+  
+  .gemini-chat-list {
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(var(--vh, 1vh) * 100 - 150px);
+  }
+}
+
+/* === GEMINI MAIN === */
+.gemini-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  margin-left: 0;
+  transition: margin-left var(--duration-normal) ease, width var(--duration-normal) ease;
+}
+
+@media (min-width: 1024px) {
+  .gemini-main {
+    margin-left: 320px;
+    width: calc(100% - 320px);
+  }
+  
+  body.sidebar-closed .gemini-main {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* === GEMINI HEADER === */
+.gemini-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  gap: var(--space-3);
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: calc(100% - 320px);
+  z-index: var(--z-sticky);
+}
+
+@media (min-width: 1024px) {
+  body.sidebar-closed .gemini-header {
+    width: 100%;
+    left: 0;
+  }
+  
+  body.sidebar-closed .gemini-menu-button {
+    order: -1;
+  }
+  
+  .gemini-messages {
+    padding-top: 64px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .gemini-header {
+    width: 100%;
+    left: 0;
+    position: fixed;
+  }
+}
+
+/* === ESSENTIAL BUTTON STYLES === */
 .gemini-menu-button {
-  background: transparent;
-  border: none;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #9aa0a6;
-  transition: all 0.2s;
+  @apply btn-ghost;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
 }
 
 .gemini-menu-button:hover {
-  background: #3c4043;
-  color: #e8eaed;
+  background: var(--color-surface-glass);
+  color: var(--color-text-primary);
 }
 
-.gemini-profile {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #4285f4;
+/* === GEMINI TITLE === */
+.gemini-title {
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* === MODEL SELECTOR === */
+.gemini-model-selector {
+  @apply btn-ghost;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.gemini-model-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--space-2);
+  width: 200px;
+  @apply glass-elevated;
+  border-radius: var(--radius-xl);
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+}
+
+.gemini-model-dropdown-item {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+  font-family: 'Google Sans', sans-serif;
+}
+
+.gemini-model-dropdown-item:hover {
+  background: var(--color-surface-glass);
+  color: var(--color-text-primary);
+}
+
+/* === CHAT ITEMS === */
+.gemini-chat-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  @apply custom-scrollbar;
+}
+
+.gemini-sidebar:has(.gemini-search-box) .gemini-chat-list {
+  max-height: calc(100vh - 200px);
+}
+
+.gemini-chat-item {
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  margin-bottom: var(--space-1);
+  transition: all var(--duration-fast) ease;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  border: 1px solid transparent;
+}
+
+.gemini-chat-item:hover {
+  background: var(--color-surface-glass);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+  transform: translateX(2px);
+}
+
+.gemini-chat-item.active {
+  background: var(--color-surface-glass-elevated);
+  color: var(--color-text-primary);
+  border-color: var(--color-accent-primary);
+}
+
+/* === OPTIMIZED SIDEBAR TOP SECTION === */
+.gemini-sidebar-top {
+  padding: 20px 16px 18px 16px;
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.gemini-sidebar-menu {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  margin: 0;
+  width: 100%;
+}
+
+/* Optimized Button Container */
+.sidebar-button-container {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Enhanced 25-75 Layout for Menu and New Chat */
+.sidebar-menu-btn-half {
+  flex: 0 0 25%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: 500;
-  font-size: 14px;
+  padding: 10px 8px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
-  border: none; /* Sınır çizgisini kaldırıyoruz */
-  transition: none; /* Tüm animasyonları devre dışı bırakıyoruz */
-  box-shadow: none; /* Gölgeyi kaldırıyoruz */
+  position: relative;
+  overflow: hidden;
 }
 
-/* Hover efektini devre dışı bırakıyoruz */
-.gemini-profile:hover {
-  box-shadow: none;
+.sidebar-menu-btn-half::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.05) 0%,
+    rgba(255, 215, 0, 0.02) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-menu-btn-half:hover::before {
+  opacity: 1;
+}
+
+.sidebar-menu-btn-half:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(212, 175, 55, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-newchat-btn-half {
+  flex: 0 0 75%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  height: 38px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 2px 8px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-newchat-btn-half::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-newchat-btn-half:hover::before {
+  opacity: 1;
+}
+
+.sidebar-newchat-btn-half:hover {
+  background: linear-gradient(135deg, #ffd700, #d4af37);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 4px 16px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.sidebar-newchat-btn-half:active {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 2px 8px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Icon Styling */
+.sidebar-menu-btn-half svg,
+.sidebar-newchat-btn-half svg {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.sidebar-menu-btn-half svg {
+  color: rgba(212, 175, 55, 0.8);
+  transition: color 0.3s ease;
+}
+
+.sidebar-menu-btn-half:hover svg {
+  color: rgba(212, 175, 55, 1);
+}
+
+/* Responsive Optimizations */
+@media (max-width: 1023px) {
+  .gemini-sidebar-top {
+    padding: 16px 12px 14px 12px;
+  }
+  
+  .sidebar-button-container {
+    gap: 6px;
+    max-width: 260px;
+  }
+  
+  .sidebar-menu-btn-half {
+    height: 36px;
+    padding: 8px 6px;
+  }
+  
+  .sidebar-newchat-btn-half {
+    height: 36px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .gemini-sidebar-top {
+    padding: 14px 10px 12px 10px;
+  }
+  
+  .sidebar-button-container {
+    gap: 4px;
+    max-width: 240px;
+  }
+  
+  .sidebar-menu-btn-half {
+    height: 34px;
+    padding: 6px 4px;
+    border-radius: 8px;
+  }
+  
+  .sidebar-newchat-btn-half {
+    height: 34px;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 16px;
+  }
+}
+
+/* === GEMINI MESSAGES === */
+.gemini-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin: 0 auto;
+  width: 100%;
+  max-width: 800px;
+  @apply custom-scrollbar;
+  -webkit-overflow-scrolling: touch;
+  padding-top: 76px;
+  padding-bottom: 140px;
+}
+
+.gemini-message {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.gemini-message-user {
+  @apply message-user;
+  margin: var(--space-2) 0 var(--space-2) auto;
+  font-size: var(--text-sm);
+}
+
+.gemini-message-assistant {
+  @apply message-assistant;
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  position: relative;
+}
+
+.gemini-message-assistant:hover {
+  background: var(--color-surface-glass-elevated);
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}
+
+.gemini-message-assistant::before {
+  content: "🤍";
+  font-size: var(--text-lg);
+  margin-top: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* === GEMINI INPUT === */
+.gemini-input-container {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-background);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: var(--z-sticky);
+}
+
+.gemini-input-wrapper {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  @apply glass-elevated;
+  border-radius: var(--radius-2xl);
+  padding: var(--space-4);
+  background: var(--color-surface-glass-elevated);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.gemini-input {
+  flex: 1;
+  background: transparent;
   border: none;
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  resize: none;
+  min-height: 48px;
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: 1.5;
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
   outline: none;
-  transform: none;
-  transition: none;
 }
 
-.gemini-sidebar-section {
-  padding: 8px 14px;
-  margin: 14px 0 8px 0;
-  color: #c4c7c5;
-  font-size: 12px;
+.gemini-input::placeholder {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-base);
+}
+
+/* === TOOLBOX - Fix centering === */
+.gemini-toolbox {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  justify-content: center; /* Center toolbox */
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.gemini-toolbox-button {
+  @apply btn-ghost;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-xs);
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: all var(--duration-fast) ease;
+}
+
+.gemini-toolbox-button:hover {
+  background: var(--color-surface-glass-elevated);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.gemini-toolbox-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* === BUTTONS === */
+.gemini-plus-button,
+.gemini-mic-button {
+  @apply btn-ghost;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  justify-content: center;
+}
+
+.gemini-plus-button:hover,
+.gemini-mic-button:hover {
+  background: var(--color-surface-glass-elevated);
+  color: var(--color-text-primary);
+  transform: scale(1.05);
+}
+
+.gemini-send-button {
+  @apply btn-primary;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.gemini-send-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.gemini-send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* === THINKING INDICATOR === */
+.gemini-thinking {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  @apply glass-card;
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-2xl);
+  margin: var(--space-2) 0;
+  width: fit-content;
+}
+
+.gemini-thinking::before {
+  content: "🤖";
+  font-size: var(--text-lg);
+  @apply animate-float;
+}
+
+.gemini-dots {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.gemini-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent-primary);
+  border-radius: var(--radius-full);
+  animation: gemini-pulse 1.4s infinite ease-in-out;
+}
+
+.gemini-dot:nth-child(1) { animation-delay: -0.32s; }
+.gemini-dot:nth-child(2) { animation-delay: -0.16s; }
+
+/* === WELCOME SCREEN === */
+.gemini-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+
+.welcome-content-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.gemini-welcome-title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  @apply text-gradient;
+  margin-bottom: var(--space-3);
+  margin-top: 60px;
+  line-height: 1.2;
+}
+
+.gemini-welcome-subtitle {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-8);
+  line-height: 1.6;
+}
+
+/* === SIDEBAR SECTIONS === */
+.gemini-sidebar-section {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .gemini-sidebar-footer {
-  padding: 16px;
-  border-top: 1px solid #333;
+  padding: var(--space-6);
+  border-top: 1px solid var(--color-border);
   margin-top: auto;
 }
 
-.betul-icon {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #8b5cf6;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
+/* === MISCELLANEOUS === */
+.animate-loadingBar {
+  animation: loadingBar 2s ease-in-out infinite;
+}
+
+.gentle-floating {
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+.glow-text {
+  text-shadow: 0 0 10px currentColor;
+}
+
+/* === GLOBAL SCROLLBAR === */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+}
+
+/* === DROPDOWN STYLES === */
+.gemini-dropdown-menu {
+  @apply glass-elevated;
+  border-radius: var(--radius-xl);
+  padding: var(--space-2);
+  min-width: 240px;
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-dropdown);
+  border: 1px solid var(--color-border-strong);
+}
+
+.gemini-dropdown-header {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-2);
+}
+
+.gemini-dropdown-item {
+  @apply btn-ghost;
+  width: 100%;
+  justify-content: flex-start;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-1);
+  text-align: left;
+}
+
+.gemini-dropdown-item:hover {
+  background: var(--color-surface-glass-elevated);
+  color: var(--color-text-primary);
+}
+
+.gemini-dropdown-item.danger {
+  color: var(--color-error);
+}
+
+.user-name {
+  font-size: var(--text-sm);
   font-weight: 500;
-  margin-right: 12px;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
 }
 
-.gem-icon {
-  width: 18px;
-  height: 18px;
-  margin-right: 12px;
-  color: #c4c7c5;
+.user-email {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
 }
 
-.gemini-footer-text {
-  color: #666666;
-  margin-top: 12px;
-  opacity: 0.8;
-  background: transparent; /* Ensure no background */
-  padding: 0; /* Remove any padding */
-}
-
-/* Text visibility classes */
-.full-text {
-  display: inline;
-}
-
-.short-text {
+/* === MOBILE OVERLAY === */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: calc(var(--z-modal) - 1);
   display: none;
+  pointer-events: none;
 }
 
-/* Mobile menu button - hidden by default */
-.mobile-menu-button {
-  display: none;
+.mobile-overlay.open {
+  display: block;
+  pointer-events: auto;
 }
 
-/* Desktop and tablet - show full text */
-@media (min-width: 641px) {
-  .full-text {
-    display: inline;
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 1023px) {
+  .mobile-overlay.open {
+    background: rgba(0, 0, 0, 0.2);
   }
   
-  .short-text {
-    display: none;
-  }
-
-  .gemini-messages {
-    padding: 40px;
-    gap: 28px;
-    max-width: 700px;
-  }
-
-  .gemini-message {
-    gap: 8px;
-  }
-
-  .gemini-message-user {
-    max-width: 50%;
-    padding: 16px 20px;
-    font-size: 16px;
-    line-height: 1.5;
-    margin-bottom: 14px;
-    border-radius: 18px;
-  }
-
-  .gemini-message-assistant {
-    font-size: 16px;
-    line-height: 1.6;
-    gap: 14px;
-    margin-bottom: 14px;
-    max-width: 70%;
-  }
-
-  .gemini-message-assistant .message-content {
-    max-width: calc(100% - 36px);
-    line-height: 1.6;
-  }
-
-  .gemini-message-assistant::before {
-    font-size: 17px;
-  }
-
-  .gemini-toolbox {
-    max-width: 700px;
-    gap: 10px;
-    background: transparent; /* Keep transparent on desktop */
-    border: none;
-    box-shadow: none;
-  }
-
-  .gemini-toolbox-button {
-    padding: 16px 22px;
-    font-size: 15px;
-    height: 48px;
-    min-width: 140px;
-    max-width: 180px;
-    gap: 10px;
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 15px;
-    height: 15px;
-  }
-
-  .gemini-input-container {
-    background: none !important; /* Keep background transparent */
-    padding: 24px !important; /* Restore desktop padding for toolkit UX */
-    margin: 0 auto !important; /* Center with auto margin */
-    max-width: 800px; /* Keep max-width */
-    border: none !important; /* Remove all borders */
-    backdrop-filter: none !important; /* Remove backdrop filter */
-    box-shadow: none !important; /* Remove shadows */
-    position: relative; /* Keep position for child elements */
-    display: flex; /* Keep flex for layout */
-    flex-direction: column; /* Keep column direction */
-    align-items: center; /* Center align items */
-    overflow-x: hidden !important; /* Prevent horizontal scrolling */
-    width: 100% !important; /* Full width */
-    box-sizing: border-box !important; /* Prevent overflow */
-  }
-
-  .gemini-input-wrapper {
-    max-width: 700px; /* Match toolbox general desktop max-width */
+  /* Hide header menu button when sidebar is open */
+  body.sidebar-open .gemini-menu-button {
+    display: none !important;
   }
 }
 
-/* Mobile responsive */
 @media (max-width: 640px) {
   .full-text {
     display: none;
@@ -826,730 +1178,667 @@
     display: block;
   }
 
-  .gemini-sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    z-index: 1000; /* Higher z-index to be above all elements */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 320px;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-    height: 100%;
-    -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
-    -webkit-transform: translateX(-100%) translateZ(0);
-    -webkit-backface-visibility: hidden;
-  }
-
-  .mobile-overlay {
-    z-index: 999; /* Just below sidebar but above other elements */
-  }
-  
-  .gemini-sidebar.open {
-    transform: translateX(0);
-    -webkit-transform: translateX(0) translateZ(0);
-  }
-  
-  /* Fix for sidebar in iOS Safari when open */
-  @supports (-webkit-touch-callout: none) {
-    .gemini-sidebar.open {
-      bottom: 0;
-      height: 100%;
-      -webkit-transform: translateX(0) translateZ(0);
-      -webkit-backface-visibility: hidden;
-    }
-    
-    .mobile-overlay.open {
-      z-index: 40; /* Ensure overlay is below sidebar but above other elements */
-    }
-  }
-
-  .gemini-main {
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .gemini-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100; /* Below sidebar but above other content */
-    padding: 12px 14px;
-    height: 56px;
-    gap: 8px;
-    background-color: #1f1f1f; /* Add background color to prevent content showing through */
-  }
-
-  .gemini-title {
-    font-size: 18px;
-  }
-
-  .gemini-model-selector {
-    padding: 6px 10px;
-    font-size: 12px;
-    border-radius: 16px;
-  }
-
-  .gemini-profile {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-    background: #4285f4; /* Mavi arka plan rengini koruyoruz */
-    border: none; /* Sınır çizgisini kaldırıyoruz */
-    transition: none; /* Animasyon efektlerini kaldırıyoruz */
-  }
-
-  .gemini-dropdown-menu {
-    width: 280px;
-    right: -8px; /* Menüyü biraz sağa kaydır */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    margin-top: 12px;
-  }
-
-  .gemini-dropdown-header {
-    padding: 10px 14px;
-  }
-
-  .gemini-dropdown-item {
-    padding: 14px 16px; /* Mobilde dokunma alanını büyüt */
-    font-size: 14px;
-  }
-
-  .gemini-welcome {
-    width: 100%;
-    text-align: center;
-    padding: 0 16px 30px !important; /* Reduced padding top and bottom */
-    margin-top: -100px !important; /* Move up significantly to center better */
-    justify-content: center;
-    min-height: calc(100vh - 130px); /* Account for header and input */
-    display: flex;
-    flex-direction: column;
-  }
-
-  .gemini-welcome-title {
-    font-size: 28px;
-    line-height: 1.2;
-    margin-bottom: 3px; /* 0'dan 3px'e çıkardım, orta seviye boşluk */
-    text-align: center;
-    width: 100%;
-    max-width: 100%;
-  }
-  
-  .gemini-welcome-subtitle {
-    text-align: center;
-    width: 100%;
-    max-width: 100%;
-    font-size: 14px;
-    line-height: 1.4;
-    margin-top: -1px; /* -6px'den -1px'e değiştirdim, daha az negatif */
-  }
-  
-  /* Center message content but keep text left-aligned */
-  .gemini-message-assistant {
-    text-align: left; /* Keep message alignment left */
-  }
-  
-  /* Center the gemini-messages container */
-  .gemini-messages {
-    text-align: center; /* Center the container */
-    padding: 12px 8px;
-    flex: 1;
-    overflow-y: auto;
-    padding-bottom: 100px !important; /* Add padding to prevent messages from being hidden behind the input container */
-    margin-top: 52px; /* Account for fixed header */
-    height: calc(100% - 52px); /* Subtract header height */
-    padding-top: 0; /* Remove top padding to move messages up */
-  }
-
-  .gemini-chat-list {
-    padding: 8px 16px;
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    max-height: calc(100% - 130px); /* Account for header and footer on mobile */
-  }
-
-  .gemini-message {
-    gap: 14px;
-  }
-
-  .gemini-message-user {
-    max-width: 85%;
-    padding: 12px 16px;
-    font-size: 14px;
-    line-height: 1.4;
-  }
-
-  .gemini-message-assistant {
-    font-size: 14px;
-    line-height: 1.5;
-    max-width: 95%;
-  }
-
-  .gemini-input-container {
-    background: none !important; /* Keep background transparent */
-    padding: 12px !important; /* Restore minimal mobile padding for toolkit UX */
-    margin: 0 auto !important; /* Center with auto margin */
-    max-width: 100%; /* Full width on mobile */
-    border: none !important; /* Remove all borders */
-    backdrop-filter: none !important; /* Remove backdrop filter */
-    box-shadow: none !important; /* Remove shadows */
-    position: fixed !important; /* Fix to bottom of viewport */
-    display: flex; /* Keep flex for layout */
-    flex-direction: column; /* Keep column direction */
-    align-items: center; /* Center align items */
-    bottom: 20px !important; /* Position higher from bottom */
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 50 !important; /* Lower z-index than sidebar but above content */
-    width: 100% !important; /* Full width */
-    
-    /* Safari-specific fixes */
-    -webkit-transform: translateZ(0); /* Fix Safari rendering issues */
-    -webkit-backface-visibility: hidden; /* Fix Safari rendering issues */
-  }
-  
-  /* Adjust main container height and position */
-  .gemini-main {
-    justify-content: center;
-    height: 100%;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* Adjust header height and z-index */
-  .gemini-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100; /* Below sidebar but above other content */
-    padding: 12px 14px;
-    height: 56px;
-    gap: 8px;
-    background-color: #1f1f1f; /* Add background color to prevent content showing through */
-  }
-  
-  /* Give more vertical space in welcome title */
-  .gemini-welcome-title {
-    margin-bottom: 25px;
-  }
-
-  .gemini-toolbox {
-    gap: 4px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 100%;
-    padding: 0 8px;
-  }
-
-  .gemini-toolbox-button {
-    padding: 6px 12px;
-    font-size: 11px;
-    height: 30px;
-    min-width: 70px;
-    max-width: 95px;
-    border-radius: 15px;
-    gap: 5px;
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 12px;
-    height: 12px;
-    flex-shrink: 0;
-  }
-
-  .gemini-input-wrapper {
-    min-height: 44px;
-    max-width: 100%;
-  }
-
-  .gemini-input {
-    font-size: 14px;
-    padding: 12px 44px; /* Adjusted for tighter button positioning */
-    min-height: 44px;
-    border-radius: 22px;
-  }
-
-  .gemini-input::placeholder {
-    font-size: 14px;
-  }
-
-  .gemini-plus-button,
-  .gemini-mic-button {
-    width: 32px;
-    height: 32px;
-    padding: 6px;
-  }
-
-  .gemini-footer-text {
-    font-size: 11px;
-    margin-top: 10px;
-    padding: 0 8px;
-  }
-
-  .gemini-thinking {
-    font-size: 13px;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .gemini-thinking::before {
-    font-size: 14px;
-  }
-
-  .gemini-sidebar-top {
-    padding: 14px;
-    -webkit-transform: translateZ(0);
-  }
-
-  .gemini-new-chat {
-    padding: 10px 14px;
-    font-size: 13px;
-    -webkit-transform: translateZ(0); /* Prevent Safari rendering issues */
-  }
-
-  .gemini-sidebar-section {
-    font-size: 12px;
-    padding: 8px 14px 4px;
-  }
-
-  .gemini-chat-item {
-    padding: 10px 14px;
-    font-size: 13px;
-    margin-bottom: 2px;
-  }
-
-  .gemini-sidebar-footer {
-    padding: 14px;
-  }
-
-  /* Fix for iOS Safari bottom padding in sidebar */
-  @supports (-webkit-touch-callout: none) {
-    .gemini-sidebar-footer {
-      padding-bottom: 30px; /* Extra padding for iOS Safari */
-    }
-  }
-
-  /* Remove text truncation on mobile to show full text */
-  .truncate {
-    overflow: visible;
-    text-overflow: unset;
-    white-space: normal;
-  }
-
-  /* Improve mobile touch targets */
-  .gemini-chat-item {
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    white-space: normal;
-    word-wrap: break-word;
-  }
-
-  .gemini-hamburger,
-  .gemini-search-icon {
-    min-width: 40px;
-    min-height: 40px;
-  }
-
-  /* Better mobile dropdown positioning */
-  .gemini-model-dropdown {
-    width: 140px;
-    left: 0;
-    right: auto;
-  }
-
-  /* Remove hamburger highlight on mobile */
-  .gemini-hamburger:focus,
-  .gemini-hamburger:active {
-    background: #3c4043;
-    outline: none;
-    box-shadow: none;
-  }
-
-  /* Ensure full text visibility on mobile */
-  .full-text {
-    display: none;
-  }
-  
-  .short-text {
-    display: inline;
-  }
-
-  .gemini-send-button {
-    right: 48px; /* Mobil görünümde biraz daha sola */
-    width: 32px;
-    height: 32px;
-    padding: 6px;
-  }
-  
-  .gemini-input {
-    padding-right: 90px; /* Mobil için sağ padding düzenlemesi */
-  }
-}
-
-/* Additional responsive breakpoints */
-@media (max-width: 480px) {
-  .gemini-sidebar {
-    width: 300px;
-  }
-
-  .gemini-header {
-    padding: 10px 12px;
-    height: 52px;
-    gap: 6px;
-  }
-
-  .gemini-title {
-    font-size: 16px;
-  }
-
-  .gemini-welcome {
-    padding: 20px 12px;
-  }
-
-  .gemini-welcome-title {
-    font-size: 24px;
-    margin-bottom: 2px; /* 0'dan 2px'e çıkardım */
-  }
-
-  .gemini-welcome-subtitle {
-    font-size: 13px;
-    margin-top: -1px; /* -4px'den -1px'e değiştirdim, daha az negatif */
-  }
-
-  .gemini-input-container {
-    background: none !important; /* Keep background transparent */
-    padding: 10px !important; /* Restore very minimal padding for small mobile */
-    margin: 0 auto !important; /* Center with auto margin */
-    max-width: 100%; /* Full width on small mobile */
-    border: none !important; /* Remove all borders */
-    backdrop-filter: none !important; /* Remove backdrop filter */
-    box-shadow: none !important; /* Remove shadows */
-    position: fixed !important; /* Fix to bottom of viewport */
-    display: flex; /* Keep flex for layout */
-    flex-direction: column; /* Keep column direction */
-    align-items: center; /* Center align items */
-    bottom: 10px !important; /* Position higher from bottom for smaller screens */
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 20 !important; /* Ensure it's above other elements */
-    
-    /* Safari-specific fixes */
-    -webkit-transform: translateZ(0); /* Fix Safari rendering issues */
-    -webkit-backface-visibility: hidden; /* Fix Safari rendering issues */
-  }
-
-  .gemini-toolbox {
-    gap: 3px;
-    padding: 0 4px;
-    margin-bottom: 12px;
-  }
-
-  .gemini-toolbox-button {
-    padding: 6px 14px;
-    font-size: 11px;
-    height: 32px;
-    min-width: 75px;
-    max-width: 100px;
-    border-radius: 15px;
-    gap: 5px;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 10px;
-    height: 10px;
-  }
-
-  .gemini-input {
-    font-size: 13px;
-    padding: 10px 44px; /* Adjusted for tighter button positioning */
-    min-height: 44px;
-    border-radius: 22px;
-  }
-
-  .gemini-input::placeholder {
-    font-size: 13px;
-  }
-
-  .gemini-plus-button,
-  .gemini-mic-button {
-    width: 32px;
-    height: 32px;
-    padding: 6px;
-  }
-
-  .gemini-footer-text {
-    font-size: 10px;
-  }
-
-  .gemini-messages {
-    padding-bottom: 90px !important; /* Slightly less padding for smaller screens */
-  }
-
-  .gemini-send-button {
-    right: 46px; /* En küçük ekranlarda butonları yaklaştıralım */
-    width: 30px;
-    height: 30px;
-    padding: 5px;
-  }
-  
-  .gemini-input {
-    padding-right: 82px; /* En küçük ekranlar için sağ padding azaltma */
-    font-size: 13px; /* Font size da küçültelim */
-  }
-
-  .gemini-dropdown-menu {
-    width: 260px;
-    right: -10px;
-  }
-
-  .user-name {
-    font-size: 14px;
-  }
-
-  .user-email {
-    font-size: 12px;
-  }
-}
-
-/* Add Safari-specific media query for additional fixes */
-@supports (-webkit-touch-callout: none) {
-  /* iOS Safari only */
-  @media (max-width: 640px) {
-    .gemini-input-container {
-      bottom: 10px !important; /* Even closer to bottom for iOS Safari */
-    }
-    
-    .gemini-messages {
-      height: calc(100% - 56px); /* Use exact header height */
-      padding-bottom: 130px !important; /* More padding to ensure messages don't go behind the input */
-    }
-  }
-}
-
-/* Ultra-wide screens optimization */
-@media (min-width: 1601px) {
-  .gemini-messages {
-    padding: 40px;
-    max-width: 700px;
-  }
-
-  .gemini-input-container {
-    background: none !important; /* Keep background transparent */
-    padding: 32px !important; /* Restore larger padding for ultra-wide */
-    margin: 0 auto !important; /* Center with auto margin */
-    max-width: 1100px; /* Keep max-width */
-    border: none !important; /* Remove all borders */
-    backdrop-filter: none !important; /* Remove backdrop filter */
-    box-shadow: none !important; /* Remove shadows */
-    position: relative; /* Keep position for child elements */
-    display: flex; /* Keep flex for layout */
-    flex-direction: column; /* Keep column direction */
-    align-items: center; /* Center align items */
-    overflow-x: hidden !important; /* Prevent horizontal scrolling */
-    width: 100% !important; /* Full width */
-    box-sizing: border-box !important; /* Prevent overflow */
-  }
-
-  .gemini-toolbox {
-    max-width: 1000px;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .gemini-toolbox-button {
-    padding: 20px 32px;
-    font-size: 14px;
-    height: 56px;
-    min-width: 180px;
-    max-width: 220px;
-    gap: 10px;
-    flex: 1;
-    justify-content: center;
-    text-align: center;
-  }
-
-  .gemini-toolbox-button svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  .gemini-input-wrapper {
-    max-width: 1000px; /* Match toolbox ultra-wide max-width */
-  }
-}
-
-.mobile-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 40;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-
-.mobile-overlay.open {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* iOS Safari specific fixes for mobile overlay */
-@supports (-webkit-touch-callout: none) {
-  .mobile-overlay {
-    -webkit-transform: translateZ(0); /* Fix Safari rendering issues */
-    -webkit-backface-visibility: hidden;
-  }
-  
-  .mobile-overlay.open + .gemini-main {
-    pointer-events: none; /* Prevent interaction with main content when overlay is open */
-  }
-}
-
-/* When sidebar is open, prevent main content scrolling */
-@media (max-width: 640px) {
+  /* REMOVE MOBILE BACKGROUND BLUR */
   body.sidebar-open {
     overflow: hidden;
   }
   
   body.sidebar-open .gemini-main {
-    pointer-events: none; /* Prevent interaction with main content when sidebar is open */
+    /* Remove opacity and background effects */
+    opacity: 1;
+    pointer-events: none;
   }
   
-  @supports (-webkit-touch-callout: none) {
-    body.sidebar-open {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-    }
+  body.sidebar-open .mobile-overlay {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.5);
+    display: block;
+  }
+
+  .gemini-sidebar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 320px;
+    height: 100vh;
+    z-index: var(--z-modal);
+    transition: left var(--duration-normal) ease;
+    @apply glass-elevated;
+  }
+  
+  .gemini-sidebar.open {
+    left: 0;
+  }
+
+  .gemini-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .gemini-header {
+    padding: var(--space-4);
+    height: 56px;
+    gap: var(--space-3);
+    width: 100%;
+    left: 0;
+    position: fixed;
+    top: 0;
+    z-index: var(--z-sticky);
+    background: var(--color-surface);
+  }
+
+  .gemini-messages {
+    padding: var(--space-4);
+    gap: var(--space-4);
+    height: calc(100vh - 56px - 120px);
+    padding-top: 76px;
+    padding-bottom: 140px;
+  }
+
+  .gemini-message {
+    gap: var(--space-2);
+  }
+
+  .gemini-message-user {
+    font-size: var(--text-sm);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .gemini-message-assistant {
+    font-size: var(--text-sm);
+    padding: var(--space-4);
+    align-items: flex-start;
+  }
+
+  .gemini-input-container {
+    padding: var(--space-4);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--color-background);
+    border-top: 1px solid var(--color-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: var(--z-sticky);
+  }
+
+  .gemini-input-wrapper {
+    gap: var(--space-3);
+    padding: var(--space-4);
+    @apply glass-elevated;
+    border-radius: var(--radius-2xl);
+    background: var(--color-surface-glass-elevated);
+    border: 1px solid var(--color-border-strong);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .gemini-input {
+    font-size: var(--text-base);
+    padding: var(--space-4);
+    min-height: 48px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    border-radius: var(--radius-xl);
+    flex: 1;
+    resize: none;
+    max-height: 120px;
+    overflow-y: auto;
+    line-height: 1.5;
+    outline: none;
+  }
+
+  .gemini-toolbox {
+    justify-content: center;
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .gemini-toolbox-button {
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
+    border-radius: var(--radius-md);
   }
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-    width: 6px;
+@media (min-width: 641px) {
+  .full-text {
+    display: inline;
+  }
+  
+  .short-text {
+    display: none;
   }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+  .gemini-messages {
+    padding: var(--space-8);
+    gap: var(--space-8);
+    padding-top: 84px;
+    justify-content: flex-start;
+    align-items: center;
   }
 
-::-webkit-scrollbar-thumb {
-  background: #5f6368;
-    border-radius: 3px;
+  .gemini-message {
+    gap: var(--space-3);
+    width: 100%;
+    max-width: 800px;
   }
 
-/* Dropdown menu styling */
-.gemini-dropdown-menu {
+  .gemini-message-user {
+    font-size: var(--text-base);
+    padding: var(--space-4) var(--space-8);
+  }
+
+  .gemini-message-assistant {
+    font-size: var(--text-base);
+    padding: var(--space-6) var(--space-8);
+  }
+
+  .gemini-message-assistant::before {
+    font-size: var(--text-xl);
+    margin-top: var(--space-1);
+  }
+
+  .gemini-toolbox {
+    gap: var(--space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .gemini-toolbox-button {
+    padding: var(--space-4) var(--space-6);
+    font-size: var(--text-base);
+    border-radius: var(--radius-2xl);
+  }
+
+  .gemini-input-container {
+    padding: var(--space-8);
+  }
+
+  .gemini-input-wrapper {
+    padding: var(--space-4);
+  }
+}
+
+@media (min-width: 1024px) {
+  .gemini-sidebar.open ~ .gemini-main .gemini-menu-button {
+    display: none !important;
+  }
+  
+  body.sidebar-open .mobile-overlay {
+    display: none;
+    pointer-events: none;
+  }
+  
+  body.sidebar-open .gemini-main {
+    pointer-events: auto;
+    opacity: 1;
+  }
+}
+
+/* Desktop: Hide header menu when sidebar is visible */
+body.sidebar-open .gemini-header .gemini-menu-button {
+  display: none !important;
+}
+
+/* Support for iOS */
+@supports (-webkit-touch-callout: none) {
+  .gemini-sidebar.open {
+    left: 0;
+    transform: translateZ(0);
+  }
+  
+  body.sidebar-open {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/* === STUNNING SEARCH BOX ANIMATIONS === */
+@keyframes searchGlow {
+  0% { 
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    border-color: rgba(212, 175, 55, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.6), 0 0 60px rgba(255, 215, 0, 0.3);
+    border-color: rgba(212, 175, 55, 0.6);
+  }
+  100% { 
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    border-color: rgba(212, 175, 55, 0.3);
+  }
+}
+
+@keyframes searchShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes searchFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes searchPulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.search-container-glow {
+  animation: searchGlow 3s ease-in-out infinite;
+}
+
+.search-shimmer::before {
+  content: '';
   position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 8px;
-  width: 220px;
-  background: #2d2e30;
-  border: 1px solid #444;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  z-index: 120; /* Ensure it's above other elements */
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.4), transparent);
+  animation: searchShimmer 2s infinite;
+}
+
+.search-icon-float {
+  animation: searchFloat 2s ease-in-out infinite;
+}
+
+.search-results-badge {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(255, 215, 0, 0.2));
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  backdrop-filter: blur(10px);
+  animation: searchPulse 2s ease-in-out infinite;
+}
+
+/* === SIDEBAR ACTION BAR STYLES === */
+.sidebar-action-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-action-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.sidebar-action-button:hover::before {
+  left: 100%;
+}
+
+.sidebar-action-button:active {
+  transform: scale(0.98);
+}
+
+/* === ENHANCED GLASS EFFECTS === */
+.glass-search {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.1) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.glass-search:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.15) 100%);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+/* === SEARCH INPUT ENHANCEMENTS === */
+.search-input-enhanced {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  transition: all 0.3s ease;
+}
+
+.search-input-enhanced::placeholder {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.6), rgba(255, 215, 0, 0.4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 400;
+}
+
+.search-input-enhanced:focus::placeholder {
+  opacity: 0.7;
+}
+
+/* === SEARCH ICON CONTAINER === */
+.search-icon-container {
+  background: linear-gradient(135deg, #d4af37, #ffd700);
+  box-shadow: 
+    0 4px 15px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.search-icon-container:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 6px 20px rgba(212, 175, 55, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* === NO RESULTS STATE === */
+.no-results-container {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.no-results-icon {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.1));
+  border: 2px solid rgba(212, 175, 55, 0.2);
+  transition: all 0.3s ease;
+}
+
+.no-results-icon:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(255, 215, 0, 0.2));
+  border-color: rgba(212, 175, 55, 0.4);
+  transform: scale(1.05);
+}
+
+/* === ENHANCED SCROLL BAR FOR SEARCH === */
+.search-results::-webkit-scrollbar {
+  width: 4px;
+}
+
+.search-results::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d4af37, #ffd700);
+  border-radius: 10px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.search-results::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ffd700, #d4af37);
+}
+
+/* === ENHANCED SEARCH BOX UI/UX === */
+.gemini-search-box {
+  background: linear-gradient(135deg, 
+    rgba(30, 30, 30, 0.98) 0%,
+    rgba(20, 20, 20, 0.95) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 16px;
+  margin-bottom: 8px;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(212, 175, 55, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
   overflow: hidden;
 }
 
-.gemini-dropdown-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid #444;
-  background: #2d2e30;
+.gemini-search-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.03) 0%,
+    rgba(255, 215, 0, 0.01) 50%,
+    rgba(212, 175, 55, 0.03) 100%);
+  border-radius: 16px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
-.gemini-dropdown-item {
-  width: 100%;
-  padding: 12px 16px;
-  text-align: left;
-  font-size: 15px;
-  color: #e8eaed;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-family: 'Google Sans', sans-serif;
+.gemini-search-box:hover::before {
+  opacity: 1;
+}
+
+.gemini-search-box:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 
+    0 6px 25px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(212, 175, 55, 0.15),
+    0 0 20px rgba(212, 175, 55, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.gemini-search-box:focus-within {
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 
+    0 8px 30px rgba(0, 0, 0, 0.6),
+    0 0 0 3px rgba(212, 175, 55, 0.2),
+    0 0 25px rgba(212, 175, 55, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+}
+
+/* Search Header */
+.gemini-search-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 4px;
 }
 
-.gemini-dropdown-item:hover {
-  background: #3c4043;
+.gemini-search-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(212, 175, 55, 0.9);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-.gemini-dropdown-separator {
-  height: 1px;
-  background: #444;
-  margin: 8px 0;
+.gemini-search-clear {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  opacity: 0.7;
 }
 
-.gemini-dropdown-item.danger {
-  color: #ff5252;
+.gemini-search-clear:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.3);
+  opacity: 1;
+  transform: scale(1.1);
 }
 
-.user-name {
-  font-size: 15px;
-  font-weight: 500;
-  color: #e8eaed;
-  margin-bottom: 4px;
+/* Enhanced Search Input Container */
+.gemini-search-input-container {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
-.user-email {
+.gemini-search-input-container:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.gemini-search-input-container:focus-within {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(212, 175, 55, 0.3);
+  box-shadow: 
+    inset 0 0 0 1px rgba(212, 175, 55, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Enhanced Search Input */
+.gemini-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
   font-size: 13px;
-  color: #9aa0a6;
+  font-weight: 500;
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  letter-spacing: 0.025em;
+  transition: all 0.3s ease;
+  font-family: 'Google Sans', sans-serif;
 }
 
-/* Loading bar animasyonu */
-@keyframes loadingBar {
-  0% {
-    width: 0%;
-    background-position: 0% 50%;
+.gemini-search-input::placeholder {
+  color: rgba(212, 175, 55, 0.5);
+  font-weight: 400;
+  transition: all 0.3s ease;
+}
+
+.gemini-search-input:focus::placeholder {
+  color: rgba(212, 175, 55, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Enhanced Search Icon */
+.gemini-search-icon-enhanced {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #d4af37, #ffd700);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 2px 8px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+  cursor: pointer;
+}
+
+.gemini-search-icon-enhanced:hover {
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 
+    0 4px 12px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.gemini-search-icon-enhanced svg {
+  width: 10px;
+  height: 10px;
+  color: white;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Enhanced Loading State */
+.gemini-search-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 0 4px 0;
+  gap: 8px;
+  color: rgba(212, 175, 55, 0.7);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.gemini-search-loading-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.gemini-search-loading-dot {
+  width: 4px;
+  height: 4px;
+  background: linear-gradient(135deg, #d4af37, #ffd700);
+  border-radius: 50%;
+  animation: searchLoadingPulse 1.4s infinite ease-in-out;
+}
+
+.gemini-search-loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.gemini-search-loading-dot:nth-child(2) { animation-delay: -0.16s; }
+.gemini-search-loading-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes searchLoadingPulse {
+  0%, 80%, 100% { 
+    opacity: 0.3;
+    transform: scale(0.8);
   }
-  50% {
-    width: 70%;
-    background-position: 100% 50%;
-  }
-  100% {
-    width: 100%;
-    background-position: 0% 50%;
+  40% { 
+    opacity: 1;
+    transform: scale(1.2);
   }
 }
 
-.animate-loadingBar {
-  animation: loadingBar 2s ease-in-out infinite;
-  background-size: 200% 200%;
+/* Responsive Search Box */
+@media (max-width: 640px) {
+  .gemini-search-box {
+    margin: 12px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+  
+  .gemini-search-input {
+    font-size: 12px;
+    padding: 10px 14px 10px 36px;
+  }
+  
+  .gemini-search-icon-enhanced {
+    width: 16px;
+    height: 16px;
+    left: 12px;
+  }
+  
+  .gemini-search-icon-enhanced svg {
+    width: 9px;
+    height: 9px;
+  }
 }
 
-/* Gentle floating animation for login screen elements */
-@keyframes gentle-float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-.gentle-floating {
-  animation: gentle-float 3s ease-in-out infinite;
-}
-
-/* Glow text effect for page titles */
-.glow-text {
-  text-shadow: 0 0 10px rgba(241, 196, 15, 0.3), 0 0 20px rgba(241, 196, 15, 0.2);
-}

@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, Part, Content, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+import { Part, Content } from "@google/generative-ai";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../firebase";
 
@@ -73,47 +73,48 @@ From historic İstanbul to tropical Bali, these destinations provide unforgettab
 Always format responses with clear paragraph breaks for easy reading!`;
 
 // Configure Gemini AI with enhanced error handling
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+// ❌ Direct Gemini API removed - Using Firebase Functions only
+// const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+// if (!GEMINI_API_KEY) {
+//   console.error('❌ GEMINI_API_KEY not found in environment variables');
+// }
+// const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
-if (!GEMINI_API_KEY) {
-  console.error('❌ GEMINI_API_KEY not found in environment variables');
-}
-
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-
+// ❌ Direct Gemini model removed - Using Firebase Functions only
 // Enhanced safety settings for production
-const safetySettings = [
-  {
-    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, 
-    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-  },
-];
+// const safetySettings = [
+//   {
+//     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+//     threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+//   },
+//   {
+//     category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, 
+//     threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+//   },
+//   {
+//     category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+//     threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+//   },
+//   {
+//     category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+//     threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+//   },
+// ];
 
+// ❌ Direct Gemini model removed - Using Firebase Functions only
 // Production-ready model configuration
-const model = genAI.getGenerativeModel({ 
-  model: "gemini-pro",
-  safetySettings,
-  generationConfig: {
-    temperature: 0.8,
-    topK: 32,
-    topP: 0.9,
-    maxOutputTokens: 512,
-    candidateCount: 1,
-    stopSequences: ["END_RESPONSE"],
-  },
-});
+// const model = genAI.getGenerativeModel({ 
+//   model: "gemini-pro",
+//   safetySettings,
+//   generationConfig: {
+//     temperature: 0.8,
+//     topK: 32,
+//     topP: 0.9,
+//     maxOutputTokens: 512,
+//     candidateCount: 1,
+//     stopSequences: ["END_RESPONSE"],
+//   },
+// });
 
 // Rate limiting helper
 class RateLimiter {

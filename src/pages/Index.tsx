@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, MessageSquare, Edit, Plus } from 'lucide-react';
+import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, MessageSquare, Edit, Plus, Bot } from 'lucide-react';
 import { generateGeminiStream, getChatHistory } from '../services/geminiService';
 import { authService } from '../services/authService';
 import PackageCarousel from '../components/PackageCarousel';
@@ -743,14 +743,6 @@ const Index = () => {
   };
 
   // Büyülü arama fonksiyonları
-  const handleSearchToggle = () => {
-    setIsSearchOpen(!isSearchOpen);
-    if (!isSearchOpen) {
-      setSearchInput('');
-      setIsSearching(false);
-    }
-  };
-
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
     setIsSearching(true);
@@ -782,15 +774,6 @@ const Index = () => {
       setIsSearching(false);
       console.log(`✨ Magical search found ${filtered.length} treasures for: "${query}"`);
     }, 200);
-  };
-
-  const clearMagicalSearch = () => {
-    setSearchInput('');
-    setSearchQuery('');
-    setIsSearchOpen(false);
-    setIsSearching(false);
-    setFilteredChats(chats);
-    console.log('🧹 Search magic cleared');
   };
 
   const suggestionPrompts = [
@@ -829,95 +812,60 @@ const Index = () => {
     return titles[Math.floor(Math.random() * titles.length)];
   };
 
+  // Toggle sidebar and update body class
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+    if (!sidebarOpen) {
+      document.body.classList.remove('sidebar-closed');
+    } else {
+      document.body.classList.add('sidebar-closed');
+    }
+  };
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+        document.body.classList.add('sidebar-closed');
+      } else {
+        setSidebarOpen(true);
+        document.body.classList.remove('sidebar-closed');
+      }
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', checkMobile);
+    checkMobile();
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
+      {/* CLASSIC SIDEBAR DESIGN - RESTORED */}
       <div className={`gemini-sidebar ${sidebarOpen ? 'open' : ''}`}>
         {/* Sidebar Top */}
         <div className="gemini-sidebar-top">
           <div className="gemini-sidebar-menu">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="gemini-menu-button mobile-menu-button flex-shrink-0"
-            >
-              <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-            <button 
-              onClick={handleSearchToggle}
-              className={`gemini-search-icon ${isSearchOpen ? 'active' : ''}`}
-            >
-              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-          </div>
-          
-          {/* Büyülü Arama Kutusu */}
-          {isSearchOpen && (
-            <div className="gemini-search-box">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ color: '#f1c40f', fontSize: '11px', fontWeight: '500' }}>🔮 Magical Search</span>
-                <button 
-                  onClick={handleSearchToggle}
-                  style={{ 
-                    background: 'transparent', 
-                    border: 'none', 
-                    color: '#9aa0a6', 
-                    cursor: 'pointer', 
-                    padding: '2px',
-                    fontSize: '14px'
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  value={searchInput}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  placeholder="Search magical conversations..."
-                  className="gemini-search-input"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      performMagicalSearch(searchInput);
-                    }
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => performMagicalSearch(searchInput)}
-                  style={{
-                    position: 'absolute',
-                    right: '8px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '6px',
-                    color: '#9aa0a6',
-                    opacity: '0.7',
-                    transition: 'opacity 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
-                >
-                  🔍
-                </button>
-              </div>
-              {isSearching && (
-                <div className="gemini-search-loading">
-                  <span>🔮 Searching...</span>
-                </div>
-              )}
+            {/* Button Layout: Menu 25% - New Chat 75% (Search moved to bottom) */}
+            <div className="sidebar-button-container">
+              {/* Menu Button - 25% */}
+              <button
+                onClick={() => toggleSidebar()}
+                className="gemini-menu-button sidebar-menu-btn-half"
+              >
+                <Menu className="w-4 h-4" />
+              </button>
+              
+              {/* New Chat Button - 75% */}
+              <button 
+                onClick={createNewChat} 
+                className="gemini-new-chat sidebar-newchat-btn-half"
+              >
+                <Edit className="w-4 h-4" />
+                <span>{currentNewChatTitle}</span>
+              </button>
             </div>
-          )}
-          
-          <div className="gemini-new-chat-container">
-            <button onClick={createNewChat} className="gemini-new-chat">
-              <Edit className="w-4 h-4" />
-              <span>{currentNewChatTitle}</span>
-            </button>
           </div>
         </div>
 
@@ -1045,6 +993,64 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Enhanced Search Box - Always visible at bottom */}
+        <div className="gemini-search-box">
+          <div className="gemini-search-header">
+            <div className="gemini-search-label">
+              <span>🔮</span>
+              <span>Magical Search</span>
+            </div>
+            {searchInput && (
+              <button 
+                className="gemini-search-clear"
+                onClick={() => {
+                  setSearchInput('');
+                  setSearchQuery('');
+                  setIsSearching(false);
+                  setFilteredChats(chats);
+                }}
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          
+          <div className="gemini-search-input-container">
+            <div 
+              className="gemini-search-icon-enhanced"
+              onClick={() => performMagicalSearch(searchInput)}
+              title="Search"
+            >
+              <Search className="w-3 h-3" />
+            </div>
+            
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search magical conversations..."
+              className="gemini-search-input"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  performMagicalSearch(searchInput);
+                }
+              }}
+            />
+          </div>
+          
+          {isSearching && (
+            <div className="gemini-search-loading">
+              <span>Searching magic</span>
+              <div className="gemini-search-loading-dots">
+                <div className="gemini-search-loading-dot"></div>
+                <div className="gemini-search-loading-dot"></div>
+                <div className="gemini-search-loading-dot"></div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Sidebar Footer */}
         <div className="gemini-sidebar-footer">
           <div className="flex items-center justify-center">
@@ -1065,8 +1071,8 @@ const Index = () => {
         <div className="gemini-header">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="gemini-menu-button mobile-menu-button flex-shrink-0"
+              onClick={() => toggleSidebar()}
+              className="gemini-menu-button flex-shrink-0"
             >
               <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -1321,7 +1327,7 @@ const Index = () => {
       {/* Mobile overlay */}
       <div
         className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`}
-        onClick={() => setSidebarOpen(false)}
+        onClick={() => toggleSidebar()}
       />
     </div>
   );
