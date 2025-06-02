@@ -6,6 +6,7 @@ import { generateGeminiStream, getChatHistory } from '../services/geminiService'
 import { authService } from '../services/authService';
 import PackageCarousel from '../components/PackageCarousel';
 import { packageService, HoneymoonPackage } from '../services/packageService';
+import PackageDetail from './PackageDetail';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -130,6 +131,8 @@ const Index = () => {
     return titles[Math.floor(Math.random() * titles.length)];
   });
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
 
   // Büyülü ve sürekli değişen placeholder için state ve metinler
   const [placeholderText, setPlaceholderText] = useState("Whisper your heart's desires to AI LOVVE...");
@@ -821,6 +824,19 @@ const Index = () => {
       document.body.classList.add('sidebar-closed');
     }
   };
+
+  // Package modal functions
+  const openPackageModal = (packageId: string) => {
+    setSelectedPackageId(packageId);
+    setIsPackageModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closePackageModal = () => {
+    setSelectedPackageId(null);
+    setIsPackageModalOpen(false);
+    document.body.style.overflow = 'unset';
+  };
   
   useEffect(() => {
     const checkMobile = () => {
@@ -1193,7 +1209,7 @@ const Index = () => {
                         packages={message.packages}
                         onSelectPackage={(packageId) => {
                           console.log('Package selected:', packageId);
-                          // Here you could open a detailed view or add to favorites
+                          openPackageModal(packageId);
                         }}
                       />
                     ) : (
@@ -1327,6 +1343,22 @@ const Index = () => {
         className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`}
         onClick={() => toggleSidebar()}
       />
+
+      {/* Package Detail Modal */}
+      {isPackageModalOpen && selectedPackageId && (
+        <div className="package-modal-overlay" onClick={closePackageModal}>
+          <div className="package-modal-container" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={closePackageModal}
+              className="package-modal-close"
+              aria-label="Close modal"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <PackageDetail packageId={selectedPackageId} isModal={true} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

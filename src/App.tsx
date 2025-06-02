@@ -10,6 +10,7 @@ import { Toaster as HotToaster } from 'react-hot-toast';
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
+const PackageDetail = lazy(() => import("./pages/PackageDetail"));
 const HolidayPackage = lazy(() => import("./pages/HolidayPackage"));
 const FindHoliday = lazy(() => import("./pages/FindHoliday"));
 const CoupleTest = lazy(() => import("./pages/CoupleTest"));
@@ -69,6 +70,13 @@ function App() {
                 <Route path="/" element={
                   <ProtectedRoute>
                     <Index />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Package detail sayfası */}
+                <Route path="/package/:packageId" element={
+                  <ProtectedRoute>
+                    <PackageDetail />
                   </ProtectedRoute>
                 } />
                 
