@@ -846,26 +846,33 @@ const Index = () => {
       <div className={`gemini-sidebar ${sidebarOpen ? 'open' : ''}`}>
         {/* Sidebar Top */}
         <div className="gemini-sidebar-top">
-          <div className="gemini-sidebar-menu">
-            {/* Button Layout: Menu 25% - New Chat 75% (Search moved to bottom) */}
-            <div className="sidebar-button-container">
-              {/* Menu Button - 25% */}
-              <button
-                onClick={() => toggleSidebar()}
-                className="gemini-menu-button sidebar-menu-btn-half"
-              >
-                <Menu className="w-4 h-4" />
-              </button>
-              
-              {/* New Chat Button - 75% */}
-              <button 
-                onClick={createNewChat} 
-                className="gemini-new-chat sidebar-newchat-btn-half"
-              >
-                <Edit className="w-4 h-4" />
-                <span>{currentNewChatTitle}</span>
-              </button>
-            </div>
+          {/* Close Button - Only visible on mobile */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="sidebar-close-button"
+            aria-label="Close sidebar"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {/* Button Layout: Menu 25% - New Chat 75% (Search moved to bottom) */}
+          <div className="sidebar-button-container">
+            {/* Menu Button - 25% */}
+            <button
+              onClick={() => toggleSidebar()}
+              className="gemini-menu-button sidebar-menu-btn-half"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+            
+            {/* New Chat Button - 75% */}
+            <button 
+              onClick={createNewChat} 
+              className="gemini-new-chat sidebar-newchat-btn-half"
+            >
+              <Edit className="w-4 h-4" />
+              <span>{currentNewChatTitle}</span>
+            </button>
           </div>
         </div>
 
