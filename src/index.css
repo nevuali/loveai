@@ -535,6 +535,7 @@
   align-items: center;
   gap: var(--space-2);
   flex-shrink: 0;
+  margin-left: var(--space-4); /* Add left margin for proper spacing */
 }
 
 /* === MODEL SELECTOR === */
@@ -1124,56 +1125,6 @@
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-full);
-}
-
-/* === DROPDOWN STYLES === */
-.gemini-dropdown-menu {
-  @apply glass-elevated;
-  border-radius: var(--radius-xl);
-  padding: var(--space-2);
-  min-width: 240px;
-  box-shadow: var(--shadow-xl);
-  z-index: var(--z-dropdown);
-  border: 1px solid var(--color-border-strong);
-}
-
-.gemini-dropdown-header {
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: var(--space-2);
-}
-
-.gemini-dropdown-item {
-  @apply btn-ghost;
-  width: 100%;
-  justify-content: flex-start;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-1);
-  text-align: left;
-}
-
-.gemini-dropdown-item:hover {
-  background: var(--color-surface-glass-elevated);
-  color: var(--color-text-primary);
-}
-
-.gemini-dropdown-item.danger {
-  color: var(--color-error);
-}
-
-.user-name {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-1);
-}
-
-.user-email {
-  font-size: var(--text-xs);
-  color: var(--color-text-tertiary);
 }
 
 /* === MOBILE OVERLAY === */
@@ -2421,5 +2372,188 @@ body.sidebar-open .mobile-overlay {
     display: block;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+/* === ENHANCED DROPDOWN STYLES === */
+.gemini-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px); /* Position below the trigger element */
+  right: 0;
+  left: auto;
+  transform: translateY(0);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: top right;
+  
+  @apply glass-elevated;
+  background: linear-gradient(135deg, 
+    rgba(30, 30, 30, 0.98) 0%,
+    rgba(20, 20, 20, 0.95) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-3);
+  min-width: 280px;
+  max-width: 320px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(212, 175, 55, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  z-index: var(--z-dropdown);
+  overflow: hidden;
+}
+
+.gemini-dropdown-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.gemini-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.03) 0%,
+    rgba(255, 215, 0, 0.01) 50%,
+    rgba(212, 175, 55, 0.03) 100%);
+  border-radius: var(--radius-2xl);
+  pointer-events: none;
+}
+
+/* Enhanced Dropdown Header */
+.gemini-dropdown-header {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  margin-bottom: var(--space-3);
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.08) 0%,
+    rgba(255, 215, 0, 0.04) 100%);
+  border-radius: var(--radius-xl);
+  margin: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+/* Enhanced Dropdown Items */
+.gemini-dropdown-item {
+  width: 100%;
+  justify-content: flex-start;
+  padding: var(--space-4) var(--space-6);
+  border-radius: var(--radius-xl);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  position: relative;
+  overflow: hidden;
+}
+
+.gemini-dropdown-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.05) 0%,
+    rgba(255, 215, 0, 0.02) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: var(--radius-xl);
+}
+
+.gemini-dropdown-item:hover {
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--color-text-primary);
+  border-color: rgba(212, 175, 55, 0.2);
+  transform: translateX(4px);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.gemini-dropdown-item:hover::before {
+  opacity: 1;
+}
+
+.gemini-dropdown-item.danger {
+  color: var(--color-error);
+}
+
+.gemini-dropdown-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ff6b6b;
+}
+
+/* Enhanced User Info */
+.user-name {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+  background: linear-gradient(135deg, #d4af37, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.user-email {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  opacity: 0.8;
+}
+
+/* Icons in dropdown items */
+.gemini-dropdown-item svg {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.gemini-dropdown-item:hover svg {
+  opacity: 1;
+  color: rgba(212, 175, 55, 0.9);
+}
+
+/* Mobile dropdown optimizations */
+@media (max-width: 640px) {
+  .gemini-dropdown-menu {
+    min-width: 260px;
+    max-width: 90vw;
+    right: 12px;
+    left: auto;
+    padding: var(--space-2);
+  }
+  
+  .gemini-dropdown-header {
+    padding: var(--space-3) var(--space-4);
+    margin: var(--space-1);
+    margin-bottom: var(--space-3);
+  }
+  
+  .gemini-dropdown-item {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-1);
+  }
+  
+  .user-name {
+    font-size: var(--text-sm);
+  }
+  
+  .user-email {
+    font-size: var(--text-xs);
   }
 }

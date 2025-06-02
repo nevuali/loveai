@@ -1123,7 +1123,7 @@ const Index = () => {
               </button>
               
               {profileMenuOpen && (
-                <div className="gemini-dropdown-menu" style={{ top: '100%', right: 0, marginTop: '8px' }}>
+                <div className={`gemini-dropdown-menu ${profileMenuOpen ? 'open' : ''}`} style={{ top: '100%', right: 0, marginTop: '8px' }}>
                   <div className="gemini-dropdown-header">
                     <div className="user-name truncate">{user?.displayName || 'Beloved User'}</div>
                     <div className="user-email truncate">{user?.email}</div>
