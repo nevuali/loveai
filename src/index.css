@@ -1199,78 +1199,100 @@
     position: fixed;
     top: 0;
     left: -100%;
-    width: 320px;
+    width: 85vw; /* Better mobile width */
+    max-width: 320px;
     height: 100vh;
     z-index: var(--z-modal);
     transition: left var(--duration-normal) ease;
     @apply glass-elevated;
+    background: rgba(30, 30, 30, 0.98);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(212, 175, 55, 0.2);
   }
   
   .gemini-sidebar.open {
     left: 0;
+    box-shadow: 
+      2px 0 20px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(212, 175, 55, 0.1);
   }
 
   .gemini-main {
     width: 100%;
     margin-left: 0;
+    height: 100vh;
   }
 
   .gemini-header {
-    padding: var(--space-4);
-    height: 56px;
-    gap: var(--space-3);
+    padding: 12px 16px;
+    height: 60px;
+    gap: 12px;
     width: 100%;
     left: 0;
     position: fixed;
     top: 0;
     z-index: var(--z-sticky);
-    background: var(--color-surface);
+    background: rgba(30, 30, 30, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.15);
   }
 
   .gemini-messages {
-    padding: var(--space-4);
-    gap: var(--space-4);
-    height: calc(100vh - 56px - 120px);
-    padding-top: 76px;
-    padding-bottom: 140px;
+    padding: 16px 16px 160px 16px; /* Better mobile padding */
+    gap: 16px;
+    height: calc(100vh - 60px);
+    padding-top: 80px;
+    margin: 0;
+    max-width: 100%;
   }
 
   .gemini-message {
-    gap: var(--space-2);
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
   }
 
   .gemini-message-user {
-    font-size: var(--text-sm);
-    padding: var(--space-3) var(--space-4);
+    font-size: 14px;
+    padding: 12px 16px;
+    margin: 8px 0 8px auto;
+    max-width: 85%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .gemini-message-assistant {
-    font-size: var(--text-sm);
-    padding: var(--space-4);
+    font-size: 14px;
+    padding: 16px;
     align-items: flex-start;
+    max-width: 95%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .gemini-input-container {
-    padding: var(--space-4);
+    padding: 16px 12px 20px 12px; /* Better mobile padding */
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--color-background);
-    border-top: 1px solid var(--color-border);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(30, 30, 30, 0.98);
+    border-top: 1px solid rgba(212, 175, 55, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     z-index: var(--z-sticky);
   }
 
   .gemini-input-wrapper {
-    gap: var(--space-3);
-    padding: var(--space-4);
+    gap: 12px;
+    padding: 12px 16px;
     @apply glass-elevated;
-    border-radius: var(--radius-2xl);
-    background: var(--color-surface-glass-elevated);
-    border: 1px solid var(--color-border-strong);
-    box-shadow: var(--shadow-lg);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(212, 175, 55, 0.1);
     position: relative;
     max-width: 100%;
     margin: 0 auto;
@@ -1279,32 +1301,451 @@
   }
 
   .gemini-input {
-    font-size: var(--text-base);
-    padding: var(--space-4);
-    min-height: 48px;
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 14px 16px;
+    min-height: 50px;
     background: transparent;
     border: none;
     color: var(--color-text-primary);
-    border-radius: var(--radius-xl);
+    border-radius: 16px;
     flex: 1;
     resize: none;
     max-height: 120px;
     overflow-y: auto;
-    line-height: 1.5;
+    line-height: 1.4;
     outline: none;
   }
 
+  .gemini-input::placeholder {
+    color: var(--color-text-tertiary);
+    font-size: 16px;
+  }
+
+  /* OPTIMIZED MOBILE TOOLBOX */
   .gemini-toolbox {
     justify-content: center;
-    gap: var(--space-1);
-    margin-bottom: var(--space-3);
+    gap: 8px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
+    padding: 0 4px;
+    max-width: 100%;
   }
 
   .gemini-toolbox-button {
-    padding: var(--space-1) var(--space-2);
-    font-size: var(--text-xs);
-    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 14px;
+    height: 36px;
+    min-width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .gemini-toolbox-button:hover {
+    background: rgba(212, 175, 55, 0.12);
+    border-color: rgba(212, 175, 55, 0.25);
+    transform: translateY(-1px);
+  }
+
+  .gemini-toolbox-button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Enhanced Mobile Buttons */
+  .gemini-plus-button,
+  .gemini-mic-button,
+  .gemini-send-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .gemini-send-button {
+    background: linear-gradient(135deg, #d4af37, #b8860b);
+    box-shadow: 
+      0 2px 8px rgba(212, 175, 55, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .gemini-send-button:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 
+      0 4px 12px rgba(212, 175, 55, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  /* Enhanced Mobile Overlay */
+  body.sidebar-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+  
+  body.sidebar-open .gemini-main {
+    opacity: 1;
+    pointer-events: none;
+  }
+  
+  body.sidebar-open .mobile-overlay {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.6);
+    display: block;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Enhanced Mobile Typography */
+  .full-text {
+    display: none;
+  }
+  
+  .short-text {
+    display: inline;
+  }
+
+  .mobile-menu-button {
+    display: block;
+  }
+
+  /* Enhanced Mobile Model Selector */
+  .gemini-model-selector {
+    padding: 8px 12px;
+    font-size: 13px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Enhanced Mobile Title */
+  .gemini-title {
+    font-size: 18px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
+  }
+
+  /* Enhanced Mobile Sidebar Top */
+  .gemini-sidebar-top {
+    padding: 16px 14px 14px 14px;
+    background: linear-gradient(135deg, 
+      rgba(212, 175, 55, 0.05) 0%,
+      rgba(255, 255, 255, 0.02) 100%);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  }
+  
+  .sidebar-button-container {
+    gap: 8px;
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .sidebar-menu-btn-half {
+    height: 40px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+  
+  .sidebar-newchat-btn-half {
+    height: 40px;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 18px;
+    font-weight: 600;
+  }
+
+  /* Enhanced Mobile Search Box */
+  .gemini-search-box {
+    margin: 14px 12px 10px 12px;
+    padding: 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, 
+      rgba(20, 20, 20, 0.98) 0%,
+      rgba(15, 15, 15, 0.95) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+  }
+  
+  .gemini-search-input {
+    font-size: 14px;
+    padding: 12px 16px 12px 40px;
+    height: 44px;
+  }
+  
+  .gemini-search-icon-enhanced {
+    width: 20px;
+    height: 20px;
+    left: 12px;
+  }
+
+  /* Enhanced Mobile Chat List */
+  .gemini-chat-list {
+    padding: 12px;
+    max-height: calc(100vh - 180px);
+  }
+  
+  .gemini-chat-item {
+    padding: 12px 16px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  /* OPTIMIZED MOBILE WELCOME SECTION */
+  .gemini-welcome {
+    padding: 20px 20px; /* Better side padding */
+    margin: 0 auto;
+    max-width: 100%;
+    min-height: calc(100vh - 140px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .welcome-content-wrapper {
+    max-width: calc(100vw - 40px); /* Prevent text from touching edges */
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+    padding: 0 10px; /* Extra padding for safety */
+  }
+
+  .gemini-welcome-title {
+    font-size: 24px; /* Responsive title size */
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 16px;
+    margin-top: 40px;
+    padding: 0 10px; /* Prevent edge touching */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .gemini-welcome-subtitle {
+    font-size: 16px; /* Better mobile reading size */
+    line-height: 1.5;
+    margin-bottom: 24px;
+    padding: 0 10px; /* Prevent edge touching */
+    color: var(--color-text-secondary);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* OPTIMIZED MOBILE MESSAGES */
+  .gemini-messages {
+    padding: 16px 16px 160px 16px; /* Better mobile padding */
+    gap: 16px;
+    height: calc(100vh - 60px);
+    padding-top: 80px;
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .gemini-message {
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .gemini-message-user {
+    font-size: 14px;
+    padding: 12px 16px;
+    margin: 8px 0 8px auto;
+    max-width: 85%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .gemini-message-assistant {
+    font-size: 14px;
+    padding: 16px;
+    align-items: flex-start;
+    max-width: 95%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* OPTIMIZED MOBILE INPUT CONTAINER */
+  .gemini-input-container {
+    padding: 16px 12px 20px 12px; /* Better mobile padding */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(30, 30, 30, 0.98);
+    border-top: 1px solid rgba(212, 175, 55, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: var(--z-sticky);
+  }
+
+  .gemini-input-wrapper {
+    gap: 12px;
+    padding: 12px 16px;
+    @apply glass-elevated;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: 
+      0 4px 20px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(212, 175, 55, 0.1);
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .gemini-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 14px 16px;
+    min-height: 50px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    border-radius: 16px;
+    flex: 1;
+    resize: none;
+    max-height: 120px;
+    overflow-y: auto;
+    line-height: 1.4;
+    outline: none;
+  }
+
+  .gemini-input::placeholder {
+    color: var(--color-text-tertiary);
+    font-size: 16px;
+  }
+
+  /* OPTIMIZED MOBILE TOOLBOX */
+  .gemini-toolbox {
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    padding: 0 4px;
+    max-width: 100%;
+  }
+
+  .gemini-toolbox-button {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 14px;
+    height: 36px;
+    min-width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .gemini-toolbox-button:hover {
+    background: rgba(212, 175, 55, 0.12);
+    border-color: rgba(212, 175, 55, 0.25);
+    transform: translateY(-1px);
+  }
+
+  .gemini-toolbox-button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Enhanced Mobile Buttons */
+  .gemini-plus-button,
+  .gemini-mic-button,
+  .gemini-send-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .gemini-send-button {
+    background: linear-gradient(135deg, #d4af37, #b8860b);
+    box-shadow: 
+      0 2px 8px rgba(212, 175, 55, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .gemini-send-button:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 
+      0 4px 12px rgba(212, 175, 55, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+
+  /* Enhanced Mobile Overlay */
+  body.sidebar-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+  }
+  
+  body.sidebar-open .gemini-main {
+    opacity: 1;
+    pointer-events: none;
+  }
+  
+  body.sidebar-open .mobile-overlay {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.6);
+    display: block;
+    backdrop-filter: blur(4px);
+  }
+
+  /* Enhanced Mobile Typography */
+  .full-text {
+    display: none;
+  }
+  
+  .short-text {
+    display: inline;
+  }
+
+  .mobile-menu-button {
+    display: block;
+  }
+
+  /* Enhanced Mobile Model Selector */
+  .gemini-model-selector {
+    padding: 8px 12px;
+    font-size: 13px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Enhanced Mobile Title */
+  .gemini-title {
+    font-size: 18px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 150px;
   }
 }
 
@@ -1839,6 +2280,51 @@ body.sidebar-open .gemini-header .gemini-menu-button {
   .gemini-search-icon-enhanced svg {
     width: 9px;
     height: 9px;
+  }
+}
+
+/* === ENHANCED TABLET OPTIMIZATIONS === */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .gemini-welcome {
+    padding: 32px 40px; /* Better tablet padding */
+  }
+
+  .welcome-content-wrapper {
+    max-width: calc(100vw - 80px);
+    padding: 0 20px;
+  }
+
+  .gemini-welcome-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+    padding: 0 20px;
+  }
+
+  .gemini-welcome-subtitle {
+    font-size: 18px;
+    margin-bottom: 32px;
+    padding: 0 20px;
+  }
+
+  .gemini-messages {
+    padding: 24px 32px 160px 32px;
+    gap: 20px;
+    padding-top: 84px;
+  }
+
+  .gemini-input-container {
+    padding: 20px 24px;
+  }
+
+  .gemini-toolbox {
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .gemini-toolbox-button {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 16px;
   }
 }
 
