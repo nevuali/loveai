@@ -846,15 +846,6 @@ const Index = () => {
       <div className={`gemini-sidebar ${sidebarOpen ? 'open' : ''}`}>
         {/* Sidebar Top */}
         <div className="gemini-sidebar-top">
-          {/* Close Button - Only visible on mobile */}
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="sidebar-close-button"
-            aria-label="Close sidebar"
-          >
-            <X className="w-4 h-4" />
-          </button>
-
           {/* Button Layout: Menu 25% - New Chat 75% (Search moved to bottom) */}
           <div className="sidebar-button-container">
             {/* Menu Button - 25% */}

@@ -1447,47 +1447,12 @@
     border-bottom: 1px solid rgba(212, 175, 55, 0.15);
     position: relative;
   }
-
-  /* Sidebar Close Button for Mobile */
-  .sidebar-close-button {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 10;
-  }
-
-  .sidebar-close-button:hover {
-    background: rgba(212, 175, 55, 0.15);
-    border-color: rgba(212, 175, 55, 0.3);
-    transform: scale(1.05);
-  }
-
-  .sidebar-close-button svg {
-    width: 16px;
-    height: 16px;
-    color: rgba(212, 175, 55, 0.8);
-    transition: color 0.3s ease;
-  }
-
-  .sidebar-close-button:hover svg {
-    color: rgba(212, 175, 55, 1);
-  }
   
   .sidebar-button-container {
     gap: 8px;
     max-width: 100%;
     margin: 0;
-    padding-right: 44px; /* Space for close button */
+    /* Removed padding-right since close button is removed */
   }
   
   .sidebar-menu-btn-half {
