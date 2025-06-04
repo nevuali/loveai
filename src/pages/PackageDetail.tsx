@@ -137,8 +137,9 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
           {!isModal && (
             <button
               onClick={() => navigate('/')}
-              className="golden-glass-button"
+              className="premium-package-btn"
             >
+              <ArrowLeft className="w-4 h-4" />
               Back to Home
             </button>
           )}
@@ -279,8 +280,9 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
 
                 <button
                   onClick={handleBookNow}
-                  className="w-full py-4 golden-glass-button text-white font-semibold"
+                  className="w-full premium-package-btn"
                 >
+                  <Calendar className="w-4 h-4" />
                   Book Now
                 </button>
 
@@ -289,13 +291,13 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
                     Or contact our romance specialists
                   </p>
                   <div className="flex items-center justify-center gap-3 mt-2">
-                    <a href="tel:+1234567890" className="golden-contact-btn">
+                    <a href="tel:+1234567890" className="premium-contact-btn">
                       <Phone className="w-3 h-3" />
                     </a>
-                    <a href="mailto:love@ailovve.com" className="golden-contact-btn">
+                    <a href="mailto:love@ailovve.com" className="premium-contact-btn">
                       <Mail className="w-3 h-3" />
                     </a>
-                    <button className="golden-contact-btn">
+                    <button className="premium-contact-btn">
                       <MessageCircle className="w-3 h-3" />
                     </button>
                   </div>
@@ -499,8 +501,9 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
 
               <button
                 onClick={handleBookNow}
-                className="w-full py-4 golden-glass-button text-white font-semibold"
+                className="w-full premium-package-btn"
               >
+                <Calendar className="w-4 h-4" />
                 Book Now
               </button>
 
@@ -509,13 +512,13 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
                   Or contact our romance specialists
                 </p>
                 <div className="flex items-center justify-center gap-4 mt-2">
-                  <a href="tel:+1234567890" className="golden-contact-btn">
+                  <a href="tel:+1234567890" className="premium-contact-btn">
                     <Phone className="w-4 h-4" />
                   </a>
-                  <a href="mailto:love@ailovve.com" className="golden-contact-btn">
+                  <a href="mailto:love@ailovve.com" className="premium-contact-btn">
                     <Mail className="w-4 h-4" />
                   </a>
-                  <button className="golden-contact-btn">
+                  <button className="premium-contact-btn">
                     <MessageCircle className="w-4 h-4" />
                   </button>
                 </div>

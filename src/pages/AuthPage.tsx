@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Eye, EyeOff, Heart, Sparkles, User, Loader2 } from 'lucide-react';
+import { Mail, Eye, EyeOff, Heart, Sparkles, User, Loader2, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { toast } from 'react-hot-toast';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, register, signInWithGoogle } = useAuth();
+  const { actualTheme, toggleTheme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -131,12 +133,25 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1a1a] via-[#1f1f1f] to-[#2a2a2a] overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#1a1a1a] dark:via-[#1f1f1f] dark:to-[#2a2a2a] overflow-x-hidden transition-colors duration-500">
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className="fixed top-6 right-6 z-50 p-3 bg-white/20 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-700 dark:text-white hover:bg-white/30 dark:hover:bg-white/15 hover:scale-110 transition-all duration-300 shadow-lg"
+        aria-label="Toggle theme"
+      >
+        {actualTheme === 'dark' ? (
+          <Sun className="w-5 h-5" />
+        ) : (
+          <Moon className="w-5 h-5" />
+        )}
+      </button>
+
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-yellow-400/10 to-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-r from-blue-500/5 to-cyan-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-yellow-400/20 dark:from-yellow-400/10 to-orange-500/20 dark:to-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/20 dark:from-purple-500/10 to-pink-500/20 dark:to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-r from-blue-500/10 dark:from-blue-500/5 to-cyan-500/10 dark:to-cyan-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
       </div>
 
       {/* Scrollable Container */}
@@ -161,14 +176,14 @@ const AuthPage: React.FC = () => {
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 bg-clip-text text-transparent mb-2">
               AI LOVVE
             </h1>
-            <p className="text-white/60 text-sm md:text-base mb-6">
+            <p className="text-gray-600 dark:text-white/60 text-sm md:text-base mb-6 transition-colors duration-300">
               Luxury Romance Planning Platform
             </p>
             
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 animate-slide-up">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 animate-slide-up transition-colors duration-300">
               {isSignUp ? 'Start Your Journey' : 'Welcome Back'}
             </h2>
-            <p className="text-white/60 text-sm md:text-base animate-slide-up delay-100">
+            <p className="text-gray-600 dark:text-white/60 text-sm md:text-base animate-slide-up delay-100 transition-colors duration-300">
               {isSignUp 
                 ? 'Create your account to begin planning magical moments'
                 : 'Sign in to continue your romantic adventure'
@@ -178,7 +193,7 @@ const AuthPage: React.FC = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm backdrop-blur-10 animate-shake">
+            <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm backdrop-blur-10 animate-shake transition-colors duration-300">
               {error}
             </div>
           )}
@@ -186,14 +201,14 @@ const AuthPage: React.FC = () => {
           {/* Main Auth Card */}
           <div 
             ref={formRef}
-            className="glassmorphism-card p-6 md:p-8 space-y-6 animate-slide-up delay-200"
+            className="bg-white/80 dark:bg-white/10 backdrop-blur-20 border border-gray-200/50 dark:border-white/20 rounded-2xl shadow-2xl p-6 md:p-8 space-y-6 animate-slide-up delay-200 transition-all duration-300"
           >
             {/* Social Auth Buttons */}
             <div className="space-y-3">
               <button
                 onClick={() => handleSocialAuth('google')}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/10 backdrop-blur-10 border border-white/20 rounded-xl text-white hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-700 dark:text-white hover:bg-white/90 dark:hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <svg className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -209,7 +224,7 @@ const AuthPage: React.FC = () => {
               <button
                 onClick={() => handleSocialAuth('apple')}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/10 backdrop-blur-10 border border-white/20 rounded-xl text-white hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-700 dark:text-white hover:bg-white/90 dark:hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
@@ -222,7 +237,7 @@ const AuthPage: React.FC = () => {
               <button
                 onClick={() => handleSocialAuth('meta')}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/10 backdrop-blur-10 border border-white/20 rounded-xl text-white hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-700 dark:text-white hover:bg-white/90 dark:hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
               >
                 <svg className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="#1877F2" viewBox="0 0 24 24">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -236,10 +251,10 @@ const AuthPage: React.FC = () => {
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/20"></div>
+                <div className="w-full border-t border-gray-300/50 dark:border-white/20"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-[#1f1f1f] text-white/60">or continue with email</span>
+                <span className="px-4 bg-white/80 dark:bg-[#1f1f1f] text-gray-500 dark:text-white/60 transition-colors duration-300">or continue with email</span>
               </div>
             </div>
 
@@ -248,7 +263,7 @@ const AuthPage: React.FC = () => {
               {isSignUp && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-slide-down">
                   <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
                       First Name
                     </label>
                     <div className="relative group">
@@ -257,15 +272,15 @@ const AuthPage: React.FC = () => {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 pl-11 bg-white/10 backdrop-blur-10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-yellow-400/50 focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-white/30"
+                        className="w-full px-4 py-3 pl-11 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
                         placeholder="First name"
                         required
                       />
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/50 group-focus-within:text-yellow-400/70 transition-colors duration-300" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/50 group-focus-within:text-yellow-400/70 transition-colors duration-300" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
                       Last Name
                     </label>
                     <div className="relative group">
@@ -274,7 +289,7 @@ const AuthPage: React.FC = () => {
                         name="surname"
                         value={formData.surname}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-white/10 backdrop-blur-10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-yellow-400/50 focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-white/30"
+                        className="w-full px-4 py-3 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
                         placeholder="Last name"
                       />
                     </div>
@@ -283,7 +298,7 @@ const AuthPage: React.FC = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
                   Email Address
                 </label>
                 <div className="relative group">
@@ -292,16 +307,16 @@ const AuthPage: React.FC = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 pl-11 bg-white/10 backdrop-blur-10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-yellow-400/50 focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-white/30"
+                    className="w-full px-4 py-3 pl-11 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
                     placeholder="Enter your email"
                     required
                   />
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/50 group-focus-within:text-yellow-400/70 transition-colors duration-300" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/50 group-focus-within:text-yellow-400/70 transition-colors duration-300" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
                   Password
                 </label>
                 <div className="relative group">
@@ -310,14 +325,14 @@ const AuthPage: React.FC = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 pr-11 bg-white/10 backdrop-blur-10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-yellow-400/50 focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-white/30"
+                    className="w-full px-4 py-3 pr-11 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
                     placeholder="Enter your password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/80 hover:scale-110 transition-all duration-300"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white/50 hover:text-gray-600 dark:hover:text-white/80 hover:scale-110 transition-all duration-300"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -326,7 +341,7 @@ const AuthPage: React.FC = () => {
 
               {isSignUp && (
                 <div className="animate-slide-down">
-                  <label className="block text-sm font-medium text-white/80 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
                     Confirm Password
                   </label>
                   <div className="relative group">
@@ -335,7 +350,7 @@ const AuthPage: React.FC = () => {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/10 backdrop-blur-10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-yellow-400/50 focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-white/30"
+                      className="w-full px-4 py-3 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
                       placeholder="Confirm your password"
                       required
                     />
@@ -348,11 +363,11 @@ const AuthPage: React.FC = () => {
                   <label className="flex items-center group cursor-pointer">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 text-yellow-400 bg-white/10 border-white/20 rounded focus:ring-yellow-400/50 focus:ring-2 group-hover:scale-110 transition-transform duration-300"
+                      className="w-4 h-4 text-yellow-400 bg-white/80 dark:bg-white/10 border-gray-200/50 dark:border-white/20 rounded focus:ring-yellow-400/50 focus:ring-2 group-hover:scale-110 transition-transform duration-300"
                     />
-                    <span className="ml-2 text-white/60 group-hover:text-white/80 transition-colors duration-300">Remember me</span>
+                    <span className="ml-2 text-gray-600 dark:text-white/60 group-hover:text-gray-800 dark:group-hover:text-white/80 transition-colors duration-300">Remember me</span>
                   </label>
-                  <a href="#" className="text-yellow-400 hover:text-yellow-300 hover:underline transition-all duration-300">
+                  <a href="#" className="text-yellow-500 hover:text-yellow-600 hover:underline transition-all duration-300">
                     Forgot password?
                   </a>
                 </div>
@@ -361,7 +376,7 @@ const AuthPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full golden-glass-button text-white font-semibold py-3 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-300"
+                className="w-full bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 text-white font-semibold py-3 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -376,12 +391,12 @@ const AuthPage: React.FC = () => {
 
             {/* Switch Mode */}
             <div className="text-center">
-              <p className="text-white/60 text-sm">
+              <p className="text-gray-600 dark:text-white/60 text-sm transition-colors duration-300">
                 {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
                 <button
                   onClick={handleModeSwitch}
                   disabled={isLoading}
-                  className="text-yellow-400 hover:text-yellow-300 font-medium transition-all duration-300 disabled:opacity-50 hover:underline"
+                  className="text-yellow-500 hover:text-yellow-600 font-medium transition-all duration-300 disabled:opacity-50 hover:underline"
                 >
                   {isSignUp ? 'Sign In' : 'Sign Up'}
                 </button>
@@ -391,13 +406,13 @@ const AuthPage: React.FC = () => {
 
           {/* Footer */}
           <div className="text-center mt-8 mb-8 animate-fade-in delay-300">
-            <p className="text-white/40 text-xs">
+            <p className="text-gray-500 dark:text-white/40 text-xs transition-colors duration-300">
               By continuing, you agree to our{' '}
-              <a href="#" className="text-yellow-400 hover:text-yellow-300 transition-colors duration-300 hover:underline">
+              <a href="#" className="text-yellow-500 hover:text-yellow-600 transition-colors duration-300 hover:underline">
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a href="#" className="text-yellow-400 hover:text-yellow-300 transition-colors duration-300 hover:underline">
+              <a href="#" className="text-yellow-500 hover:text-yellow-600 transition-colors duration-300 hover:underline">
                 Privacy Policy
               </a>
             </p>
