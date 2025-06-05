@@ -133,11 +133,19 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#1a1a1a] dark:via-[#1f1f1f] dark:to-[#2a2a2a] overflow-x-hidden transition-colors duration-500">
+    <div className="min-h-screen bg-surface transition-colors duration-300 relative overflow-hidden">
+      {/* Premium Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-accent-primary/5 via-transparent to-accent-secondary/10 pointer-events-none"></div>
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-accent-primary/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent-secondary/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-accent-tertiary/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+      </div>
+
       {/* Theme Toggle Button */}
       <button
         onClick={toggleTheme}
-        className="fixed top-6 right-6 z-50 p-3 bg-white/20 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-700 dark:text-white hover:bg-white/30 dark:hover:bg-white/15 hover:scale-110 transition-all duration-300 shadow-lg"
+        className="fixed top-6 right-6 z-50 w-12 h-12 glass-elevated rounded-full flex items-center justify-center text-text-secondary hover:text-text-primary transition-all duration-300 hover:scale-110"
         aria-label="Toggle theme"
       >
         {actualTheme === 'dark' ? (
@@ -147,276 +155,305 @@ const AuthPage: React.FC = () => {
         )}
       </button>
 
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-yellow-400/20 dark:from-yellow-400/10 to-orange-500/20 dark:to-orange-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/20 dark:from-purple-500/10 to-pink-500/20 dark:to-pink-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-r from-blue-500/10 dark:from-blue-500/5 to-cyan-500/10 dark:to-cyan-500/5 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
-
-      {/* Scrollable Container */}
-      <div 
-        ref={containerRef}
-        className="relative flex items-start justify-center p-4 py-8"
-        style={{ minHeight: isSignUp ? 'auto' : '100vh' }}
-      >
-        <div className="w-full max-w-md mx-auto">
-          {/* Logo & Title Section */}
-          <div className="text-center mb-8 animate-fade-in">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl animate-float">
-                  <Heart className="w-8 h-8 text-white fill-current" />
+      {/* Desktop Layout - Two Columns */}
+      <div className="lg:grid lg:grid-cols-2 min-h-screen relative z-10">
+        
+        {/* Left Column - Form */}
+        <div className="relative flex items-center justify-center min-h-screen px-4 lg:px-8">
+          <div className="w-full max-w-md mx-auto text-center">
+            
+            {/* Logo */}
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center mb-4 relative">
+                <div className="w-16 h-16 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center shadow-xl relative overflow-hidden auth-heart-container">
+                  <Heart className="w-8 h-8 auth-heart-icon relative z-10" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent-tertiary/30 to-transparent"></div>
                 </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center animate-spin-slow">
-                  <Sparkles className="w-3 h-3 text-white" />
+                <div className="absolute inset-0 w-16 h-16 bg-accent-primary/20 rounded-full blur-xl auth-heart-glow"></div>
                 </div>
+              <div className="text-center">
+                <h2 className="text-xl font-semibold text-text-primary">
+                  <span>AI </span>
+                  <span style={{
+                    background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-tertiary), var(--color-accent-secondary))',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    fontWeight: 'bold'
+                  }}>LOVVE</span>
+                </h2>
               </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 bg-clip-text text-transparent mb-2">
-              AI LOVVE
+
+            {/* Main Heading */}
+            <div className="mb-10">
+              <h1 className="text-4xl md:text-5xl font-normal text-text-primary mb-4 leading-tight">
+                {isSignUp ? 'Create your account' : 'Your ideas,'}
+                <br />
+                {isSignUp ? 'to begin planning' : 'amplified'}
             </h1>
-            <p className="text-gray-600 dark:text-white/60 text-sm md:text-base mb-6 transition-colors duration-300">
-              Luxury Romance Planning Platform
-            </p>
-            
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 animate-slide-up transition-colors duration-300">
-              {isSignUp ? 'Start Your Journey' : 'Welcome Back'}
-            </h2>
-            <p className="text-gray-600 dark:text-white/60 text-sm md:text-base animate-slide-up delay-100 transition-colors duration-300">
-              {isSignUp 
-                ? 'Create your account to begin planning magical moments'
-                : 'Sign in to continue your romantic adventure'
-              }
+              <p className="text-base text-text-secondary leading-relaxed">
+                Privacy-first AI that helps you create romantic experiences with confidence.
             </p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm backdrop-blur-10 animate-shake transition-colors duration-300">
-              {error}
-            </div>
-          )}
-
-          {/* Main Auth Card */}
-          <div 
-            ref={formRef}
-            className="bg-white/80 dark:bg-white/10 backdrop-blur-20 border border-gray-200/50 dark:border-white/20 rounded-2xl shadow-2xl p-6 md:p-8 space-y-6 animate-slide-up delay-200 transition-all duration-300"
-          >
-            {/* Social Auth Buttons */}
-            <div className="space-y-3">
+            {/* Form Section */}
+            <div className="space-y-5 max-w-sm mx-auto">
+              
+              {/* Google Button - Premium Style */}
               <button
                 onClick={() => handleSocialAuth('google')}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-700 dark:text-white hover:bg-white/90 dark:hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+                className="w-full golden-glass-button flex items-center justify-center gap-3 py-3.5 px-4 disabled:opacity-50 transition-all duration-300 text-sm font-medium"
               >
-                <svg className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                <span className="font-medium">
-                  {isLoading ? 'Connecting...' : 'Continue with Google'}
-                </span>
+                <span>Continue with Google</span>
               </button>
 
-              <button
-                onClick={() => handleSocialAuth('apple')}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-700 dark:text-white hover:bg-white/90 dark:hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
-              >
-                <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                </svg>
-                <span className="font-medium">
-                  {isLoading ? 'Connecting...' : 'Continue with Apple'}
-                </span>
-              </button>
-
-              <button
-                onClick={() => handleSocialAuth('meta')}
-                disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-700 dark:text-white hover:bg-white/90 dark:hover:bg-white/15 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
-              >
-                <svg className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" fill="#1877F2" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                <span className="font-medium">
-                  {isLoading ? 'Connecting...' : 'Continue with Meta'}
-                </span>
-              </button>
-            </div>
-
-            {/* Divider */}
-            <div className="relative">
+              {/* Divider - Premium Style */}
+              <div className="relative py-4">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300/50 dark:border-white/20"></div>
+                  <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white/80 dark:bg-[#1f1f1f] text-gray-500 dark:text-white/60 transition-colors duration-300">or continue with email</span>
-              </div>
+                  <span className="px-4 bg-surface text-text-tertiary text-xs font-medium uppercase tracking-wider">OR</span>
+                </div>
             </div>
 
-            {/* Email Form */}
+              {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Name fields for signup */}
               {isSignUp && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-slide-down">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
-                      First Name
-                    </label>
-                    <div className="relative group">
+                  <div className="grid grid-cols-2 gap-3">
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 pl-11 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
+                      className="input-modern"
                         placeholder="First name"
                         required
                       />
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/50 group-focus-within:text-yellow-400/70 transition-colors duration-300" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
-                      Last Name
-                    </label>
-                    <div className="relative group">
                       <input
                         type="text"
                         name="surname"
                         value={formData.surname}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
+                      className="input-modern"
                         placeholder="Last name"
                       />
-                    </div>
-                  </div>
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
-                  Email Address
-                </label>
-                <div className="relative group">
+                {/* Email Input */}
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 pl-11 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
-                    placeholder="Enter your email"
+                  className="input-modern"
+                  placeholder="Enter your personal or work email"
                     required
                   />
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-white/50 group-focus-within:text-yellow-400/70 transition-colors duration-300" />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
-                  Password
-                </label>
-                <div className="relative group">
+                {/* Password fields for signup */}
+                {isSignUp && (
+                  <>
+                    <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 pr-11 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
-                    placeholder="Enter your password"
+                        className="input-modern pr-10"
+                        placeholder="Create a password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white/50 hover:text-gray-600 dark:hover:text-white/80 hover:scale-110 transition-all duration-300"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-tertiary hover:text-text-secondary transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-              </div>
-
-              {isSignUp && (
-                <div className="animate-slide-down">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-white/80 mb-2 transition-colors duration-300">
-                    Confirm Password
-                  </label>
-                  <div className="relative group">
                     <input
                       type={showPassword ? "text" : "password"}
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/80 dark:bg-white/10 backdrop-blur-10 border border-gray-200/50 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:outline-none focus:border-yellow-400/70 focus:bg-white/90 dark:focus:bg-white/15 focus:scale-105 transition-all duration-300 group-hover:border-gray-300 dark:group-hover:border-white/30"
+                      className="input-modern"
                       placeholder="Confirm your password"
                       required
                     />
-                  </div>
-                </div>
-              )}
-
-              {!isSignUp && (
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center group cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 text-yellow-400 bg-white/80 dark:bg-white/10 border-gray-200/50 dark:border-white/20 rounded focus:ring-yellow-400/50 focus:ring-2 group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <span className="ml-2 text-gray-600 dark:text-white/60 group-hover:text-gray-800 dark:group-hover:text-white/80 transition-colors duration-300">Remember me</span>
-                  </label>
-                  <a href="#" className="text-yellow-500 hover:text-yellow-600 hover:underline transition-all duration-300">
-                    Forgot password?
-                  </a>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-600 text-white font-semibold py-3 px-6 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
-                  </div>
-                ) : (
-                  <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                  </>
                 )}
-              </button>
+
+                {/* Submit Button - Premium Style */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full golden-auth-btn disabled:opacity-50 transition-all duration-300"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-center">{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
+                      </div>
+                    ) : (
+                      <span className="text-center w-full">{isSignUp ? 'Create Account' : 'Continue with email'}</span>
+                    )}
+                  </button>
+                </div>
             </form>
 
+              {/* Error Message */}
+              {error && (
+                <div className="mt-4 p-3 glass border border-error/30 rounded-lg">
+                  <p className="text-sm text-error">{error}</p>
+                </div>
+              )}
+
             {/* Switch Mode */}
-            <div className="text-center">
-              <p className="text-gray-600 dark:text-white/60 text-sm transition-colors duration-300">
-                {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+              {!isSignUp && (
+                <div className="text-center pt-6">
+                  <p className="text-sm text-text-secondary">
+                    Don't have an account?{' '}
+                    <button
+                      onClick={handleModeSwitch}
+                      disabled={isLoading}
+                      className="text-accent-primary hover:text-accent-secondary transition-colors font-medium disabled:opacity-50 underline decoration-accent-primary/30 underline-offset-2 hover:decoration-accent-secondary/50"
+                    >
+                      Sign Up
+                    </button>
+                  </p>
+                </div>
+              )}
+
+              {isSignUp && (
+                <div className="text-center pt-6">
+                  <p className="text-sm text-text-secondary">
+                    Already have an account?{' '}
                 <button
                   onClick={handleModeSwitch}
                   disabled={isLoading}
-                  className="text-yellow-500 hover:text-yellow-600 font-medium transition-all duration-300 disabled:opacity-50 hover:underline"
+                      className="text-accent-primary hover:text-accent-secondary transition-colors font-medium disabled:opacity-50 underline decoration-accent-primary/30 underline-offset-2 hover:decoration-accent-secondary/50"
                 >
-                  {isSignUp ? 'Sign In' : 'Sign Up'}
+                      Sign In
                 </button>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="mt-20 mb-8">
+              <p className="text-xs text-text-tertiary leading-relaxed">
+                By continuing, you acknowledge AI LOVVE's{' '}
+                <a href="#" className="text-accent-primary hover:text-accent-secondary transition-colors underline decoration-accent-primary/30 underline-offset-2 hover:decoration-accent-secondary/50">
+                  Privacy Policy
+                </a>
+                .
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Footer */}
-          <div className="text-center mt-8 mb-8 animate-fade-in delay-300">
-            <p className="text-gray-500 dark:text-white/40 text-xs transition-colors duration-300">
-              By continuing, you agree to our{' '}
-              <a href="#" className="text-yellow-500 hover:text-yellow-600 transition-colors duration-300 hover:underline">
-                Terms of Service
-              </a>{' '}
-              and{' '}
-              <a href="#" className="text-yellow-500 hover:text-yellow-600 transition-colors duration-300 hover:underline">
-                Privacy Policy
-              </a>
-            </p>
+        {/* Right Column - Demo Content (Desktop Only) */}
+        <div className="hidden lg:flex items-center justify-center bg-surface-elevated px-8 relative">
+          <div className="w-full max-w-lg relative z-10">
+            
+            {/* Demo Header */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-full flex items-center justify-center shadow-lg auth-heart-container">
+                  <Heart className="w-4 h-4 auth-heart-icon" />
+                </div>
+                <span className="text-sm text-text-secondary">
+                  Plan romantic date experiences and romantic getaways.
+                </span>
+              </div>
+              <p className="text-text-primary font-medium">
+                All set. Here's your personalized romantic plan.
+              </p>
+            </div>
+
+            {/* Demo Code Block - Premium Style */}
+            <div className="glass-elevated rounded-xl p-6 text-sm font-mono overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-primary/5 to-accent-secondary/5 rounded-xl"></div>
+              <div className="text-text-secondary relative z-10">
+                <div className="text-accent-primary font-medium">// Romantic Evening Plan</div>
+                <div className="mt-2">
+                  <span className="text-blue-400">const</span>{' '}
+                  <span className="text-accent-tertiary">romanticEvening</span>{' '}
+                  <span className="text-text-primary">=</span>{' '}
+                  <span className="text-text-primary">{'{'}</span>
+                </div>
+                <div className="ml-4 text-green-400">
+                  location: <span className="text-accent-primary">"Rooftop Restaurant"</span>,
+                </div>
+                <div className="ml-4 text-green-400">
+                  time: <span className="text-accent-primary">"7:30 PM"</span>,
+                </div>
+                <div className="ml-4 text-green-400">
+                  activities: <span className="text-text-primary">[</span>
+                </div>
+                <div className="ml-8 text-accent-primary">
+                  "Candlelit dinner",
+                </div>
+                <div className="ml-8 text-accent-primary">
+                  "Live jazz music",
+                </div>
+                <div className="ml-8 text-accent-primary">
+                  "City skyline view"
+                </div>
+                <div className="ml-4 text-text-primary">],</div>
+                <div className="ml-4 text-green-400">
+                  mood: <span className="text-accent-primary">"intimate"</span>,
+                </div>
+                <div className="ml-4 text-green-400">
+                  budget: <span className="text-accent-primary">"moderate"</span>
+                </div>
+                <div className="text-text-primary">{'}'}</div>
+                
+                <div className="mt-4">
+                  <span className="text-blue-400">function</span>{' '}
+                  <span className="text-accent-tertiary">createMagicalMoment</span>
+                  <span className="text-text-primary">() {'{'}</span>
+                </div>
+                <div className="ml-4 text-accent-primary font-medium">// AI LOVVE's personalized touch</div>
+                <div className="ml-4 text-blue-400">return</div>{' '}
+                <span className="text-accent-primary">"Perfect evening awaits ❤️"</span>
+                <div className="text-text-primary">{'}'}</div>
+              </div>
+            </div>
+
+            {/* Demo Features - Premium Style */}
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-3 text-sm text-text-secondary">
+                <div className="golden-luxury-dot"></div>
+                <span>Personalized romantic experiences</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-text-secondary">
+                <div className="golden-luxury-dot"></div>
+                <span>Location-based recommendations</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-text-secondary">
+                <div className="golden-luxury-dot"></div>
+                <span>Budget-friendly options</span>
+              </div>
+            </div>
           </div>
+          
+          {/* Right column background effects */}
+          <div className="absolute top-10 right-10 w-32 h-32 bg-accent-primary/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-10 left-10 w-40 h-40 bg-accent-secondary/10 rounded-full blur-2xl"></div>
         </div>
       </div>
     </div>
