@@ -6,7 +6,7 @@
 
 @layer base {
   /* === MODERN UI FOUNDATION === */
-  :root {
+:root {
     /* 8-point grid system */
     --space-1: 0.125rem; /* 2px */
     --space-2: 0.25rem;  /* 4px */
@@ -20,21 +20,21 @@
     --space-24: 3rem;    /* 48px */
     --space-32: 4rem;    /* 64px */
 
-    /* Light theme colors */
-    --color-background: #ffffff;
-    --color-surface: #f8fafc;
-    --color-surface-elevated: #f1f5f9;
-    --color-surface-glass: rgba(255, 255, 255, 0.8);
-    --color-surface-glass-elevated: rgba(255, 255, 255, 0.9);
+    /* Modern color palette (dark theme preserved) */
+    --color-background: #1f1f1f;
+    --color-surface: #2a2a2a;
+    --color-surface-elevated: #353535;
+    --color-surface-glass: rgba(255, 255, 255, 0.05);
+    --color-surface-glass-elevated: rgba(255, 255, 255, 0.08);
     
-    --color-text-primary: #1e293b;
-    --color-text-secondary: rgba(30, 41, 59, 0.7);
-    --color-text-tertiary: rgba(30, 41, 59, 0.5);
+    --color-text-primary: #e8eaed;
+    --color-text-secondary: rgba(255, 255, 255, 0.7);
+    --color-text-tertiary: rgba(255, 255, 255, 0.5);
     
-    --color-border: rgba(30, 41, 59, 0.1);
-    --color-border-strong: rgba(30, 41, 59, 0.2);
+    --color-border: rgba(255, 255, 255, 0.1);
+    --color-border-strong: rgba(255, 255, 255, 0.2);
     
-    /* Gold color palette */
+    /* Gold color palette instead of purple */
     --color-accent-primary: #d4af37;    /* Rich gold */
     --color-accent-secondary: #b8860b;  /* Dark goldenrod */
     --color-accent-tertiary: #ffd700;   /* Gold */
@@ -61,12 +61,12 @@
     --radius-2xl: 1.5rem;   /* 24px */
     --radius-full: 9999px;
     
-    /* Shadows for light theme */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.1);
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
     
     /* Animation durations */
     --duration-fast: 150ms;
@@ -78,30 +78,6 @@
     --z-sticky: 60;
     --z-modal: 70;
     --z-tooltip: 80;
-  }
-
-  /* Dark theme colors */
-  .dark {
-    /* Dark theme colors */
-    --color-background: #1f1f1f;
-    --color-surface: #2a2a2a;
-    --color-surface-elevated: #353535;
-    --color-surface-glass: rgba(255, 255, 255, 0.05);
-    --color-surface-glass-elevated: rgba(255, 255, 255, 0.08);
-    
-    --color-text-primary: #e8eaed;
-    --color-text-secondary: rgba(255, 255, 255, 0.7);
-    --color-text-tertiary: rgba(255, 255, 255, 0.5);
-    
-    --color-border: rgba(255, 255, 255, 0.1);
-    --color-border-strong: rgba(255, 255, 255, 0.2);
-    
-    /* Shadows for dark theme */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   * {
@@ -129,7 +105,7 @@
     font-size: var(--text-base);
     line-height: 1.5;
     overflow-x: hidden;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Remove overflow hidden for auth page */
   }
 
   /* Auth page specific styles */
@@ -866,7 +842,7 @@
   max-width: 800px;
   @apply custom-scrollbar;
   -webkit-overflow-scrolling: touch;
-  padding-top: 76px;
+  padding-top: 120px; /* Increased from 76px to 120px */
   padding-bottom: 140px;
 }
 
@@ -1097,12 +1073,13 @@
 /* === WELCOME SCREEN === */
 .gemini-welcome {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: var(--space-6) var(--space-4);
-  text-align: center;
+  padding-top: 120px; /* Added top padding to match messages */
+  padding-bottom: 2rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .welcome-content-wrapper {
@@ -1593,22 +1570,36 @@
   }
 
   .gemini-toolbox-button svg {
-    width: 12px; /* Smaller icons */
-    height: 12px;
+    width: 13px; /* Smaller icons */
+    height: 13px;
   }
 
   /* Enhanced Mobile Buttons - SLIMMER */
   .gemini-plus-button,
   .gemini-mic-button,
   .gemini-send-button {
-    width: 40px; /* Reduced width */
-    height: 40px; /* Reduced height */
+    width: 40px; /* Smaller buttons */
+    height: 40px;
     border-radius: 12px; /* Smaller border radius */
-    padding: 10px; /* Smaller padding */
+    padding: 10px; /* Reduced padding */
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+
+  .gemini-send-button {
+    background: linear-gradient(135deg, #d4af37, #b8860b);
+    box-shadow: 
+      0 2px 8px rgba(212, 175, 55, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .gemini-send-button:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 
+      0 4px 12px rgba(212, 175, 55, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 }
 
@@ -1918,18 +1909,6 @@ body.sidebar-open .gemini-header .gemini-menu-button {
   overflow: hidden;
 }
 
-/* Light theme for search box */
-html.light .gemini-search-box {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(248, 250, 252, 0.90) 100%);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(212, 175, 55, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
 .gemini-search-box::before {
   content: '';
   position: absolute;
@@ -1941,13 +1920,6 @@ html.light .gemini-search-box {
   border-radius: 16px;
   opacity: 0;
   transition: opacity 0.4s ease;
-}
-
-html.light .gemini-search-box::before {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.06) 0%,
-    rgba(255, 215, 0, 0.03) 50%,
-    rgba(212, 175, 55, 0.06) 100%);
 }
 
 .gemini-search-box:hover::before {
@@ -1964,16 +1936,6 @@ html.light .gemini-search-box::before {
   transform: translateY(-2px);
 }
 
-html.light .gemini-search-box:hover {
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 
-    0 6px 25px rgba(0, 0, 0, 0.12),
-    0 0 0 2px rgba(212, 175, 55, 0.2),
-    0 0 20px rgba(212, 175, 55, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  transform: translateY(-2px);
-}
-
 .gemini-search-box:focus-within {
   border-color: rgba(212, 175, 55, 0.6);
   box-shadow: 
@@ -1981,16 +1943,6 @@ html.light .gemini-search-box:hover {
     0 0 0 3px rgba(212, 175, 55, 0.2),
     0 0 25px rgba(212, 175, 55, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px);
-}
-
-html.light .gemini-search-box:focus-within {
-  border-color: rgba(212, 175, 55, 0.7);
-  box-shadow: 
-    0 8px 30px rgba(0, 0, 0, 0.15),
-    0 0 0 3px rgba(212, 175, 55, 0.25),
-    0 0 25px rgba(212, 175, 55, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
   transform: translateY(-3px);
 }
 
@@ -2014,10 +1966,6 @@ html.light .gemini-search-box:focus-within {
   text-transform: uppercase;
 }
 
-html.light .gemini-search-label {
-  color: rgba(212, 175, 55, 1);
-}
-
 .gemini-search-clear {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2032,23 +1980,11 @@ html.light .gemini-search-label {
   opacity: 0.7;
 }
 
-html.light .gemini-search-clear {
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.6);
-}
-
 .gemini-search-clear:hover {
   background: rgba(212, 175, 55, 0.15);
   border-color: rgba(212, 175, 55, 0.3);
   opacity: 1;
   transform: scale(1.1);
-}
-
-html.light .gemini-search-clear:hover {
-  background: rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.4);
-  color: rgba(212, 175, 55, 0.8);
 }
 
 /* Enhanced Search Input Container */
@@ -2061,19 +1997,9 @@ html.light .gemini-search-clear:hover {
   transition: all 0.3s ease;
 }
 
-html.light .gemini-search-input-container {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
 .gemini-search-input-container:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.12);
-}
-
-html.light .gemini-search-input-container:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 0, 0, 0.12);
 }
 
 .gemini-search-input-container:focus-within {
@@ -2082,14 +2008,6 @@ html.light .gemini-search-input-container:hover {
   box-shadow: 
     inset 0 0 0 1px rgba(212, 175, 55, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-html.light .gemini-search-input-container:focus-within {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 
-    inset 0 0 0 1px rgba(212, 175, 55, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 /* Enhanced Search Input */
@@ -2107,27 +2025,15 @@ html.light .gemini-search-input-container:focus-within {
   font-family: 'Google Sans', sans-serif;
 }
 
-html.light .gemini-search-input {
-  color: #1a1a1a;
-}
-
 .gemini-search-input::placeholder {
   color: rgba(212, 175, 55, 0.5);
   font-weight: 400;
   transition: all 0.3s ease;
 }
 
-html.light .gemini-search-input::placeholder {
-  color: rgba(212, 175, 55, 0.7);
-}
-
 .gemini-search-input:focus::placeholder {
   color: rgba(212, 175, 55, 0.3);
   transform: translateY(-1px);
-}
-
-html.light .gemini-search-input:focus::placeholder {
-  color: rgba(212, 175, 55, 0.5);
 }
 
 /* Enhanced Search Icon */
@@ -2151,23 +2057,11 @@ html.light .gemini-search-input:focus::placeholder {
   cursor: pointer;
 }
 
-html.light .gemini-search-icon-enhanced {
-  box-shadow: 
-    0 2px 8px rgba(212, 175, 55, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
 .gemini-search-icon-enhanced:hover {
   transform: translateY(-50%) scale(1.1);
   box-shadow: 
     0 4px 12px rgba(212, 175, 55, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-html.light .gemini-search-icon-enhanced:hover {
-  box-shadow: 
-    0 4px 12px rgba(212, 175, 55, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .gemini-search-icon-enhanced svg {
@@ -2184,13 +2078,38 @@ html.light .gemini-search-icon-enhanced:hover {
   justify-content: center;
   padding: 12px 0 4px 0;
   gap: 8px;
-  color: rgba(212, 175, 55, 0.8);
+  color: rgba(212, 175, 55, 0.7);
   font-size: 11px;
   font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
-html.light .gemini-search-loading {
-  color: rgba(212, 175, 55, 1);
+.gemini-search-loading-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.gemini-search-loading-dot {
+  width: 4px;
+  height: 4px;
+  background: linear-gradient(135deg, #d4af37, #ffd700);
+  border-radius: 50%;
+  animation: searchLoadingPulse 1.4s infinite ease-in-out;
+}
+
+.gemini-search-loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.gemini-search-loading-dot:nth-child(2) { animation-delay: -0.16s; }
+.gemini-search-loading-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes searchLoadingPulse {
+  0%, 80%, 100% { 
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% { 
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 /* Responsive Search Box */
@@ -3243,15 +3162,6 @@ body.sidebar-open .mobile-overlay {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Light theme card carousel */
-html.light .package-card-carousel {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
 .package-card-carousel:hover {
   border-color: rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.05);
@@ -3259,14 +3169,6 @@ html.light .package-card-carousel {
   box-shadow: 
     0 12px 40px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-html.light .package-card-carousel:hover {
-  border-color: rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 .carousel-nav {
@@ -3278,11 +3180,6 @@ html.light .package-card-carousel:hover {
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-}
-
-html.light .carousel-nav {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(248, 250, 252, 0.6);
 }
 
 .nav-button {
@@ -3303,26 +3200,12 @@ html.light .carousel-nav {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-html.light .nav-button {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.8);
-  color: rgba(0, 0, 0, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
 .nav-button:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
   border-color: rgba(255, 255, 255, 0.25);
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-html.light .nav-button:hover {
-  background: rgba(255, 255, 255, 1);
-  color: rgba(0, 0, 0, 0.9);
-  border-color: rgba(0, 0, 0, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .nav-button:disabled {
@@ -3342,20 +3225,11 @@ html.light .nav-button:hover {
   -webkit-backdrop-filter: blur(10px);
 }
 
-html.light .carousel-counter {
-  color: rgba(0, 0, 0, 0.7);
-  background: rgba(255, 255, 255, 0.8);
-}
-
 .min-card-content {
   padding: 20px;
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
-}
-
-html.light .min-card-content {
-  background: rgba(255, 255, 255, 0.95);
 }
 
 .card-header {
@@ -3377,13 +3251,6 @@ html.light .min-card-content {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-html.light .category-badge {
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 0.8);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
 .heart-btn {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -3397,23 +3264,11 @@ html.light .category-badge {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-html.light .heart-btn {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 0.5);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
 .heart-btn:hover {
   color: #ef4444;
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(239, 68, 68, 0.3);
   transform: scale(1.1);
-}
-
-html.light .heart-btn:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .card-body {
@@ -3429,11 +3284,6 @@ html.light .heart-btn:hover {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-html.light .card-title {
-  color: rgba(0, 0, 0, 0.9);
-  text-shadow: none;
-}
-
 .location-info {
   display: flex;
   align-items: center;
@@ -3443,19 +3293,11 @@ html.light .card-title {
   color: rgba(255, 255, 255, 0.7);
 }
 
-html.light .location-info {
-  color: rgba(0, 0, 0, 0.6);
-}
-
 .card-description {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.5;
   margin-bottom: 16px;
-}
-
-html.light .card-description {
-  color: rgba(0, 0, 0, 0.7);
 }
 
 .features-grid {
@@ -3476,13 +3318,6 @@ html.light .card-description {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-html.light .feature-tag {
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: rgba(0, 0, 0, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
 .feature-more {
   font-size: 11px;
   padding: 6px 10px;
@@ -3495,13 +3330,6 @@ html.light .feature-tag {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-html.light .feature-more {
-  background: rgba(212, 175, 55, 0.1);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  color: rgba(212, 175, 55, 1);
-  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
-}
-
 .card-footer {
   display: flex;
   align-items: center;
@@ -3509,10 +3337,6 @@ html.light .feature-more {
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin-bottom: 16px;
-}
-
-html.light .card-footer {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .meta-info {
@@ -3529,11 +3353,6 @@ html.light .card-footer {
   color: rgba(255, 255, 255, 0.7);
 }
 
-html.light .duration-info,
-html.light .rating-info {
-  color: rgba(0, 0, 0, 0.6);
-}
-
 .price-section {
   text-align: right;
   background: rgba(255, 255, 255, 0.05);
@@ -3544,11 +3363,6 @@ html.light .rating-info {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-html.light .price-section {
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
 .price-label {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.5);
@@ -3557,20 +3371,11 @@ html.light .price-section {
   margin-bottom: 2px;
 }
 
-html.light .price-label {
-  color: rgba(0, 0, 0, 0.5);
-}
-
 .price-amount {
   font-size: 16px;
   font-weight: 700;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-html.light .price-amount {
-  color: rgba(0, 0, 0, 0.9);
-  text-shadow: none;
 }
 
 .select-btn {
@@ -3589,25 +3394,11 @@ html.light .price-amount {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
-html.light .select-btn {
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.8);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-}
-
 .select-btn:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-html.light .select-btn:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(0, 0, 0, 0.2);
-  color: rgba(0, 0, 0, 1);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* Compact Card Styles */
@@ -3623,23 +3414,11 @@ html.light .select-btn:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
-html.light .compact-card {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-}
-
 .compact-card:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
-
-html.light .compact-card:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .compact-content {
@@ -3663,21 +3442,12 @@ html.light .compact-card:hover {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-html.light .compact-title {
-  color: rgba(0, 0, 0, 0.9);
-  text-shadow: none;
-}
-
 .compact-location {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
-}
-
-html.light .compact-location {
-  color: rgba(0, 0, 0, 0.6);
 }
 
 .compact-footer {
@@ -3692,11 +3462,6 @@ html.light .compact-location {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-html.light .compact-footer {
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
 .compact-rating {
   display: flex;
   align-items: center;
@@ -3705,20 +3470,11 @@ html.light .compact-footer {
   color: rgba(255, 255, 255, 0.7);
 }
 
-html.light .compact-rating {
-  color: rgba(0, 0, 0, 0.6);
-}
-
 .compact-price {
   font-size: 14px;
   font-weight: 600;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-html.light .compact-price {
-  color: rgba(0, 0, 0, 0.9);
-  text-shadow: none;
 }
 
 /* Default Card Styles */
@@ -3737,14 +3493,6 @@ html.light .compact-price {
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-html.light .default-card {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
 .default-card:hover {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
@@ -3752,14 +3500,6 @@ html.light .default-card {
   box-shadow: 
     0 16px 48px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-html.light .default-card:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 
-    0 16px 48px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 .card-image-placeholder {
@@ -3777,14 +3517,6 @@ html.light .default-card:hover {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-html.light .card-image-placeholder {
-  background: linear-gradient(135deg, 
-    rgba(248, 250, 252, 0.8) 0%, 
-    rgba(241, 245, 249, 0.6) 50%, 
-    rgba(248, 250, 252, 0.8) 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-}
-
 .category-indicator {
   font-size: 24px;
   position: absolute;
@@ -3793,10 +3525,6 @@ html.light .card-image-placeholder {
   font-weight: 600;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-}
-
-html.light .category-indicator {
-  background: rgba(255, 255, 255, 0.8);
 }
 
 /* === GLASSMORPHISM CARD COMPONENT === */
@@ -3838,12 +3566,6 @@ html.light .category-indicator {
   animation: modalFadeIn 0.3s ease-out;
 }
 
-html.light .package-modal-overlay {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
 .package-modal-container {
   background: rgba(31, 31, 31, 0.95);
   backdrop-filter: blur(20px);
@@ -3859,14 +3581,6 @@ html.light .package-modal-overlay {
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-html.light .package-modal-container {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .package-modal-close {
@@ -3889,22 +3603,10 @@ html.light .package-modal-container {
   cursor: pointer;
 }
 
-html.light .package-modal-close {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  color: rgba(0, 0, 0, 0.7);
-}
-
 .package-modal-close:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
-}
-
-html.light .package-modal-close:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(0, 0, 0, 0.2);
-  color: rgba(0, 0, 0, 0.9);
 }
 
 .package-modal-content {
@@ -3912,10 +3614,6 @@ html.light .package-modal-close:hover {
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
-}
-
-html.light .package-modal-content {
-  scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1);
 }
 
 .package-modal-content::-webkit-scrollbar {
@@ -3927,26 +3625,14 @@ html.light .package-modal-content {
   border-radius: 4px;
 }
 
-html.light .package-modal-content::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-}
-
 .package-modal-content::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   transition: background 0.3s ease;
 }
 
-html.light .package-modal-content::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-}
-
 .package-modal-content::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
-}
-
-html.light .package-modal-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
 }
 
 @keyframes modalFadeIn {
@@ -4011,19 +3697,6 @@ html.light .package-modal-content::-webkit-scrollbar-thumb:hover {
     inset 0 1px 0 rgba(255, 215, 0, 0.3);
 }
 
-html.light .golden-glass-button {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.15), 
-    rgba(255, 215, 0, 0.1)
-  );
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  color: rgba(212, 175, 55, 1);
-  text-shadow: none;
-  box-shadow: 
-    0 4px 20px rgba(212, 175, 55, 0.15),
-    inset 0 1px 0 rgba(255, 215, 0, 0.2);
-}
-
 .golden-glass-button::before {
   content: '';
   position: absolute;
@@ -4039,14 +3712,6 @@ html.light .golden-glass-button {
   transition: left 0.5s ease;
 }
 
-html.light .golden-glass-button::before {
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(255, 215, 0, 0.3), 
-    transparent
-  );
-}
-
 .golden-glass-button:hover {
   background: linear-gradient(135deg, 
     rgba(212, 175, 55, 0.3), 
@@ -4060,18 +3725,6 @@ html.light .golden-glass-button::before {
     inset 0 1px 0 rgba(255, 215, 0, 0.4);
 }
 
-html.light .golden-glass-button:hover {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.25), 
-    rgba(255, 215, 0, 0.15)
-  );
-  border-color: rgba(212, 175, 55, 0.4);
-  color: rgba(212, 175, 55, 1);
-  box-shadow: 
-    0 8px 25px rgba(212, 175, 55, 0.2),
-    inset 0 1px 0 rgba(255, 215, 0, 0.3);
-}
-
 .golden-glass-button:hover::before {
   left: 100%;
 }
@@ -4081,12 +3734,6 @@ html.light .golden-glass-button:hover {
   box-shadow: 
     0 4px 15px rgba(212, 175, 55, 0.4),
     inset 0 1px 0 rgba(255, 215, 0, 0.2);
-}
-
-html.light .golden-glass-button:active {
-  box-shadow: 
-    0 4px 15px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 215, 0, 0.15);
 }
 
 /* === GOLDEN CONTACT BUTTONS === */
@@ -4112,18 +3759,6 @@ html.light .golden-glass-button:active {
     inset 0 1px 0 rgba(255, 215, 0, 0.2);
 }
 
-html.light .golden-contact-btn {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.1), 
-    rgba(255, 215, 0, 0.08)
-  );
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  color: rgba(212, 175, 55, 1);
-  box-shadow: 
-    0 4px 15px rgba(212, 175, 55, 0.1),
-    inset 0 1px 0 rgba(255, 215, 0, 0.15);
-}
-
 .golden-contact-btn:hover {
   background: linear-gradient(135deg, 
     rgba(212, 175, 55, 0.25), 
@@ -4135,18 +3770,6 @@ html.light .golden-contact-btn {
   box-shadow: 
     0 6px 20px rgba(212, 175, 55, 0.25),
     inset 0 1px 0 rgba(255, 215, 0, 0.3);
-}
-
-html.light .golden-contact-btn:hover {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.2), 
-    rgba(255, 215, 0, 0.15)
-  );
-  border-color: rgba(212, 175, 55, 0.35);
-  color: rgba(212, 175, 55, 1);
-  box-shadow: 
-    0 6px 20px rgba(212, 175, 55, 0.2),
-    inset 0 1px 0 rgba(255, 215, 0, 0.25);
 }
 
 /* === GOLDEN LUXURY DOTS === */
@@ -4172,17 +3795,6 @@ html.light .golden-contact-btn:hover {
     inset 0 1px 0 rgba(255, 215, 0, 0.3);
 }
 
-html.light .golden-luxury-dot {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.2), 
-    rgba(255, 215, 0, 0.15)
-  );
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  box-shadow: 
-    0 2px 10px rgba(212, 175, 55, 0.15),
-    inset 0 1px 0 rgba(255, 215, 0, 0.25);
-}
-
 .golden-luxury-dot::before {
   content: '';
   width: 8px;
@@ -4203,17 +3815,6 @@ html.light .golden-luxury-dot {
   box-shadow: 
     0 4px 15px rgba(212, 175, 55, 0.4),
     inset 0 1px 0 rgba(255, 215, 0, 0.5);
-}
-
-html.light .golden-luxury-dot:hover {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.35), 
-    rgba(255, 215, 0, 0.25)
-  );
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 
-    0 4px 15px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 215, 0, 0.4);
 }
 
 .golden-luxury-dot:hover::before {
@@ -4241,17 +3842,6 @@ html.light .golden-luxury-dot:hover {
     inset 0 1px 0 rgba(255, 215, 0, 0.2);
 }
 
-html.light .golden-dot {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.15), 
-    rgba(255, 215, 0, 0.1)
-  );
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  box-shadow: 
-    0 2px 8px rgba(212, 175, 55, 0.1),
-    inset 0 1px 0 rgba(255, 215, 0, 0.15);
-}
-
 .golden-dot.active {
   background: linear-gradient(135deg, 
     rgba(212, 175, 55, 0.6), 
@@ -4261,17 +3851,6 @@ html.light .golden-dot {
   box-shadow: 
     0 3px 12px rgba(212, 175, 55, 0.4),
     inset 0 1px 0 rgba(255, 215, 0, 0.6);
-}
-
-html.light .golden-dot.active {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.5), 
-    rgba(255, 215, 0, 0.35)
-  );
-  border-color: rgba(212, 175, 55, 0.7);
-  box-shadow: 
-    0 3px 12px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 215, 0, 0.5);
 }
 
 .golden-dot:hover {
@@ -4284,17 +3863,6 @@ html.light .golden-dot.active {
   box-shadow: 
     0 4px 15px rgba(212, 175, 55, 0.3),
     inset 0 1px 0 rgba(255, 215, 0, 0.4);
-}
-
-html.light .golden-dot:hover {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.3), 
-    rgba(255, 215, 0, 0.2)
-  );
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 
-    0 4px 15px rgba(212, 175, 55, 0.25),
-    inset 0 1px 0 rgba(255, 215, 0, 0.35);
 }
 
 /* === GOLDEN SHIMMER ANIMATION === */
@@ -4435,1095 +4003,219 @@ html.light .golden-dot:hover {
   animation-delay: 2s;
 }
 
-html.light .gemini-search-loading {
-  color: rgba(212, 175, 55, 1);
-}
-
-.gemini-search-loading-dots {
-  display: flex;
-  gap: 3px;
-}
-
-.gemini-search-loading-dot {
-  width: 4px;
-  height: 4px;
-  background: linear-gradient(135deg, #d4af37, #ffd700);
-  border-radius: 50%;
-  animation: searchLoadingPulse 1.4s infinite ease-in-out;
-}
-
-.gemini-search-loading-dot:nth-child(1) { animation-delay: -0.32s; }
-.gemini-search-loading-dot:nth-child(2) { animation-delay: -0.16s; }
-.gemini-search-loading-dot:nth-child(3) { animation-delay: 0s; }
-
-@keyframes searchLoadingPulse {
-  0%, 80%, 100% { 
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-  40% { 
-    opacity: 1;
-    transform: scale(1.2);
-  }
-}
-
-.carousel-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: white;
-  margin-bottom: 8px;
-}
-
-html.light .carousel-title {
-  color: rgba(0, 0, 0, 0.9);
-}
-
-.carousel-subtitle {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-html.light .carousel-subtitle {
-  color: rgba(0, 0, 0, 0.6);
-}
-
-.carousel-wrapper {
-  position: relative;
-}
-
-.carousel-content {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-
-.carousel-progress {
-  display: flex;
-  justify-content: center;
+/* === MESSAGE FEEDBACK TOOLKIT === */
+.message-feedback-toolkit {
+  display: none;
+  flex-direction: row;
   gap: 8px;
-  margin-top: 16px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 8px 0;
 }
 
-.progress-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  transition: all 0.2s ease;
+.gemini-message-assistant:hover .message-feedback-toolkit {
+  display: flex;
 }
 
-html.light .progress-dot {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.progress-dot.active {
-  background: rgba(212, 175, 55, 0.8);
-  transform: scale(1.2);
-}
-
-html.light .progress-dot.active {
-  background: rgba(212, 175, 55, 1);
-}
-
-.progress-dot:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-html.light .progress-dot:hover {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-/* === PACKAGE DETAIL PAGE LIGHT THEME === */
-
-/* Base glassmorphism card light theme */
-html.light .glassmorphism-card {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Package detail text colors in light theme */
-html.light .package-modal-content .text-white {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-html.light .package-modal-content .text-white\/80 {
-  color: rgba(0, 0, 0, 0.7) !important;
-}
-
-html.light .package-modal-content .text-white\/70 {
-  color: rgba(0, 0, 0, 0.6) !important;
-}
-
-html.light .package-modal-content .text-white\/60 {
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Hero section text overrides for light theme */
-html.light .package-modal-content h1,
-html.light .package-modal-content h2,
-html.light .package-modal-content h3 {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-/* Category badge light theme */
-html.light .package-modal-content .bg-white\/20 {
-  background: rgba(0, 0, 0, 0.1) !important;
-  color: rgba(0, 0, 0, 0.8) !important;
-}
-
-/* Icons and elements that should remain golden */
-html.light .package-modal-content .text-yellow-400 {
-  color: #d4af37 !important;
-}
-
-/* Loading and not found states */
-html.light .min-h-screen.bg-\[#1f1f1f\] {
-  background: #f8f9fa !important;
-}
-
-html.light .min-h-screen.bg-\[#1f1f1f\] .text-white {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-html.light .min-h-screen.bg-\[#1f1f1f\] .text-white\/70 {
-  color: rgba(0, 0, 0, 0.6) !important;
-}
-
-/* Quick info section icons */
-html.light .package-modal-content .text-white\/60 {
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Price display in light theme */
-html.light .package-modal-content .text-2xl,
-html.light .package-modal-content .text-3xl {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-/* Contact section text */
-html.light .package-modal-content .text-white\/60 {
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-/* Full page version background */
-html.light .min-h-screen {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-}
-
-/* === ADDITIONAL PACKAGE DETAIL LIGHT THEME === */
-
-/* Package detail modal specific overrides */
-html.light .package-modal-content {
-  background: transparent;
-}
-
-/* Loading spinner in light theme */
-html.light .package-modal-content .border-white\/20 {
-  border-color: rgba(0, 0, 0, 0.2) !important;
-}
-
-html.light .package-modal-content .border-t-white\/80 {
-  border-top-color: rgba(0, 0, 0, 0.8) !important;
-}
-
-/* Book now and share buttons */
-html.light .package-modal-content .golden-glass-button {
-  color: rgba(255, 255, 255, 0.95) !important;
-}
-
-/* Contact buttons remain golden */
-html.light .package-modal-content .golden-contact-btn {
-  color: rgba(255, 255, 255, 0.95) !important;
-}
-
-/* Category indicator and badges */
-html.light .package-modal-content .capitalize {
-  color: rgba(0, 0, 0, 0.8) !important;
-}
-
-/* Image navigation dots in light mode */
-html.light .package-modal-content .golden-dot {
-  border: 2px solid rgba(0, 0, 0, 0.3);
-}
-
-html.light .package-modal-content .golden-dot.active {
-  background: #d4af37;
-  border-color: #d4af37;
-}
-
-/* Checkmarks and icons in features */
-html.light .package-modal-content .golden-luxury-dot {
-  background: linear-gradient(135deg, #d4af37, #ffd700);
-}
-
-/* Hero image overlay adjustments for light theme */
-html.light .package-modal-content .bg-gradient-to-t {
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.1), transparent) !important;
-}
-
-/* Text in hero section should remain white for contrast */
-html.light .package-modal-content .absolute.bottom-0 .text-white,
-html.light .package-modal-content .absolute.bottom-0 .text-white\/80 {
-  color: white !important;
-}
-
-/* Ensure golden elements remain golden */
-html.light .package-modal-content .text-yellow-400.fill-current {
-  color: #d4af37 !important;
-}
-
-/* === GLASSMORPHISM CARD LIGHT THEME FIXES === */
-
-/* Enhanced glassmorphism card for light theme */
-html.light .glassmorphism-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Ensure button texts remain white in light theme */
-html.light .glassmorphism-card .golden-glass-button {
-  color: white !important;
-  background: linear-gradient(135deg, #d4af37, #ffd700) !important;
-}
-
-html.light .glassmorphism-card .golden-glass-button:hover {
-  color: white !important;
-  background: linear-gradient(135deg, #c19b26, #ffed4e) !important;
-}
-
-html.light .glassmorphism-card .golden-contact-btn {
-  color: white !important;
-  background: linear-gradient(135deg, #d4af37, #ffd700) !important;
-}
-
-html.light .glassmorphism-card .golden-contact-btn:hover {
-  color: white !important;
-  background: linear-gradient(135deg, #c19b26, #ffed4e) !important;
-}
-
-/* Select button and action buttons in cards */
-html.light .glassmorphism-card .select-btn {
-  background: linear-gradient(135deg, #d4af37, #ffd700) !important;
-  color: white !important;
-}
-
-html.light .glassmorphism-card .select-btn:hover {
-  background: linear-gradient(135deg, #c19b26, #ffed4e) !important;
-  color: white !important;
-}
-
-html.light .glassmorphism-card .action-button {
-  background: linear-gradient(135deg, #d4af37, #ffd700) !important;
-  color: white !important;
-}
-
-html.light .glassmorphism-card .action-button:hover {
-  background: linear-gradient(135deg, #c19b26, #ffed4e) !important;
-  color: white !important;
-}
-
-/* Any button with golden gradient should maintain white text */
-html.light .glassmorphism-card button[class*="golden"] {
-  color: white !important;
-}
-
-html.light .glassmorphism-card button[class*="golden"]:hover {
-  color: white !important;
-}
-
-/* Package modal specific button fixes */
-html.light .package-modal-content .glassmorphism-card button {
-  color: white !important;
-}
-
-html.light .package-modal-content .glassmorphism-card .golden-glass-button,
-html.light .package-modal-content .glassmorphism-card .golden-contact-btn,
-html.light .package-modal-content .glassmorphism-card .select-btn,
-html.light .package-modal-content .glassmorphism-card .action-button {
-  color: white !important;
-  background: linear-gradient(135deg, #d4af37, #ffd700) !important;
-}
-
-/* Hover states for package modal buttons */
-html.light .package-modal-content .glassmorphism-card .golden-glass-button:hover,
-html.light .package-modal-content .glassmorphism-card .golden-contact-btn:hover,
-html.light .package-modal-content .glassmorphism-card .select-btn:hover,
-html.light .package-modal-content .glassmorphism-card .action-button:hover {
-  color: white !important;
-  background: linear-gradient(135deg, #c19b26, #ffed4e) !important;
-}
-
-/* === PACKAGE DETAIL BUTTONS - SIDEBAR STYLE === */
-
-/* Premium button style inspired by sidebar-newchat-btn-half */
-.premium-package-btn {
+.feedback-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  height: 44px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #d4af37, #b8860b);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: white;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  box-shadow: 
-    0 2px 8px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-decoration: none;
-  min-width: 120px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.premium-package-btn::before {
+.feedback-button::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.05) 100%);
+  background: rgba(255, 255, 255, 0.1);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
-.premium-package-btn:hover::before {
+.feedback-button:hover::before {
   opacity: 1;
 }
 
-.premium-package-btn:hover {
-  background: linear-gradient(135deg, #ffd700, #d4af37);
-  transform: translateY(-2px);
-  box-shadow: 
-    0 4px 16px rgba(212, 175, 55, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  color: white;
+.feedback-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.premium-package-btn:active {
-  transform: translateY(-1px);
-  box-shadow: 
-    0 2px 8px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.feedback-button:active {
+  transform: scale(0.95);
 }
 
-/* Icon styling within premium buttons */
-.premium-package-btn svg {
-  flex-shrink: 0;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-  transition: transform 0.3s ease;
+.feedback-button.copied {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
-.premium-package-btn:hover svg {
-  transform: scale(1.1);
+.feedback-button.copied::before {
+  background: rgba(76, 175, 80, 0.1);
+  opacity: 1;
 }
 
-/* Light theme support for premium buttons */
-html.light .premium-package-btn {
-  background: linear-gradient(135deg, #d4af37, #b8860b);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: white;
-  box-shadow: 
-    0 2px 8px rgba(212, 175, 55, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.feedback-button.active-positive {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 
-html.light .premium-package-btn:hover {
-  background: linear-gradient(135deg, #ffd700, #d4af37);
-  color: white;
-  box-shadow: 
-    0 4px 16px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+.feedback-button.active-positive:hover {
+  background: rgba(76, 175, 80, 0.3);
 }
 
-/* Contact button variant - smaller */
-.premium-contact-btn {
-  display: inline-flex;
+.feedback-button.active-negative {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.feedback-button.active-negative:hover {
+  background: rgba(244, 67, 54, 0.3);
+}
+
+.feedback-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.feedback-button:disabled:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.disclaimer-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-left: auto;
+  font-weight: 400;
+}
+
+.feedback-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.feedback-disclaimer {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  height: 36px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #d4af37, #b8860b);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  color: white;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 
-    0 2px 6px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-decoration: none;
-  min-width: 40px;
 }
 
-.premium-contact-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.1) 0%,
-    rgba(255, 255, 255, 0.05) 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+@media (max-width: 768px) {
+  .message-feedback-toolkit {
+    display: flex !important;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 0;
+    align-items: flex-start;
+  }
+
+  .feedback-actions {
+    gap: 6px;
+  }
+
+  .feedback-disclaimer {
+    width: 100%;
+  }
+
+  .disclaimer-text {
+    font-size: 10px;
+  }
+
+  .feedback-button {
+    width: 32px;
+    height: 32px;
+  }
 }
 
-.premium-contact-btn:hover::before {
-  opacity: 1;
+@media (max-width: 1024px) and (min-width: 769px) {
+  .feedback-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .disclaimer-text {
+    font-size: 10px;
+  }
 }
 
-.premium-contact-btn:hover {
-  background: linear-gradient(135deg, #ffd700, #d4af37);
-  transform: translateY(-1px);
-  box-shadow: 
-    0 3px 12px rgba(212, 175, 55, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  color: white;
+@media (hover: none) and (pointer: coarse) {
+  .message-feedback-toolkit {
+    display: flex !important;
+  }
+
+  .feedback-button {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
-.premium-contact-btn:active {
-  transform: translateY(0px);
-  box-shadow: 
-    0 2px 6px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+/* === RESPONSIVE MESSAGE WIDTHS === */
+.gemini-message-assistant {
+  max-width: 65%; /* Desktop default */
 }
 
-/* Light theme support for contact buttons */
-html.light .premium-contact-btn {
-  background: linear-gradient(135deg, #d4af37, #b8860b);
-  color: white;
+.gemini-message-user {
+  max-width: 60%; /* Desktop default */
 }
 
-html.light .premium-contact-btn:hover {
-  background: linear-gradient(135deg, #ffd700, #d4af37);
-  color: white;
-}
-
-/* Responsive sizing */
-@media (max-width: 640px) {
-  .premium-package-btn {
-    height: 40px;
-    padding: 10px 20px;
-    font-size: 13px;
+@media (min-width: 768px) {
+  .gemini-message-assistant {
+    max-width: 75%; /* Tablet */
   }
   
-  .premium-contact-btn {
-    height: 32px;
-    padding: 6px 12px;
-    font-size: 11px;
+  .gemini-message-user {
+    max-width: 70%; /* Tablet */
   }
 }
 
-/* === GEMINI DROPDOWN MENU LIGHT THEME === */
-
-/* Main dropdown container */
-html.light .gemini-dropdown-menu {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(248, 249, 250, 0.90) 100%);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-html.light .gemini-dropdown-menu::before {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.05) 0%,
-    rgba(255, 215, 0, 0.02) 50%,
-    rgba(212, 175, 55, 0.05) 100%);
-}
-
-/* Dropdown header light theme */
-html.light .gemini-dropdown-header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.1) 0%,
-    rgba(255, 215, 0, 0.06) 100%);
-}
-
-/* Dropdown items light theme */
-html.light .gemini-dropdown-item {
-  color: rgba(0, 0, 0, 0.7);
-}
-
-html.light .gemini-dropdown-item::before {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.08) 0%,
-    rgba(255, 215, 0, 0.04) 100%);
-}
-
-html.light .gemini-dropdown-item:hover {
-  background: rgba(212, 175, 55, 0.12);
-  color: rgba(0, 0, 0, 0.9);
-  border-color: rgba(212, 175, 55, 0.3);
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-/* User name and email in light theme */
-html.light .user-name {
-  background: linear-gradient(135deg, #d4af37, #ffd700);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-html.light .user-email {
-  color: rgba(0, 0, 0, 0.5);
-}
-
-/* Icons in dropdown items light theme */
-html.light .gemini-dropdown-item svg {
-  opacity: 0.6;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-}
-
-html.light .gemini-dropdown-item:hover svg {
-  opacity: 1;
-  color: rgba(212, 175, 55, 0.9);
-}
-
-/* Danger item light theme */
-html.light .gemini-dropdown-item.danger {
-  color: #dc2626;
-}
-
-html.light .gemini-dropdown-item.danger:hover {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: #dc2626;
-}
-
-/* === SETTINGS PAGE LIGHT THEME === */
-
-/* Settings modal backdrop */
-html.light .settings-modal-backdrop {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* Settings modal container */
-html.light .settings-modal-container {
-  background: rgba(255, 255, 255, 0.95);
-  color: rgba(0, 0, 0, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-/* Settings header and borders */
-html.light .settings-modal-container .border-gray-700 {
-  border-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Settings close button */
-html.light .settings-close-button:hover {
-  background: rgba(0, 0, 0, 0.05) !important;
-}
-
-/* Settings sidebar items */
-html.light .settings-sidebar-item {
-  color: rgba(0, 0, 0, 0.6);
-}
-
-html.light .settings-sidebar-item:hover {
-  background: rgba(0, 0, 0, 0.05) !important;
-  color: rgba(0, 0, 0, 0.8);
-}
-
-html.light .settings-sidebar-item.active {
-  background: rgba(212, 175, 55, 0.1) !important;
-  color: rgba(0, 0, 0, 0.9);
-}
-
-/* Settings content sections */
-html.light .settings-content-section h2 {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-html.light .settings-content-section p {
-  color: rgba(0, 0, 0, 0.6) !important;
-}
-
-/* Settings items */
-html.light .settings-item {
-  background: transparent;
-}
-
-html.light .settings-item:hover {
-  background: rgba(212, 175, 55, 0.05);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-html.light .settings-item .text-white {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-html.light .settings-item .text-gray-400 {
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-html.light .settings-item .group-hover\:text-blue-100 {
-  color: rgba(0, 0, 0, 0.95) !important;
-}
-
-html.light .settings-item .group-hover\:text-gray-300 {
-  color: rgba(0, 0, 0, 0.7) !important;
-}
-
-/* Settings dividers */
-html.light .settings-divider {
-  border-color: rgba(0, 0, 0, 0.08);
-}
-
-/* Settings toggle switch */
-html.light .settings-toggle {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-html.light .settings-toggle[data-checked="true"] {
-  background: #3b82f6 !important;
-}
-
-/* Settings loading spinner */
-html.light .settings-loading-spinner {
-  color: #3b82f6 !important;
-}
-
-/* User profile section in settings */
-html.light .settings-content-section .hover\:bg-gray-800\/50:hover {
-  background: rgba(0, 0, 0, 0.03) !important;
-}
-
-/* Settings focusable elements */
-html.light .settings-focusable {
-  color: rgba(0, 0, 0, 0.7);
-}
-
-html.light .settings-focusable:hover {
-  color: rgba(0, 0, 0, 0.9);
-}
-
-/* Settings active text */
-html.light .settings-active-text {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-/* Settings category icons */
-html.light .settings-category-icon {
-  opacity: 0.7;
-}
-
-html.light .settings-sidebar-item.active .settings-category-icon {
-  opacity: 1;
-  color: #d4af37;
-}
-
-/* Log out button in settings */
-html.light .settings-focusable.text-red-400 {
-  color: #dc2626 !important;
-}
-
-html.light .settings-focusable.text-red-400:hover {
-  color: #b91c1c !important;
-}
-
-/* Settings user profile avatar */
-html.light .settings-content-section .bg-blue-600 {
-  background: #3b82f6 !important;
-}
-
-html.light .settings-item .group-hover\:text-blue-100 {
-  color: rgba(0, 0, 0, 0.95) !important;
-}
-
-html.light .settings-item .group-hover\:text-gray-300 {
-  color: rgba(0, 0, 0, 0.7) !important;
-}
-
-/* Settings user profile avatar */
-html.light .settings-content-section .bg-blue-600 {
-  background: #3b82f6 !important;
-}
-
-/* === SETTINGS SPECIFIC BACKGROUND OVERRIDES === */
-
-/* Settings header and sidebar background override */
-html.light .bg-\[#1a1a1a\] {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-}
-
-/* Settings border overrides */
-html.light .border-gray-700 {
-  border-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-/* Additional text color overrides for settings */
-html.light .text-white {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-/* Additional text color overrides for settings */
-html.light .text-white {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-/* === COMPLETE SETTINGS MODAL LIGHT THEME OVERRIDE === */
-
-/* Settings modal container - force light background */
-html.light div.settings-modal-container {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-/* All elements with dark background in settings */
-html.light .settings-modal-container [class*="bg-[#1a1a1a]"] {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-}
-
-/* All gray borders become light */
-html.light .settings-modal-container [class*="border-gray-700"] {
-  border-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-/* All text colors in settings */
-html.light .settings-modal-container [class*="text-white"] {
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-html.light .settings-modal-container [class*="text-gray-400"] {
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-html.light .settings-modal-container [class*="text-gray-300"] {
-  color: rgba(0, 0, 0, 0.7) !important;
-}
-
-/* Hover states */
-html.light .settings-modal-container [class*="hover:bg-gray-800"]:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-}
-
-html.light .settings-modal-container [class*="bg-gray-800"] {
-  background-color: rgba(212, 175, 55, 0.1) !important;
-}
-
-/* === SETTINGS BUTTONS GLASSMORPHISM REDESIGN === */
-
-/* Settings sidebar buttons - glassmorphism style */
-html.light .settings-sidebar-item {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 16px !important;
-  margin: 6px 0 !important;
-  padding: 12px 16px !important;
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  color: rgba(0, 0, 0, 0.7) !important;
-}
-
-html.light .settings-sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.8) !important;
-  border-color: rgba(212, 175, 55, 0.3) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.15),
-    0 0 20px rgba(212, 175, 55, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  color: rgba(0, 0, 0, 0.9) !important;
-}
-
-html.light .settings-sidebar-item.active {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.15) 0%,
-    rgba(255, 215, 0, 0.1) 100%) !important;
-  border-color: rgba(212, 175, 55, 0.4) !important;
-  color: rgba(0, 0, 0, 0.95) !important;
-  box-shadow: 
-    0 6px 20px rgba(212, 175, 55, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-}
-
-/* Dark mode glassmorphism buttons */
-.settings-sidebar-item {
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 16px !important;
-  margin: 6px 0 !important;
-  padding: 12px 16px !important;
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.settings-sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: rgba(212, 175, 55, 0.3) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.4),
-    0 0 20px rgba(212, 175, 55, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-}
-
-.settings-sidebar-item.active {
-  background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.15) 0%,
-    rgba(255, 215, 0, 0.1) 100%) !important;
-  border-color: rgba(212, 175, 55, 0.4) !important;
-  box-shadow: 
-    0 6px 20px rgba(212, 175, 55, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-}
-
-/* Settings category icons with golden glow */
-.settings-sidebar-item.active .settings-category-icon {
-  color: #d4af37 !important;
-  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.3));
-}
-
-html.light .settings-sidebar-item.active .settings-category-icon {
-  color: #d4af37 !important;
-  filter: drop-shadow(0 2px 4px rgba(212, 175, 55, 0.3));
-}
-
-/* Settings sidebar container styling */
-html.light .settings-modal-container .w-full.md\:w-64 {
-  padding: 16px !important;
-  background: rgba(255, 255, 255, 0.95) !important;
-}
-
-.settings-modal-container .w-full.md\:w-64 {
-  padding: 16px !important;
-  background: rgba(26, 26, 26, 0.95) !important;
-}
-
-/* === SETTINGS HEADER GLASSMORPHISM === */
-
-/* Settings header - glassmorphism style */
-html.light .settings-modal-container > div.flex.items-center.justify-between {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-  border-radius: 16px 16px 0 0 !important;
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  padding: 20px 24px !important;
-}
-
-.settings-modal-container > div.flex.items-center.justify-between {
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 16px 16px 0 0 !important;
-  box-shadow: 
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  padding: 20px 24px !important;
-}
-
-/* Settings header close button */
-html.light .settings-close-button {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 12px !important;
-  transition: all 0.3s ease !important;
-}
-
-html.light .settings-close-button:hover {
-  background: rgba(255, 255, 255, 0.8) !important;
-  transform: scale(1.05) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-}
-
-.settings-close-button {
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 12px !important;
-  transition: all 0.3s ease !important;
-}
-
-.settings-close-button:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-  transform: scale(1.05) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* === FOOTER SETTINGS BUTTON LIGHT THEME === */
-
-/* Footer settings button light theme */
-html.light .hover\:bg-gray-700:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-}
-
-/* Gemini sidebar footer settings button */
-html.light .gemini-sidebar-footer button {
-  color: rgba(0, 0, 0, 0.6) !important;
-}
-
-html.light .gemini-sidebar-footer button:hover {
-  background-color: rgba(0, 0, 0, 0.05) !important;
-  color: rgba(0, 0, 0, 0.8) !important;
-}
-
-html.light .gemini-sidebar-footer svg {
-  color: rgba(0, 0, 0, 0.5) !important;
-}
-
-html.light .gemini-sidebar-footer span {
-  color: rgba(0, 0, 0, 0.6) !important;
-}
-
-html.light .gemini-sidebar-footer span {
-  color: rgba(0, 0, 0, 0.6) !important;
-}
-
-/* === SETTINGS USER PROFILE GLASSMORPHISM === */
-
-/* User profile section in settings - glassmorphism style */
-html.light .settings-content-section .flex.items-center.gap-4.p-4.rounded-lg {
-  background: rgba(255, 255, 255, 0.6) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 20px !important;
-  margin: 12px 0 !important;
-  padding: 20px !important;
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-html.light .settings-content-section .flex.items-center.gap-4.p-4.rounded-lg:hover {
-  background: rgba(255, 255, 255, 0.8) !important;
-  transform: translateY(-3px) !important;
-  box-shadow: 
-    0 12px 32px rgba(0, 0, 0, 0.12),
-    0 0 24px rgba(212, 175, 55, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(212, 175, 55, 0.2) !important;
-}
-
-/* Dark mode user profile section */
-.settings-content-section .flex.items-center.gap-4.p-4.rounded-lg {
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 20px !important;
-  margin: 12px 0 !important;
-  padding: 20px !important;
-  box-shadow: 
-    0 6px 20px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.settings-content-section .flex.items-center.gap-4.p-4.rounded-lg:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  transform: translateY(-3px) !important;
-  box-shadow: 
-    0 12px 32px rgba(0, 0, 0, 0.3),
-    0 0 24px rgba(212, 175, 55, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-  border-color: rgba(212, 175, 55, 0.3) !important;
-}
-
-/* User avatar enhanced styling */
-html.light .settings-content-section .w-12.h-12.bg-blue-600 {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
-  box-shadow: 
-    0 4px 16px rgba(59, 130, 246, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 16px !important;
-}
-
-.settings-content-section .w-12.h-12.bg-blue-600 {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important;
-  box-shadow: 
-    0 4px 16px rgba(59, 130, 246, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-  border: 2px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 16px !important;
-}
-
-/* === GENERAL SETTINGS ITEM GLASSMORPHISM === */
-
-/* Any other settings items with hover effect */
-html.light .settings-item.group {
-  background: rgba(255, 255, 255, 0.4) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 16px !important;
-  margin: 8px 0 !important;
-  padding: 16px !important;
-  transition: all 0.3s ease !important;
-}
-
-html.light .settings-item.group:hover {
-  background: rgba(255, 255, 255, 0.6) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
-  border-color: rgba(212, 175, 55, 0.2) !important;
-}
-
-.settings-item.group {
-  background: rgba(255, 255, 255, 0.03) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  border-radius: 16px !important;
-  margin: 8px 0 !important;
-  padding: 16px !important;
-  transition: all 0.3s ease !important;
-}
-
-.settings-item.group:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
-  border-color: rgba(212, 175, 55, 0.3) !important;
+@media (min-width: 1024px) {
+  .gemini-message-assistant {
+    max-width: 65%; /* Desktop */
+  }
+  
+  .gemini-message-user {
+    max-width: 60%; /* Desktop */
+  }
+}
+
+@media (min-width: 1280px) {
+  .gemini-message-assistant {
+    max-width: 60%; /* Large desktop */
+  }
+  
+  .gemini-message-user {
+    max-width: 55%; /* Large desktop */
+  }
+}
+
+@media (min-width: 1536px) {
+  .gemini-message-assistant {
+    max-width: 55%; /* XL desktop */
+  }
+  
+  .gemini-message-user {
+    max-width: 50%; /* XL desktop */
+  }
+}
+
+@media (max-width: 767px) {
+  .gemini-message-assistant {
+    max-width: 95%; /* Mobile */
+  }
+  
+  .gemini-message-user {
+    max-width: 85%; /* Mobile */
+  }
 }

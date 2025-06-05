@@ -651,29 +651,67 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
 
 // 🔥 Firebase Functions kullanarak chat history alma
 export const getChatHistory = async (sessionId: string, limit: number = 20): Promise<any[]> => {
-  const isDev = import.meta.env.DEV;
-  
-  if (isDev) {
-    console.log('🔧 Development mode: Skipping Firestore chat history');
-    return [];
-  }
+  console.log('🔧 getChatHistory called with:', { sessionId, limit });
   
   try {
+    console.log('🔄 Calling Firebase Functions - getGeminiChatHistory');
     const result = await httpsCallable(functions, 'getGeminiChatHistory')({
       sessionId,
       limit
     });
     
+    console.log('📋 Firebase Functions response:', result);
+    
     const response = result.data as any;
+    console.log('📊 Response data:', response);
+    
     if (response.success) {
+      console.log('✅ getChatHistory successful, history length:', response.history?.length || 0);
+      console.log('📚 History data:', response.history);
       return response.history || [];
     } else {
-      console.error('Failed to get chat history:', response.error);
+      console.error('❌ getChatHistory failed:', response.error);
+      console.error('❌ Full response:', response);
       return [];
     }
   } catch (error) {
-    console.error('Error getting chat history:', error);
+    console.error('❌ getChatHistory error:', error);
+    console.error('❌ Error type:', typeof error);
+    console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return [];
+  }
+};
+
+// 🗑️ Firebase Functions kullanarak chat history silme
+export const deleteChatHistory = async (sessionId: string): Promise<boolean> => {
+  console.log('🗑️ deleteChatHistory called with sessionId:', sessionId);
+  
+  try {
+    console.log('🔄 Calling Firebase Functions - deleteGeminiChatHistory');
+    const result = await httpsCallable(functions, 'deleteGeminiChatHistory')({
+      sessionId
+    });
+    
+    console.log('📋 Firebase Functions delete response:', result);
+    
+    const response = result.data as any;
+    console.log('📊 Delete response data:', response);
+    
+    if (response.success) {
+      console.log('✅ deleteChatHistory successful');
+      return true;
+    } else {
+      console.error('❌ deleteChatHistory failed:', response.error);
+      console.error('❌ Full delete response:', response);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ deleteChatHistory error:', error);
+    console.error('❌ Error type:', typeof error);
+    console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    return false;
   }
 };
 

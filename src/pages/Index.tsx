@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, MessageSquare, Edit, Plus, Bot } from 'lucide-react';
-import { generateGeminiStream, getChatHistory } from '../services/geminiService';
+import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, Edit, Plus, Bot, Moon, Sun, Trash2, ThumbsUp, ThumbsDown, Copy, Check, RotateCcw } from 'lucide-react';
+import { generateGeminiStream, getChatHistory, deleteChatHistory } from '../services/geminiService';
 import { authService } from '../services/authService';
 import PackageCarousel from '../components/PackageCarousel';
 import { packageService, HoneymoonPackage } from '../services/packageService';
 import PackageDetail from './PackageDetail';
+import { useTheme } from '../contexts/ThemeContext';
+import { detectLanguage, generateResponse, parseRegistrationData, parseLoginData, looksLikeRegistrationData, looksLikeLoginData, isChatCommand, processChatCommand } from '../services/geminiService';
 
 type Message = {
   role: 'user' | 'assistant';
@@ -14,6 +16,8 @@ type Message = {
   timestamp?: string;
   isThinking?: boolean;
   packages?: HoneymoonPackage[];
+  sessionId?: string;
+  feedback?: 'thumbs_up' | 'thumbs_down' | null;
 };
 
 type Chat = {
@@ -29,6 +33,7 @@ type ModelType = 'ai-lovv3' | 'ai-lovv2';
 const Index = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { actualTheme, toggleTheme } = useTheme();
   
   // Kullanıcının baş harfini al
   const getUserInitial = () => {
@@ -133,6 +138,8 @@ const Index = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+  const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
+  const [messageFeedback, setMessageFeedback] = useState<{[key: number]: 'thumbs_up' | 'thumbs_down' | null}>({});
 
   // Büyülü ve sürekli değişen placeholder için state ve metinler
   const [placeholderText, setPlaceholderText] = useState("Whisper your heart's desires to AI LOVVE...");
@@ -221,7 +228,7 @@ const Index = () => {
               description: 'Hot air balloons & unique landscapes',
               location: 'Kapadokya',
               country: 'Turkey',
-              duration: '3-5 days',
+              duration: 4,
               price: 2500,
               currency: 'USD',
               category: 'romantic',
@@ -239,7 +246,7 @@ const Index = () => {
               description: 'Mediterranean beaches & luxury resorts',
               location: 'Antalya',
               country: 'Turkey',
-              duration: '5-7 days',
+              duration: 5,
               price: 3200,
               currency: 'USD',
               category: 'beach',
@@ -257,7 +264,7 @@ const Index = () => {
               description: 'Historic charm & Bosphorus romance',
               location: 'İstanbul',
               country: 'Turkey',
-              duration: '4-6 days',
+              duration: 4,
               price: 2800,
               currency: 'USD',
               category: 'cultural',
@@ -275,7 +282,7 @@ const Index = () => {
               description: 'Aegean coast luxury & vibrant nightlife',
               location: 'Bodrum',
               country: 'Turkey',
-              duration: '4-6 days',
+              duration: 4,
               price: 3500,
               currency: 'USD',
               category: 'beach',
@@ -293,7 +300,7 @@ const Index = () => {
               description: 'Windmill charm & boutique sophistication',
               location: 'Alaçatı',
               country: 'Turkey',
-              duration: '3-5 days',
+              duration: 3,
               price: 2200,
               currency: 'USD',
               category: 'romantic',
@@ -311,7 +318,7 @@ const Index = () => {
               description: 'Natural thermal pools & ancient history',
               location: 'Pamukkale',
               country: 'Turkey',
-              duration: '2-4 days',
+              duration: 2,
               price: 1800,
               currency: 'USD',
               category: 'romantic',
@@ -329,7 +336,7 @@ const Index = () => {
               description: 'Tropical paradise & ancient culture',
               location: 'Sri Lanka',
               country: 'Sri Lanka',
-              duration: '7-10 days',
+              duration: 7,
               price: 3500,
               currency: 'USD',
               category: 'adventure',
@@ -347,7 +354,7 @@ const Index = () => {
               description: 'Thai beaches & luxury wellness',
               location: 'Phuket',
               country: 'Thailand',
-              duration: '6-8 days',
+              duration: 6,
               price: 4200,
               currency: 'USD',
               category: 'luxury',
@@ -365,7 +372,7 @@ const Index = () => {
               description: 'Island of gods & romantic villas',
               location: 'Bali',
               country: 'Indonesia',
-              duration: '7-9 days',
+              duration: 7,
               price: 3800,
               currency: 'USD',
               category: 'romantic',
@@ -402,10 +409,44 @@ const Index = () => {
     }
   };
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom function
+  const scrollToBottom = (smooth = true) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: smooth ? 'smooth' : 'auto',
+        block: 'end'
+      });
+    }
+  };
+
+  // Effect for auto-scrolling when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+    if (messages.length > 0) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => scrollToBottom(), 100);
+    }
+  }, [messages.length, isLoading]);
+
+  // Effect for scrolling when new message is added
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'assistant' && !lastMessage.isThinking) {
+        // Scroll after assistant response is complete
+        setTimeout(() => scrollToBottom(), 200);
+      }
+    }
+  }, [messages]);
+
+  // Enhanced scroll effect for all message changes
+  useEffect(() => {
+    // Always scroll to bottom when messages array changes
+    const timer = setTimeout(() => {
+      scrollToBottom(true);
+    }, 150);
+    
+    return () => clearTimeout(timer);
+  }, [messages]);
 
   // Check if mobile device
   useEffect(() => {
@@ -452,17 +493,47 @@ const Index = () => {
   // Initialize session and load chat history
   useEffect(() => {
     const initializeApp = async () => {
+      console.log('🚀 Initializing app...');
+      
       try {
-        // Get session ID from auth service
         const sessionId = await authService.getChatSessionId();
         setCurrentSessionId(sessionId);
+        console.log('✅ Session ID obtained:', sessionId);
         
-        // Load chat history from Firebase
+        // Always try to load from Firebase first (primary data source)
+        console.log('📡 Loading chat history from Firebase (primary source)...');
         await loadChatHistory(sessionId);
         
+        // If no Firebase data, then try localStorage as fallback
+        if (chats.length === 0) {
+          console.log('📱 No Firebase data, trying localStorage fallback...');
+          const backupChats = localStorage.getItem('ailovve_chats_backup');
+          if (backupChats) {
+            try {
+              const parsedChats = JSON.parse(backupChats);
+              setChats(parsedChats);
+              console.log('📦 Restored from localStorage fallback:', parsedChats.length, 'chats');
+            } catch (error) {
+              console.error('❌ Error parsing backup chats:', error);
+              localStorage.removeItem('ailovve_chats_backup');
+            }
+          }
+        }
+        
       } catch (error) {
-        console.error('Error initializing app:', error);
-        // Sessizce logla, toast gösterme
+        console.error('❌ Error initializing app:', error);
+        // Try localStorage as emergency fallback
+        console.log('🆘 Firebase failed, using localStorage emergency backup...');
+        const backupChats = localStorage.getItem('ailovve_chats_backup');
+        if (backupChats) {
+          try {
+            const parsedChats = JSON.parse(backupChats);
+            setChats(parsedChats);
+            console.log('🔧 Emergency restore from localStorage:', parsedChats.length, 'chats');
+          } catch (parseError) {
+            console.error('❌ Emergency backup also failed:', parseError);
+          }
+        }
       }
     };
 
@@ -471,13 +542,22 @@ const Index = () => {
 
   // Load chat history from Firebase
   const loadChatHistory = async (sessionId: string) => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      console.log('❌ loadChatHistory: No sessionId provided');
+      return;
+    }
     
+    console.log('🔄 Starting chat history load for sessionId:', sessionId);
     setIsLoadingHistory(true);
+    
     try {
+      console.log('🔧 Calling getChatHistory with sessionId:', sessionId);
       const history = await getChatHistory(sessionId, 20);
+      console.log('📋 getChatHistory response:', history);
       
       if (history && history.length > 0) {
+        console.log('✅ Found chat history, converting', history.length, 'messages');
+        
         // Convert Firebase history to frontend format
         const convertedHistory: Message[] = history.map((msg: any) => ({
           role: msg.role === 'model' ? 'assistant' : 'user',
@@ -485,39 +565,126 @@ const Index = () => {
           timestamp: msg.createdAt || new Date().toISOString()
         }));
 
-        // Create a chat from history
-        const chatId = sessionId;
-        const chatTitle = convertedHistory[0]?.content.slice(0, 30) + '...' || '💬 Yeni Sohbet';
-        
-        const loadedChat: Chat = {
-          id: chatId,
-          title: chatTitle,
-          messages: convertedHistory,
-          lastMessage: '📱 Firebase\'den yüklendi',
-          sessionId: sessionId
-        };
+        console.log('🔄 Converted history:', convertedHistory);
 
-        // Check if chat already exists to prevent duplicates
-        setChats(prev => {
-          const existingChatIndex = prev.findIndex(chat => chat.id === chatId);
-          if (existingChatIndex >= 0) {
-            // Update existing chat
-            const updatedChats = [...prev];
-            updatedChats[existingChatIndex] = loadedChat;
-            return updatedChats;
-          } else {
-            // Add new chat
-            return [loadedChat];
-          }
+        // Sort all messages by timestamp first
+        convertedHistory.sort((a, b) => {
+          const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+          const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+          return timeA - timeB;
         });
-        setCurrentChatId(chatId);
-        setMessages(convertedHistory);
+        
+        console.log('🔄 Converted history:', convertedHistory);
+        
+        // Group messages by time gaps (create new chat if >1 hour gap)
+        const chatSessions: Message[][] = [];
+        let currentSession: Message[] = [];
+        let lastTimestamp = 0;
+        const TIME_GAP_THRESHOLD = 60 * 60 * 1000; // 1 hour in milliseconds
+        
+        convertedHistory.forEach((message, index) => {
+          const msgTime = message.timestamp ? new Date(message.timestamp).getTime() : Date.now();
+          
+          // Create new chat if:
+          // 1. Time gap is > 1 hour, OR
+          // 2. This is the first message of a new conversation (user message after assistant)
+          const isNewConversation = index > 0 && 
+            convertedHistory[index - 1].role === 'assistant' && 
+            message.role === 'user';
+          
+          if ((msgTime - lastTimestamp > TIME_GAP_THRESHOLD || isNewConversation) && currentSession.length > 0) {
+            chatSessions.push([...currentSession]);
+            currentSession = [];
+          }
+          
+          currentSession.push(message);
+          lastTimestamp = msgTime;
+        });
+        
+        // Add the last session
+        if (currentSession.length > 0) {
+          chatSessions.push(currentSession);
+        }
+        
+        console.log('📊 Messages grouped into', chatSessions.length, 'chat sessions');
+        
+        // Create chat objects for each session
+        const newChats: Chat[] = chatSessions.map((messages, index) => {
+          // Generate unique chat ID based on timestamp
+          const firstMessage = messages[0];
+          const chatId = `chat_${firstMessage.timestamp ? new Date(firstMessage.timestamp).getTime() : Date.now()}_${index}`;
+          
+          // Create meaningful chat title from first user message
+          const firstUserMessage = messages.find(msg => msg.role === 'user');
+          const chatTitle = firstUserMessage?.content.slice(0, 40) + '...' || `💬 Konuşma ${index + 1}`;
+          
+          // Get last message for preview
+          const lastMessage = messages[messages.length - 1];
+          const lastMessagePreview = lastMessage?.content.slice(0, 50) + '...' || 'Yüklenmiş konuşma';
+          
+          return {
+            id: chatId,
+            title: chatTitle,
+            messages: messages,
+            lastMessage: lastMessagePreview,
+            sessionId: sessionId // Use the original session ID
+          };
+        });
+        
+        console.log('📦 Created', newChats.length, 'chat objects from history');
+
+        // Update chats list without removing existing chats
+        setChats(prev => {
+          const existingChats = [...prev];
+          const firebaseBasedChats = existingChats.filter(chat => 
+            chat.sessionId === sessionId || chat.id.startsWith('chat_')
+          );
+          const localOnlyChats = existingChats.filter(chat => 
+            chat.sessionId !== sessionId && !chat.id.startsWith(sessionId)
+          );
+          
+          // Merge Firebase history with existing chats
+          const updatedChats = [...localOnlyChats]; // Keep local chats
+          
+          newChats.forEach(newChat => {
+            const existingChatIndex = firebaseBasedChats.findIndex(chat => chat.id === newChat.id);
+            if (existingChatIndex >= 0) {
+              console.log('🔄 Updating existing Firebase-based chat:', newChat.title);
+              // Update existing Firebase chat
+              updatedChats.push(newChat);
+            } else {
+              console.log('➕ Adding new Firebase chat:', newChat.title);
+              updatedChats.push(newChat);
+            }
+          });
+          
+          // Sort chats by last message timestamp (newest first)
+          return updatedChats.sort((a, b) => {
+            const timeA = a.messages[a.messages.length - 1]?.timestamp 
+              ? new Date(a.messages[a.messages.length - 1].timestamp!).getTime() 
+              : Date.now();
+            const timeB = b.messages[b.messages.length - 1]?.timestamp 
+              ? new Date(b.messages[b.messages.length - 1].timestamp!).getTime() 
+              : Date.now();
+            return timeB - timeA;
+          });
+        });
+        
+        // DON'T automatically select the most recent chat
+        // Let the welcome screen show first, user can manually select chats
+        console.log('✅ Chat history loaded. Welcome screen will be shown.');
+        
+        console.log('✅ Chat history loaded and applied successfully');
+      } else {
+        console.log('ℹ️ No chat history found for sessionId:', sessionId);
       }
     } catch (error) {
-      console.error('Error loading chat history:', error);
+      console.error('❌ Error loading chat history:', error);
+      console.error('❌ Error details:', JSON.stringify(error, null, 2));
       // Don't show error toast for empty history
     } finally {
       setIsLoadingHistory(false);
+      console.log('🏁 Chat history loading completed');
     }
   };
 
@@ -597,6 +764,13 @@ const Index = () => {
       setCurrentSessionId(chat.sessionId);
       setMessages(chat.messages);
       setSidebarOpen(false);
+      
+      // Scroll to bottom after chat is loaded
+      setTimeout(() => {
+        scrollToBottom(false); // Instant scroll for chat switching
+      }, 100);
+      
+      console.log(`✅ Selected chat: ${chat.title} with ${chat.messages.length} messages`);
     }
   };
 
@@ -611,7 +785,12 @@ const Index = () => {
     };
 
     // Add user message to UI immediately
-    setMessages(prev => [...prev, newUserMessage]);
+    setMessages(prev => {
+      const updated = [...prev, newUserMessage];
+      // Scroll to bottom after adding user message
+      setTimeout(() => scrollToBottom(), 50);
+      return updated;
+    });
 
     // Add typing indicator
     const typingMessage: Message = {
@@ -620,7 +799,13 @@ const Index = () => {
       timestamp: new Date().toISOString(),
       isThinking: true
     };
-    setMessages(prev => [...prev, typingMessage]);
+    
+    setMessages(prev => {
+      const updated = [...prev, typingMessage];
+      // Scroll to bottom after adding typing indicator
+      setTimeout(() => scrollToBottom(), 100);
+      return updated;
+    });
 
     // If no current chat, create one
     let sessionId = currentSessionId;
@@ -639,7 +824,7 @@ const Index = () => {
         // Update existing chat with new message
         setChats(prev => prev.map(chat => 
           chat.id === chatId 
-            ? {...chat, messages: [...chat.messages, newUserMessage], lastMessage: 'Now'}
+            ? {...chat, messages: [...chat.messages, newUserMessage], lastMessage: content.slice(0, 50) + '...'}
             : chat
         ));
       } else {
@@ -647,7 +832,7 @@ const Index = () => {
           id: chatId,
           title: content.slice(0, 30) + (content.length > 30 ? '...' : ''),
           messages: [newUserMessage],
-          lastMessage: 'Now',
+          lastMessage: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
           sessionId: sessionId
         };
         
@@ -656,12 +841,25 @@ const Index = () => {
         setCurrentSessionId(sessionId);
       }
     } else {
-      // Update existing chat
-      setChats(prev => prev.map(chat => 
-        chat.id === currentChatId 
-          ? {...chat, messages: [...chat.messages, newUserMessage], lastMessage: 'Now'}
-          : chat
-      ));
+      // Update existing chat with user message
+      setChats(prev => {
+        const updatedChats = prev.map(chat => 
+          chat.id === currentChatId 
+            ? {...chat, messages: [...chat.messages, newUserMessage], lastMessage: content.slice(0, 50) + '...'}
+            : chat
+        );
+        
+        // Sort chats by last message timestamp (newest first)
+        return updatedChats.sort((a, b) => {
+          const timeA = a.messages[a.messages.length - 1]?.timestamp 
+            ? new Date(a.messages[a.messages.length - 1].timestamp!).getTime() 
+            : 0;
+          const timeB = b.messages[b.messages.length - 1]?.timestamp 
+            ? new Date(b.messages[b.messages.length - 1].timestamp!).getTime() 
+            : 0;
+          return timeB - timeA; // Newest first
+        });
+      });
     }
 
     setInputValue('');
@@ -676,11 +874,16 @@ const Index = () => {
         responseContent += chunk;
         
         // Update the typing message with current content
-        setMessages(prev => prev.map((msg, index) => 
-          index === prev.length - 1 && msg.isThinking 
-            ? { ...msg, content: responseContent, isThinking: false }
-            : msg
-        ));
+        setMessages(prev => {
+          const updated = prev.map((msg, index) => 
+            index === prev.length - 1 && msg.isThinking 
+              ? { ...msg, content: responseContent, isThinking: true }
+              : msg
+          );
+          // Scroll during streaming response
+          setTimeout(() => scrollToBottom(true), 10);
+          return updated;
+        });
       }
       
       // Final message without thinking indicator
@@ -698,20 +901,52 @@ const Index = () => {
       }
 
       // Replace typing indicator with final message
-      setMessages(prev => prev.slice(0, -1).concat(assistantMessage));
+      setMessages(prev => {
+        const updated = prev.slice(0, -1).concat(assistantMessage);
+        // Final scroll to bottom after response is complete
+        setTimeout(() => scrollToBottom(true), 200);
+        return updated;
+      });
       
-      // Update chat in chats array
-      setChats(prev => prev.map(chat => 
-        chat.id === chatId 
-          ? {...chat, messages: [...chat.messages, assistantMessage]}
-          : chat
-      ));
+      // Update chat in chats array with assistant message
+      setChats(prev => {
+        const updatedChats = prev.map(chat => 
+          chat.id === (chatId || currentChatId) 
+            ? {
+                ...chat, 
+                messages: [...chat.messages, assistantMessage],
+                lastMessage: responseContent.slice(0, 50) + (responseContent.length > 50 ? '...' : ''),
+                title: chat.title === 'Now' || chat.title.startsWith('💬') ? content.slice(0, 40) + '...' : chat.title
+              }
+            : chat
+        );
+        
+        // Sort chats by last message timestamp (newest first)
+        return updatedChats.sort((a, b) => {
+          const timeA = a.messages[a.messages.length - 1]?.timestamp 
+            ? new Date(a.messages[a.messages.length - 1].timestamp!).getTime() 
+            : 0;
+          const timeB = b.messages[b.messages.length - 1]?.timestamp 
+            ? new Date(b.messages[b.messages.length - 1].timestamp!).getTime() 
+            : 0;
+          return timeB - timeA; // Newest first
+        });
+      });
 
     } catch (e: any) {
       // Remove user message and typing indicator on error
       setMessages(prev => prev.slice(0, prev.length - 2));
+      
+      // Also revert chat updates
+      setChats(prev => prev.map(chat => 
+        chat.id === (chatId || currentChatId) 
+          ? {...chat, messages: chat.messages.slice(0, -1)}
+          : chat
+      ));
     } finally {
       setIsLoading(false);
+      // Final scroll to ensure we're at bottom
+      setTimeout(() => scrollToBottom(true), 300);
     }
   };
 
@@ -856,6 +1091,168 @@ const Index = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Auto-backup chats to localStorage whenever chats change
+  useEffect(() => {
+    if (chats.length > 0) {
+      try {
+        localStorage.setItem('ailovve_chats_backup', JSON.stringify(chats));
+        console.log('💾 Auto-backup saved to localStorage:', chats.length, 'chats');
+      } catch (error) {
+        console.error('❌ Failed to backup chats to localStorage:', error);
+      }
+    }
+  }, [chats]);
+
+  const deleteChat = async (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering selectChat
+    
+    try {
+      console.log('🗑️ Deleting chat:', chatId);
+      
+      // Find the chat to get its sessionId
+      const chatToDelete = chats.find(chat => chat.id === chatId);
+      if (!chatToDelete) {
+        console.error('❌ Chat not found:', chatId);
+        return;
+      }
+      
+      // Remove from local state immediately for instant UI feedback
+      setChats(prev => prev.filter(chat => chat.id !== chatId));
+      
+      // If deleting current chat, switch to another chat or clear
+      if (currentChatId === chatId) {
+        const remainingChats = chats.filter(chat => chat.id !== chatId);
+        if (remainingChats.length > 0) {
+          // Switch to the most recent remaining chat
+          const mostRecentChat = remainingChats[0];
+          setCurrentChatId(mostRecentChat.id);
+          setCurrentSessionId(mostRecentChat.sessionId);
+          setMessages(mostRecentChat.messages);
+        } else {
+          // No remaining chats, clear everything
+          setCurrentChatId('');
+          setCurrentSessionId('');
+          setMessages([]);
+        }
+      }
+      
+      // Delete from Firebase Firestore
+      console.log('🔥 Deleting from Firebase, sessionId:', chatToDelete.sessionId);
+      const firebaseDeleteSuccess = await deleteChatHistory(chatToDelete.sessionId);
+      
+      if (firebaseDeleteSuccess) {
+        console.log('✅ Chat deleted from Firebase successfully');
+      } else {
+        console.warn('⚠️ Failed to delete from Firebase, but local deletion completed');
+      }
+      
+      // Also remove from localStorage backup
+      localStorage.removeItem(`chat_${chatId}`);
+      
+      // Update localStorage backup
+      const updatedChats = chats.filter(chat => chat.id !== chatId);
+      localStorage.setItem('ailovve_chats_backup', JSON.stringify(updatedChats));
+      
+      console.log('✅ Chat deleted successfully from all sources');
+      
+    } catch (error) {
+      console.error('❌ Error deleting chat:', error);
+      
+      // Revert the optimistic update on error
+      const originalChats = [...chats];
+      setChats(originalChats);
+      
+      // Show error message to user (you could implement a toast notification here)
+      alert('Konuşma silinirken hata oluştu. Lütfen tekrar deneyin.');
+    }
+  };
+
+  // Copy message function
+  const copyMessage = async (content: string, index: number) => {
+    try {
+      // Clean the content from package commands and extra formatting
+      const cleanContent = content
+        .replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '')
+        .trim();
+      
+      await navigator.clipboard.writeText(cleanContent);
+      setCopiedMessageIndex(index);
+      
+      // Simulate haptic feedback for mobile devices
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
+      
+      // Auto-hide copied state
+      setTimeout(() => setCopiedMessageIndex(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy message:', error);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = content.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').trim();
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      setCopiedMessageIndex(index);
+      setTimeout(() => setCopiedMessageIndex(null), 2000);
+    }
+  };
+
+  // Feedback function
+  const handleMessageFeedback = (index: number, feedback: 'thumbs_up' | 'thumbs_down') => {
+    const currentFeedback = messageFeedback[index];
+    const newFeedback = currentFeedback === feedback ? null : feedback;
+    
+    setMessageFeedback(prev => ({
+      ...prev,
+      [index]: newFeedback
+    }));
+    
+    // Simulate haptic feedback for mobile devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate(newFeedback ? [30, 10, 30] : 20);
+    }
+    
+    // Here you could also send feedback to analytics or backend
+    console.log(`Message ${index} feedback:`, newFeedback || 'removed');
+    
+    // Optional: Send feedback to backend
+    // await sendFeedbackToBackend(messages[index], newFeedback);
+  };
+
+  // Regenerate response function
+  const regenerateResponse = async (messageIndex: number) => {
+    if (messageIndex === 0) return; // Can't regenerate if no previous user message
+    
+    const userMessage = messages[messageIndex - 1];
+    if (userMessage.role !== 'user') return;
+    
+    // Simulate haptic feedback
+    if ('vibrate' in navigator) {
+      navigator.vibrate(100);
+    }
+    
+    // Remove all messages from the regenerating point
+    const messagesBeforeRegenerate = messages.slice(0, messageIndex);
+    setMessages(messagesBeforeRegenerate);
+    
+    // Clear any feedback for regenerated messages
+    setMessageFeedback(prev => {
+      const newFeedback = { ...prev };
+      Object.keys(newFeedback).forEach(key => {
+        if (parseInt(key) >= messageIndex) {
+          delete newFeedback[parseInt(key)];
+        }
+      });
+      return newFeedback;
+    });
+    
+    // Re-send the user message to get a new response
+    await handleSendMessage(userMessage.content);
+  };
+
   return (
     <div className="flex h-screen">
       {/* CLASSIC SIDEBAR DESIGN - RESTORED */}
@@ -968,11 +1365,22 @@ const Index = () => {
             (searchInput ? filteredChats : chats).map((chat) => (
               <div
                 key={chat.id}
-                onClick={() => selectChat(chat.id)}
-                className={`gemini-chat-item truncate ${chat.id === currentChatId ? 'active' : ''}`}
+                className={`gemini-chat-item ${chat.id === currentChatId ? 'active' : ''} group flex items-center gap-2`}
                 title={chat.title}
               >
-                {chat.title}
+                <div 
+                  className="flex-1 min-w-0 cursor-pointer truncate"
+                  onClick={() => selectChat(chat.id)}
+                >
+                  {chat.title}
+                </div>
+                <button
+                  onClick={(e) => deleteChat(chat.id, e)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 flex-shrink-0"
+                  title="Delete conversation"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
               </div>
             ))
           ) : searchInput ? (
@@ -980,23 +1388,9 @@ const Index = () => {
               <span>🔮 No magical conversations found...</span>
             </div>
           ) : (
-            <>
-              <div className="gemini-chat-item truncate">
-                <span>Journey to Forever Begins...</span>
-              </div>
-              <div className="gemini-chat-item truncate">
-                <span>How May Love Guide You?</span>
-              </div>
-              <div className="gemini-chat-item truncate">
-                <span>Whispers of the Heart</span>
-              </div>
-              <div className="gemini-chat-item truncate">
-                <span>Crafting Eternal Memories...</span>
-              </div>
-              <div className="gemini-chat-item truncate">
-                <span>Painting Dreams Together...</span>
-              </div>
-            </>
+            <div className="gemini-chat-item" style={{ textAlign: 'center', opacity: 0.7 }}>
+              <span>✨ Start your first conversation to see history</span>
+            </div>
           )}
           
           <div className="gemini-sidebar-section">
@@ -1017,7 +1411,7 @@ const Index = () => {
             {searchInput && (
               <button 
                 className="gemini-search-clear"
-                onClick={() => {
+                onClick={(e) => {
                   setSearchInput('');
                   setSearchQuery('');
                   setIsSearching(false);
@@ -1165,6 +1559,20 @@ const Index = () => {
                     <Settings className="w-4 h-4" />
                     Preferences
                   </button>
+                  <button
+                    onClick={() => {
+                      toggleTheme();
+                      setProfileMenuOpen(false);
+                    }}
+                    className="gemini-dropdown-item theme-toggle"
+                  >
+                    {actualTheme === 'dark' ? (
+                      <Sun className="w-4 h-4" />
+                    ) : (
+                      <Moon className="w-4 h-4" />
+                    )}
+                    {actualTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </button>
                   <div className="gemini-dropdown-separator"></div>
                   <button
                     onClick={() => {
@@ -1183,78 +1591,125 @@ const Index = () => {
         </div>
 
         {/* Messages or Welcome */}
-        {messages.length === 0 ? (
-          <div className="gemini-welcome px-4 sm:px-8">
-            <div className="welcome-content-wrapper">
-              <div className="gemini-welcome-title text-center text-2xl sm:text-3xl lg:text-4xl">
-                {currentGreeting} {currentEmoji}
-              </div>
-              <div className="gemini-welcome-subtitle text-center text-sm sm:text-base lg:text-lg max-w-3xl mx-auto">
-                {currentSubtitle}
+        <div className="flex-1 overflow-hidden">
+          {messages.length === 0 ? (
+            <div className="gemini-welcome px-4 sm:px-8">
+              <div className="welcome-content-wrapper">
+                <div className="gemini-welcome-title text-center text-2xl sm:text-3xl lg:text-4xl">
+                  {currentGreeting} {currentEmoji}
+                </div>
+                <div className="gemini-welcome-subtitle text-center text-sm sm:text-base lg:text-lg max-w-3xl mx-auto">
+                  {currentSubtitle}
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="gemini-messages px-3 sm:px-6 lg:px-8">
-            {messages.map((message, index) => (
-              <div key={index} className="gemini-message">
-                {message.role === 'user' ? (
-                  <div className="gemini-message-user text-sm sm:text-base">
-                    {message.content}
-                  </div>
-                ) : (
-                  <div className="gemini-message-assistant text-sm sm:text-base">
-                    {/* Package Cards - Show ONLY if packages exist, NO text */}
-                    {message.packages && message.packages.length > 0 ? (
-                      <PackageCarousel 
-                        packages={message.packages}
-                        onSelectPackage={(packageId) => {
-                          console.log('Package selected:', packageId);
-                          openPackageModal(packageId);
-                        }}
-                      />
-                    ) : (
-                      /* Text Content - Show ONLY when NO packages exist */
-                      <div className="message-content" style={{ 
-                        whiteSpace: 'pre-wrap', 
-                        lineHeight: '1.6',
-                        wordSpacing: '0.1em'
-                      }}>
-                        {message.content
-                          .replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '') // Remove package commands from display
-                          .split('\n\n')
-                          .map((paragraph, index) => (
-                            <p key={index} style={{ 
-                              marginBottom: index === message.content.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').split('\n\n').length - 1 ? '0' : '16px',
-                              textAlign: 'left'
-                            }}>
-                              {paragraph.trim()}
-                            </p>
-                          ))
-                        }
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {isLoading && (
-              <div className="gemini-thinking">
-                <div className="gemini-dots">
-                  <div className="gemini-dot"></div>
-                  <div className="gemini-dot"></div>
-                  <div className="gemini-dot"></div>
+          ) : (
+            <div className="gemini-messages">
+              {messages.map((message, index) => (
+                <div key={index} className="gemini-message">
+                  {message.role === 'user' ? (
+                    <div className="gemini-message-user text-sm sm:text-base">
+                      {message.content}
+                    </div>
+                  ) : (
+                    <div className="gemini-message-assistant text-sm sm:text-base">
+                      {/* Package Cards - Show ONLY if packages exist, NO text */}
+                      {message.packages && message.packages.length > 0 ? (
+                        <PackageCarousel 
+                          packages={message.packages}
+                          onSelectPackage={(packageId) => {
+                            console.log('Package selected:', packageId);
+                            openPackageModal(packageId);
+                          }}
+                        />
+                      ) : (
+                        /* Regular text message - Clean without **SHOW_PACKAGES:** */
+                        <>
+                          <div className="whitespace-pre-wrap">
+                            {message.content.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').trim()}
+                          </div>
+                          
+                          {/* Message Feedback Toolkit - Only for completed assistant messages */}
+                          {!message.isThinking && (
+                            <div className="message-feedback-toolkit">
+                              <div className="feedback-actions">
+                                {/* Copy Button */}
+                                <button
+                                  onClick={() => copyMessage(message.content, index)}
+                                  className={`feedback-button ${copiedMessageIndex === index ? 'copied' : ''}`}
+                                  title="Copy message"
+                                  aria-label={copiedMessageIndex === index ? 'Copied!' : 'Copy message'}
+                                >
+                                  {copiedMessageIndex === index ? (
+                                    <Check className="w-3 h-3" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+                                
+                                {/* Thumbs Up */}
+                                <button
+                                  onClick={() => handleMessageFeedback(index, 'thumbs_up')}
+                                  className={`feedback-button ${messageFeedback[index] === 'thumbs_up' ? 'active-positive' : ''}`}
+                                  title="Good response"
+                                  aria-label="Good response"
+                                >
+                                  <ThumbsUp className="w-3 h-3" />
+                                </button>
+                                
+                                {/* Thumbs Down */}
+                                <button
+                                  onClick={() => handleMessageFeedback(index, 'thumbs_down')}
+                                  className={`feedback-button ${messageFeedback[index] === 'thumbs_down' ? 'active-negative' : ''}`}
+                                  title="Bad response"
+                                  aria-label="Bad response"
+                                >
+                                  <ThumbsDown className="w-3 h-3" />
+                                </button>
+                                
+                                {/* Regenerate */}
+                                <button
+                                  onClick={() => regenerateResponse(index)}
+                                  className="feedback-button"
+                                  title="Regenerate response"
+                                  aria-label="Regenerate response"
+                                  disabled={index === 0}
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                </button>
+                              </div>
+                              
+                              <div className="feedback-disclaimer">
+                                <span className="disclaimer-text">
+                                  AI LOVVE can make mistakes. Please double-check responses.
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* Thinking Indicator */}
+                      {message.isThinking && (
+                        <div className="gemini-thinking">
+                          <div className="gemini-dots">
+                            <div className="gemini-dot"></div>
+                            <div className="gemini-dot"></div>
+                            <div className="gemini-dot"></div>
+                          </div>
+                          <span>AI is thinking...</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <span className="hidden sm:inline">AI LOVVE is conjuring magic...</span>
-                <span className="sm:hidden">Thinking...</span>
-              </div>
-            )}
-            
-            {/* Auto-scroll anchor */}
-            <div ref={messagesEndRef} />
-          </div>
-        )}
+              ))}
+              
+              {/* Scroll anchor point */}
+              <div ref={messagesEndRef} style={{ height: '1px' }} />
+            </div>
+          )}
+        </div>
 
         {/* Input */}
         <div className="gemini-input-container px-3 sm:px-6 lg:px-8">

@@ -289,16 +289,27 @@ async function getChatHistoryInternal(
     return [];
   }
   try {
+    // Temporarily remove orderBy to avoid index requirement
+    // TODO: Re-add .orderBy("createdAt", "asc") once the composite index is created
     const query = db.collection("conversations")
       .where("sessionId", "==", sessionId)
-      .orderBy("createdAt", "asc")
       .limit(limitCount);
 
     const snapshot = await query.get();
     const history: AppMessage[] = [];
     snapshot.forEach((doc) => {
-      history.push(doc.data() as AppMessage);
+      const data = doc.data() as AppMessage;
+      history.push(data);
     });
+    
+    // Sort by createdAt in JavaScript since we can't use orderBy without index
+    history.sort((a, b) => {
+      const aTime = a.createdAt?.toMillis() || 0;
+      const bTime = b.createdAt?.toMillis() || 0;
+      return aTime - bTime; // ascending order
+    });
+    
+    logger.info(`Retrieved ${history.length} messages for session ${sessionId.substring(0, 8)}...`);
     return history;
   } catch (error) {
     logger.error(`Error fetching chat history for session ${sessionId}:`, error);
@@ -306,41 +317,117 @@ async function getChatHistoryInternal(
   }
 }
 
+/**
+ * Retrieves chat history for a given session ID.
+ */
 export const getGeminiChatHistory = onCall<ChatHistoryRequestData, Promise<ChatHistoryResponse>>(
   {
     region: "europe-west1",
+    memory: "512MiB",
+    timeoutSeconds: 30,
     enforceAppCheck: false,
     cors: true
   },
   async (request) => {
-    // Public access for chat history
-    logger.info("getGeminiChatHistory called (public access)", { 
-      sessionId: request.data?.sessionId?.substring(0, 8) + "...",
-      hasData: !!request.data
+    logger.info("getGeminiChatHistory called", { 
+      hasData: !!request.data,
+      sessionId: request.data?.sessionId?.substring(0, 8) + "..." 
     });
-    const {sessionId, limit} = request.data;
+
+    const {sessionId, limit = 20} = request.data;
 
     if (!sessionId) {
+      logger.warn("Session ID is required for chat history.");
       throw new HttpsError("invalid-argument", "Session ID is required.");
     }
 
     try {
       const history = await getChatHistoryInternal(sessionId, limit);
-      return {success: true, history};
-    } catch (e: unknown) {
-      logger.error("Error in getGeminiChatHistory callable function:", e);
-      let message = "Internal server error";
-      let details;
-      if (e instanceof Error) {
-        message = e.message;
-      }
-      // Check 'details' property for HttpsError
-      if (typeof e === 'object' && e !== null && 'details' in e) {
-        details = (e as { details: unknown }).details;
-      }
-      throw new HttpsError("internal", message, details);
+      logger.info(`Successfully retrieved ${history.length} messages for session ${sessionId.substring(0, 8)}...`);
+      
+      return {
+        success: true,
+        history,
+        message: `Retrieved ${history.length} messages.`
+      };
+    } catch (error) {
+      logger.error("Error in getGeminiChatHistory:", error);
+      return {
+        success: false,
+        message: "Failed to retrieve chat history.",
+        error: error instanceof Error ? error.message : String(error)
+      };
     }
+  }
+);
+
+/**
+ * Deletes all chat history for a given session ID.
+ */
+export const deleteGeminiChatHistory = onCall<{ sessionId: string }, Promise<{ success: boolean; message?: string; deletedCount?: number; error?: unknown }>>(
+  {
+    region: "europe-west1",
+    memory: "512MiB",
+    timeoutSeconds: 60,
+    enforceAppCheck: false,
+    cors: true
   },
+  async (request) => {
+    logger.info("deleteGeminiChatHistory called", { 
+      hasData: !!request.data,
+      sessionId: request.data?.sessionId?.substring(0, 8) + "..." 
+    });
+
+    const { sessionId } = request.data;
+
+    if (!sessionId) {
+      logger.warn("Session ID is required for chat deletion.");
+      throw new HttpsError("invalid-argument", "Session ID is required.");
+    }
+
+    try {
+      // Find all conversations with this sessionId
+      const query = db.collection("conversations")
+        .where("sessionId", "==", sessionId);
+
+      const snapshot = await query.get();
+      
+      if (snapshot.empty) {
+        logger.info(`No conversations found for session ${sessionId.substring(0, 8)}...`);
+        return {
+          success: true,
+          message: "No conversations found to delete.",
+          deletedCount: 0
+        };
+      }
+
+      // Delete all documents in batches for better performance
+      const batch = db.batch();
+      let deletedCount = 0;
+
+      snapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+        deletedCount++;
+      });
+
+      await batch.commit();
+
+      logger.info(`Successfully deleted ${deletedCount} messages for session ${sessionId.substring(0, 8)}...`);
+      
+      return {
+        success: true,
+        message: `Successfully deleted ${deletedCount} messages.`,
+        deletedCount
+      };
+    } catch (error) {
+      logger.error("Error in deleteGeminiChatHistory:", error);
+      return {
+        success: false,
+        message: "Failed to delete chat history.",
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
 );
 
 /**

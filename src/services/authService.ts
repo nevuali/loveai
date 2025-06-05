@@ -421,34 +421,51 @@ class AuthService {
 
   // Chat session ID'sini Firestore'dan alır veya oluşturur
   async getChatSessionId(): Promise<string> {
+    console.log('🔑 getChatSessionId called');
+    
     const firebaseUser = auth.currentUser;
+    console.log('👤 Current Firebase user:', firebaseUser ? {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName
+    } : 'No user authenticated');
+    
     if (!firebaseUser) {
       // Anonymous session için localStorage kullanılabilir veya farklı bir mantık izlenebilir.
       let anonSessionId = localStorage.getItem('ailovve_anon_chat_session');
       if (!anonSessionId) {
         anonSessionId = `anonymous-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         localStorage.setItem('ailovve_anon_chat_session', anonSessionId);
-    }
+        console.log('🆔 Created new anonymous session ID:', anonSessionId);
+      } else {
+        console.log('🆔 Using existing anonymous session ID:', anonSessionId);
+      }
       return anonSessionId;
     }
 
     try {
+      console.log('🔄 Getting user profile for session ID...');
       const userProfile = await this.getUserProfile(firebaseUser.uid);
+      console.log('👤 User profile:', userProfile);
+      
       if (userProfile && userProfile.chatSessionId) {
+        console.log('✅ Found existing session ID:', userProfile.chatSessionId);
         return userProfile.chatSessionId;
       }
 
       // Eğer Firestore'da chatSessionId yoksa yeni bir tane oluştur ve kaydet
       const newChatSessionId = `user-session-${firebaseUser.uid}-${Date.now()}`;
+      console.log('🆕 Creating new session ID:', newChatSessionId);
       
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       await updateDoc(userDocRef, { chatSessionId: newChatSessionId });
+      console.log('💾 Session ID saved to Firestore');
       return newChatSessionId;
     } catch (error) {
-      console.error('Error updating chatSessionId in Firestore:', error);
+      console.error('❌ Error updating chatSessionId in Firestore:', error);
       // Hata durumunda bile session ID üret
       const fallbackSessionId = `user-session-${firebaseUser.uid}-${Date.now()}`;
-      console.log('Using fallback session ID:', fallbackSessionId);
+      console.log('⚠️ Using fallback session ID:', fallbackSessionId);
       return fallbackSessionId;
     }
   }
