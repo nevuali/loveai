@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share2, Calendar, MapPin, Star, Users, Crown, Sparkles, Check, Clock, Camera, Utensils, Plane, Car, Wifi, Phone, Mail, MessageCircle } from 'lucide-react';
 import { packageService, HoneymoonPackage } from '../services/packageService';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface PackageDetailProps {
   packageId?: string;
@@ -13,6 +14,7 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
   const { packageId: urlPackageId } = useParams<{ packageId: string }>();
   const navigate = useNavigate();
   const packageId = propPackageId || urlPackageId;
+  const { actualTheme } = useTheme();
   
   const [packageData, setPackageData] = useState<HoneymoonPackage | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,10 +122,10 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
 
   if (isLoading) {
     return (
-      <div className={isModal ? "p-6 text-center" : "min-h-screen bg-[#1f1f1f] flex items-center justify-center"}>
+      <div className={isModal ? "p-6 text-center" : `min-h-screen ${actualTheme === 'light' ? 'bg-gray-50' : 'bg-[#1f1f1f]'} flex items-center justify-center`}>
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin"></div>
-          <p className="text-white/70">Loading magical details...</p>
+          <div className={`w-8 h-8 border-2 ${actualTheme === 'light' ? 'border-gray-300 border-t-gray-700' : 'border-white/20 border-t-white/80'} rounded-full animate-spin`}></div>
+          <p className={actualTheme === 'light' ? 'text-gray-600' : 'text-white/70'}>Loading magical details...</p>
         </div>
       </div>
     );
@@ -131,9 +133,9 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
 
   if (!packageData) {
     return (
-      <div className={isModal ? "p-6 text-center" : "min-h-screen bg-[#1f1f1f] flex items-center justify-center"}>
+      <div className={isModal ? "p-6 text-center" : `min-h-screen ${actualTheme === 'light' ? 'bg-gray-50' : 'bg-[#1f1f1f]'} flex items-center justify-center`}>
         <div className="text-center">
-          <h2 className="text-2xl text-white mb-4">Package not found</h2>
+          <h2 className={`text-2xl ${actualTheme === 'light' ? 'text-gray-900' : 'text-white'} mb-4`}>Package not found</h2>
           {!isModal && (
             <button
               onClick={() => navigate('/')}
@@ -151,7 +153,7 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
   // Modal content layout
   if (isModal) {
     return (
-      <div className="package-modal-content text-white">
+      <div className={`package-modal-content ${actualTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
         {/* Hero Section - Modal Version */}
         <div className="relative h-[300px] overflow-hidden">
           <div className="absolute inset-0">
@@ -182,7 +184,7 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <div className="flex items-center gap-2 mb-3">
               {getCategoryIcon(packageData.category)}
-              <span className="px-3 py-1 bg-white/20 backdrop-blur-10 rounded-full text-sm capitalize">
+              <span className="px-3 py-1 bg-white/20 backdrop-blur-10 rounded-full text-sm capitalize text-white">
                 {packageData.category}
               </span>
             </div>
@@ -215,22 +217,22 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
             <div className="lg:col-span-2 space-y-6">
               {/* Description */}
               <div className="glassmorphism-card p-4">
-                <h2 className="text-xl font-semibold mb-3 text-white">About This Experience</h2>
-                <p className="text-white/80 leading-relaxed text-sm">
+                <h2 className={`text-xl font-semibold mb-3 ${actualTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>About This Experience</h2>
+                <p className={`leading-relaxed text-sm ${actualTheme === 'light' ? 'text-gray-700' : 'text-white/80'}`}>
                   {packageData.description}
                 </p>
               </div>
 
               {/* Features */}
               <div className="glassmorphism-card p-4">
-                <h2 className="text-xl font-semibold mb-4 text-white">What's Included</h2>
+                <h2 className={`text-xl font-semibold mb-4 ${actualTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>What's Included</h2>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {packageData.features.map((feature, index) => (
                     <div key={index} className="flex items-center gap-3">
                       <div className="golden-luxury-dot">
                         <Check className="w-3 h-3 text-white" />
                       </div>
-                      <span className="text-white/80 text-sm">{feature}</span>
+                      <span className={`text-sm ${actualTheme === 'light' ? 'text-gray-700' : 'text-white/80'}`}>{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -238,12 +240,12 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
 
               {/* Detailed Inclusions */}
               <div className="glassmorphism-card p-4">
-                <h2 className="text-xl font-semibold mb-4 text-white">Package Inclusions</h2>
+                <h2 className={`text-xl font-semibold mb-4 ${actualTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>Package Inclusions</h2>
                 <div className="space-y-2">
                   {packageData.inclusions.map((inclusion, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <Sparkles className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-white/80 text-sm">{inclusion}</span>
+                      <span className={`text-sm ${actualTheme === 'light' ? 'text-gray-700' : 'text-white/80'}`}>{inclusion}</span>
                     </div>
                   ))}
                 </div>
@@ -255,26 +257,26 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
               {/* Booking Card */}
               <div className="glassmorphism-card p-4">
                 <div className="text-center mb-4">
-                  <div className="text-2xl font-bold text-white mb-1">
+                  <div className={`text-2xl font-bold mb-1 ${actualTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
                     {formatPrice(packageData.price)}
                   </div>
-                  <div className="text-white/60 text-xs">per couple</div>
+                  <div className={`text-xs ${actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}`}>per couple</div>
                 </div>
 
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-white/60">Duration:</span>
-                    <span className="text-white">{packageData.duration} days</span>
+                    <span className={actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}>Duration:</span>
+                    <span className={actualTheme === 'light' ? 'text-gray-900' : 'text-white'}>{packageData.duration} days</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-white/60">Availability:</span>
+                    <span className={actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}>Availability:</span>
                     <span className="text-green-400">
                       {packageData.availability ? 'Available' : 'Fully Booked'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-white/60">Best Season:</span>
-                    <span className="text-white">{packageData.seasonality.join(', ')}</span>
+                    <span className={actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}>Best Season:</span>
+                    <span className={actualTheme === 'light' ? 'text-gray-900' : 'text-white'}>{packageData.seasonality.join(', ')}</span>
                   </div>
                 </div>
 
@@ -287,7 +289,7 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
                 </button>
 
                 <div className="text-center mt-3">
-                  <p className="text-white/60 text-xs">
+                  <p className={`text-xs ${actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}`}>
                     Or contact our romance specialists
                   </p>
                   <div className="flex items-center justify-center gap-3 mt-2">
@@ -306,23 +308,23 @@ const PackageDetail: React.FC<PackageDetailProps> = ({ packageId: propPackageId,
 
               {/* Quick Info */}
               <div className="glassmorphism-card p-4">
-                <h3 className="text-base font-semibold mb-3 text-white">Quick Info</h3>
+                <h3 className={`text-base font-semibold mb-3 ${actualTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>Quick Info</h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center gap-2">
-                    <Users className="w-3 h-3 text-white/60" />
-                    <span className="text-white/80">Perfect for couples</span>
+                    <Users className={`w-3 h-3 ${actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}`} />
+                    <span className={actualTheme === 'light' ? 'text-gray-700' : 'text-white/80'}>Perfect for couples</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-3 h-3 text-white/60" />
-                    <span className="text-white/80">Instant confirmation</span>
+                    <Clock className={`w-3 h-3 ${actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}`} />
+                    <span className={actualTheme === 'light' ? 'text-gray-700' : 'text-white/80'}>Instant confirmation</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Car className="w-3 h-3 text-white/60" />
-                    <span className="text-white/80">Transport included</span>
+                    <Car className={`w-3 h-3 ${actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}`} />
+                    <span className={actualTheme === 'light' ? 'text-gray-700' : 'text-white/80'}>Transport included</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Wifi className="w-3 h-3 text-white/60" />
-                    <span className="text-white/80">Free WiFi</span>
+                    <Wifi className={`w-3 h-3 ${actualTheme === 'light' ? 'text-gray-600' : 'text-white/60'}`} />
+                    <span className={actualTheme === 'light' ? 'text-gray-700' : 'text-white/80'}>Free WiFi</span>
                   </div>
                 </div>
               </div>

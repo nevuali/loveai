@@ -605,11 +605,114 @@
 
 /* === MODEL SELECTOR === */
 .gemini-model-selector {
-  @apply btn-ghost;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
+  /* Premium Neumorphism Design */
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
   white-space: nowrap;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Premium Neumorphism Effect */
+  background: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(0, 0, 0, 0.05) 100%);
+  
+  /* Enhanced Golden Border */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  
+  /* Neumorphism Shadows */
+  box-shadow: 
+    /* Outer shadows for depth */
+    6px 6px 12px rgba(0, 0, 0, 0.3),
+    -6px -6px 12px rgba(255, 255, 255, 0.05),
+    /* Inner glow */
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    /* Golden accent glow */
+    0 0 0 1px rgba(212, 175, 55, 0.2);
+  
+  /* Premium backdrop effect */
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  
+  /* Subtle golden gradient overlay */
+  background-image: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(212, 175, 55, 0.03) 30%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(212, 175, 55, 0.02) 70%,
+    rgba(0, 0, 0, 0.05) 100%);
+}
+
+/* Premium Golden Border Effect */
+.gemini-model-selector::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.6) 0%,
+    rgba(255, 215, 0, 0.4) 25%,
+    rgba(212, 175, 55, 0.2) 50%,
+    rgba(255, 215, 0, 0.3) 75%,
+    rgba(212, 175, 55, 0.5) 100%);
+  border-radius: 18px;
+  z-index: -1;
+  opacity: 0.7;
+  transition: all 0.4s ease;
+}
+
+/* Hover State - Enhanced Premium Effect */
+.gemini-model-selector:hover {
+  transform: translateY(-2px) scale(1.02);
+  color: rgba(212, 175, 55, 0.95);
+  
+  /* Enhanced shadows on hover */
+  box-shadow: 
+    8px 8px 16px rgba(0, 0, 0, 0.4),
+    -8px -8px 16px rgba(255, 255, 255, 0.08),
+    inset 0 2px 0 rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(212, 175, 55, 0.4),
+    0 4px 20px rgba(212, 175, 55, 0.3);
+  
+  /* Enhanced background on hover */
+  background-image: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(212, 175, 55, 0.08) 30%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(212, 175, 55, 0.06) 70%,
+    rgba(0, 0, 0, 0.02) 100%);
+}
+
+/* Enhanced Golden Border on Hover */
+.gemini-model-selector:hover::before {
+  opacity: 1;
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.8) 0%,
+    rgba(255, 215, 0, 0.6) 25%,
+    rgba(212, 175, 55, 0.4) 50%,
+    rgba(255, 215, 0, 0.5) 75%,
+    rgba(212, 175, 55, 0.7) 100%);
+  filter: blur(0.5px);
+}
+
+/* Active/Pressed State */
+.gemini-model-selector:active {
+  transform: translateY(-1px) scale(0.98);
+  
+  /* Inset shadow for pressed effect */
+  box-shadow: 
+    inset 4px 4px 8px rgba(0, 0, 0, 0.3),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.05),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(212, 175, 55, 0.3);
 }
 
 .gemini-model-dropdown {
@@ -1159,7 +1262,10 @@
 .gemini-welcome-title {
   font-size: var(--text-2xl);
   font-weight: 600;
-  @apply text-gradient;
+  background: linear-gradient(135deg, #d4af37, #f4e283);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: var(--space-3);
   margin-top: 60px;
   line-height: 1.2;
@@ -1505,12 +1611,44 @@
 
   /* Enhanced Mobile Model Selector */
   .gemini-model-selector {
-    padding: 8px 12px;
+    padding: 8px 16px;
     font-size: 13px;
-    max-width: 120px;
+    max-width: 140px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    border-radius: 14px;
+    
+    /* Scaled neumorphism for tablet */
+    box-shadow: 
+      4px 4px 8px rgba(0, 0, 0, 0.25),
+      -4px -4px 8px rgba(255, 255, 255, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 0 0 1px rgba(212, 175, 55, 0.15);
+    
+    /* Maintain premium background */
+    background-image: linear-gradient(145deg, 
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(212, 175, 55, 0.02) 30%,
+      rgba(255, 255, 255, 0.015) 50%,
+      rgba(212, 175, 55, 0.015) 70%,
+      rgba(0, 0, 0, 0.04) 100%);
+  }
+  
+  .gemini-model-selector::before {
+    border-radius: 16px;
+    opacity: 0.6;
+  }
+  
+  .gemini-model-selector:hover {
+    transform: translateY(-1px) scale(1.01);
+    
+    box-shadow: 
+      5px 5px 10px rgba(0, 0, 0, 0.3),
+      -5px -5px 10px rgba(255, 255, 255, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 0 0 1px rgba(212, 175, 55, 0.3),
+      0 2px 12px rgba(212, 175, 55, 0.25);
   }
 
   /* Enhanced Mobile Title */
@@ -1959,23 +2097,26 @@ body.sidebar-open .gemini-header .gemini-menu-button {
 
 /* === ENHANCED SEARCH BOX UI/UX === */
 .gemini-search-box {
-  background: linear-gradient(135deg, 
-    rgba(30, 30, 30, 0.98) 0%,
-    rgba(20, 20, 20, 0.95) 100%);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 16px;
-  padding: 16px;
-  margin: 16px;
-  margin-bottom: 8px;
-  box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(212, 175, 55, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  height: 38px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
   position: relative;
   overflow: hidden;
+  margin: 12px 16px;
+  box-shadow: 
+    0 2px 8px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .gemini-search-box::before {
@@ -1983,12 +2124,11 @@ body.sidebar-open .gemini-header .gemini-menu-button {
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, 
-    rgba(212, 175, 55, 0.03) 0%,
-    rgba(255, 215, 0, 0.01) 50%,
-    rgba(212, 175, 55, 0.03) 100%);
-  border-radius: 16px;
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%);
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.3s ease;
+  border-radius: 18px;
 }
 
 .gemini-search-box:hover::before {
@@ -1996,32 +2136,24 @@ body.sidebar-open .gemini-header .gemini-menu-button {
 }
 
 .gemini-search-box:hover {
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 
-    0 6px 25px rgba(0, 0, 0, 0.5),
-    0 0 0 2px rgba(212, 175, 55, 0.15),
-    0 0 20px rgba(212, 175, 55, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #ffd700, #d4af37);
   transform: translateY(-2px);
+  box-shadow: 
+    0 4px 16px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .gemini-search-box:focus-within {
-  border-color: rgba(212, 175, 55, 0.6);
+  background: linear-gradient(135deg, #ffd700, #d4af37);
+  transform: translateY(-2px);
   box-shadow: 
-    0 8px 30px rgba(0, 0, 0, 0.6),
-    0 0 0 3px rgba(212, 175, 55, 0.2),
-    0 0 25px rgba(212, 175, 55, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transform: translateY(-3px);
+    0 4px 16px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* Search Header */
+/* Search Header - Simplified for button style */
 .gemini-search-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding: 0 4px;
+  display: none; /* Hide header to match button style */
 }
 
 .gemini-search-label {
@@ -2030,14 +2162,14 @@ body.sidebar-open .gemini-header .gemini-menu-button {
   gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: rgba(212, 175, 55, 0.9);
+  color: white;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
 .gemini-search-clear {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 6px;
   width: 20px;
   height: 20px;
@@ -2046,81 +2178,78 @@ body.sidebar-open .gemini-header .gemini-menu-button {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .gemini-search-clear:hover {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(212, 175, 55, 0.3);
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
   opacity: 1;
   transform: scale(1.1);
 }
 
-/* Enhanced Search Input Container */
+/* Enhanced Search Input Container - Button style */
 .gemini-search-input-container {
   position: relative;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  overflow: hidden;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
   transition: all 0.3s ease;
+  flex: 1;
 }
 
 .gemini-search-input-container:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: transparent;
+  border: none;
 }
 
 .gemini-search-input-container:focus-within {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(212, 175, 55, 0.3);
-  box-shadow: 
-    inset 0 0 0 1px rgba(212, 175, 55, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
-/* Enhanced Search Input */
+/* Enhanced Search Input - Button style */
 .gemini-search-input {
   background: transparent;
   border: none;
   outline: none;
-  color: #ffffff;
+  color: white;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   width: 100%;
-  padding: 12px 16px 12px 44px;
+  padding: 0 16px 0 28px;
   letter-spacing: 0.025em;
   transition: all 0.3s ease;
   font-family: 'Google Sans', sans-serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .gemini-search-input::placeholder {
-  color: rgba(212, 175, 55, 0.5);
-  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .gemini-search-input:focus::placeholder {
-  color: rgba(212, 175, 55, 0.3);
-  transform: translateY(-1px);
+  color: rgba(255, 255, 255, 0.5);
 }
 
-/* Enhanced Search Icon */
+/* Enhanced Search Icon - Button style */
 .gemini-search-icon-enhanced {
   position: absolute;
-  left: 14px;
+  left: 8px;
   top: 50%;
   transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  background: linear-gradient(135deg, #d4af37, #ffd700);
-  border-radius: 6px;
+  width: 16px;
+  height: 16px;
+  background: transparent;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 
-    0 2px 8px rgba(212, 175, 55, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 2;
   cursor: pointer;
@@ -2128,14 +2257,12 @@ body.sidebar-open .gemini-header .gemini-menu-button {
 
 .gemini-search-icon-enhanced:hover {
   transform: translateY(-50%) scale(1.1);
-  box-shadow: 
-    0 4px 12px rgba(212, 175, 55, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: none;
 }
 
 .gemini-search-icon-enhanced svg {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   color: white;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
@@ -2182,27 +2309,54 @@ body.sidebar-open .gemini-header .gemini-menu-button {
 }
 
 /* Responsive Search Box */
-@media (max-width: 640px) {
+@media (max-width: 1023px) {
   .gemini-search-box {
+    height: 36px;
+    padding: 8px 12px;
+    font-size: 12px;
     margin: 12px;
-    padding: 12px;
-    border-radius: 12px;
   }
   
   .gemini-search-input {
     font-size: 12px;
-    padding: 10px 14px 10px 36px;
+    padding: 0 14px 0 26px;
   }
   
   .gemini-search-icon-enhanced {
-    width: 16px;
-    height: 16px;
-    left: 12px;
+    left: 7px;
+    width: 15px;
+    height: 15px;
   }
   
   .gemini-search-icon-enhanced svg {
-    width: 9px;
-    height: 9px;
+    width: 13px;
+    height: 13px;
+  }
+}
+
+@media (max-width: 640px) {
+  .gemini-search-box {
+    height: 34px;
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 16px;
+    margin: 10px;
+  }
+  
+  .gemini-search-input {
+    font-size: 11px;
+    padding: 0 12px 0 24px;
+  }
+  
+  .gemini-search-icon-enhanced {
+    left: 6px;
+    width: 14px;
+    height: 14px;
+  }
+  
+  .gemini-search-icon-enhanced svg {
+    width: 12px;
+    height: 12px;
   }
 }
 
@@ -2413,12 +2567,44 @@ body.sidebar-open .mobile-overlay {
 
 /* Enhanced Mobile Model Selector */
 .gemini-model-selector {
-  padding: 8px 12px;
+  padding: 8px 16px;
   font-size: 13px;
-  max-width: 120px;
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  border-radius: 14px;
+  
+  /* Scaled neumorphism for tablet */
+  box-shadow: 
+    4px 4px 8px rgba(0, 0, 0, 0.25),
+    -4px -4px 8px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(212, 175, 55, 0.15);
+  
+  /* Maintain premium background */
+  background-image: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(212, 175, 55, 0.02) 30%,
+    rgba(255, 255, 255, 0.015) 50%,
+    rgba(212, 175, 55, 0.015) 70%,
+    rgba(0, 0, 0, 0.04) 100%);
+}
+
+.gemini-model-selector::before {
+  border-radius: 16px;
+  opacity: 0.6;
+}
+
+.gemini-model-selector:hover {
+  transform: translateY(-1px) scale(1.01);
+  
+  box-shadow: 
+    5px 5px 10px rgba(0, 0, 0, 0.3),
+    -5px -5px 10px rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(212, 175, 55, 0.3),
+    0 2px 12px rgba(212, 175, 55, 0.25);
 }
 
 /* === DESKTOP FIXES === */
@@ -2485,7 +2671,6 @@ body.sidebar-open .mobile-overlay {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: top right;
   
-  @apply glass-elevated;
   background: linear-gradient(135deg, 
     rgba(30, 30, 30, 0.98) 0%,
     rgba(20, 20, 20, 0.95) 100%);
@@ -3598,23 +3783,39 @@ body.sidebar-open .mobile-overlay {
 
 /* === GLASSMORPHISM CARD COMPONENT === */
 .glassmorphism-card {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 8px 32px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
 }
 
 .glassmorphism-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 
-    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 12px 40px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Light theme glassmorphism cards */
+.light .glassmorphism-card {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.light .glassmorphism-card:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* === PACKAGE MODAL === */
@@ -4312,23 +4513,68 @@ body.sidebar-open .mobile-overlay {
 
 /* Light theme search box */
 .light .gemini-search-box {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(248, 249, 250, 0.95) 100%);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  border: 2px solid rgba(212, 175, 55, 0.6);
+  color: white;
   box-shadow: 
-    0 4px 20px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    0 3px 12px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.light .gemini-search-box::before {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.08) 100%);
 }
 
 .light .gemini-search-box:hover {
-  border-color: rgba(212, 175, 55, 0.3);
+  background: linear-gradient(135deg, #ffd700, #d4af37);
+  border-color: rgba(212, 175, 55, 0.8);
+  transform: translateY(-3px);
   box-shadow: 
-    0 6px 25px rgba(0, 0, 0, 0.15),
-    0 0 0 2px rgba(212, 175, 55, 0.1),
-    0 0 20px rgba(212, 175, 55, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 5px 20px rgba(212, 175, 55, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.light .gemini-search-box:focus-within {
+  background: linear-gradient(135deg, #ffd700, #d4af37);
+  border-color: rgba(212, 175, 55, 0.9);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 5px 20px rgba(212, 175, 55, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Light theme search input */
+.light .gemini-search-input {
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.light .gemini-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+.light .gemini-search-input:focus::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Light theme search icon */
+.light .gemini-search-icon-enhanced svg {
+  color: white;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+}
+
+/* Light theme search clear button */
+.light .gemini-search-clear {
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.light .gemini-search-clear:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.6);
 }
 
 /* Light theme mobile adjustments */
@@ -4344,7 +4590,457 @@ body.sidebar-open .mobile-overlay {
   }
   
   .light .gemini-search-box {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: linear-gradient(135deg, #d4af37, #b8860b);
+    border: 2px solid rgba(212, 175, 55, 0.7);
+    box-shadow: 
+      0 2px 10px rgba(212, 175, 55, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
+  
+  .light .gemini-search-box:hover {
+    background: linear-gradient(135deg, #ffd700, #d4af37);
+    border-color: rgba(212, 175, 55, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 
+      0 4px 16px rgba(212, 175, 55, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+}
+
+/* Light theme package cards */
+.light .package-card-carousel {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.light .package-card-carousel:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Light theme package card text colors */
+.light .card-title,
+.light .content-title,
+.light .compact-title {
+  color: #1a1a1a;
+}
+
+.light .card-description,
+.light .content-description {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light .location-info,
+.light .location-text,
+.light .compact-location {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light .duration-info,
+.light .rating-info,
+.light .reviews-item,
+.light .duration-item,
+.light .compact-rating,
+.light .meta-info {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light .price-amount,
+.light .price-value,
+.light .compact-price {
+  color: #1a1a1a;
+}
+
+.light .price-label {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.light .category-badge {
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light .feature-tag,
+.light .simple-feature {
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light .feature-more,
+.light .more-features {
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: rgba(168, 136, 40, 0.9);
+}
+
+.light .select-btn,
+.light .action-button {
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: #1a1a1a;
+}
+
+.light .select-btn:hover,
+.light .action-button:hover {
+  background: rgba(0, 0, 0, 0.12);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #000000;
+}
+
+.light .carousel-nav {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.light .nav-button {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light .nav-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.light .carousel-counter {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light .min-card-content,
+.light .card-content {
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.light .card-footer,
+.light .content-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.light .compact-footer {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.light .heart-btn,
+.light .favorite-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.light .heart-btn:hover,
+.light .favorite-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #ef4444;
+}
+
+.light .card-image-placeholder {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.02));
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.light .category-indicator {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light .carousel-title {
+  color: #1a1a1a;
+}
+
+.light .carousel-subtitle {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light .package-cards-carousel-container {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.light .progress-dot {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.light .progress-dot.active {
+  background: linear-gradient(135deg, #d4af37, #f4e283);
+  border: 2px solid rgba(212, 175, 55, 0.8);
+}
+
+.light .progress-dot:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.light .golden-dot {
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.light .golden-dot.active {
+  background: linear-gradient(135deg, #d4af37, #f4e283);
+  border: 2px solid rgba(212, 175, 55, 0.8);
+  box-shadow: 
+    0 4px 12px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.light .golden-dot:hover {
+  background: rgba(212, 175, 55, 0.3);
+  border-color: rgba(212, 175, 55, 0.6);
+}
+
+/* === PREMIUM BUTTONS === */
+.premium-package-btn {
+  background: linear-gradient(135deg, #d4af37, #f4e283);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 12px;
+  padding: 12px 24px;
+  color: #1a1a1a;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 8px 24px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.premium-package-btn:hover {
+  background: linear-gradient(135deg, #f4e283, #d4af37);
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: 
+    0 12px 32px rgba(212, 175, 55, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.premium-contact-btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.premium-contact-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Light theme premium buttons */
+.light .premium-contact-btn {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: #1a1a1a;
+}
+
+.light .premium-contact-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Light theme modal overlay */
+.light .package-modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.package-modal-container {
+  background: rgba(31, 31, 31, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 1000px;
+  overflow: hidden;
+  position: relative;
+  animation: modalSlideIn 0.4s ease-out;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Light theme modal container */
+.light .package-modal-container {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Light theme modal close button */
+.light .package-modal-close {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  color: #333;
+}
+
+.light .package-modal-close:hover {
+  background: rgba(0, 0, 0, 0.15);
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Light theme dropdown menu */
+.light .gemini-dropdown-menu {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(250, 250, 250, 0.95) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Light theme dropdown header */
+.light .gemini-dropdown-header {
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.02) 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Light theme dropdown items */
+.light .gemini-dropdown-item {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.light .gemini-dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.9);
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.light .gemini-dropdown-item::before {
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.03) 0%,
+    rgba(0, 0, 0, 0.01) 100%);
+}
+
+/* Light theme user info */
+.light .user-name {
+  color: #1a1a1a;
+  background: linear-gradient(135deg, #d4af37, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.light .user-email {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Light theme dropdown icons */
+.light .gemini-dropdown-item svg {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light .gemini-dropdown-item:hover svg {
+  color: rgba(212, 175, 55, 0.9);
+}
+
+.light .gemini-dropdown-item svg {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.light .gemini-dropdown-item:hover svg {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* === LIGHT THEME NEUMORPHISM MODEL SELECTOR === */
+.light .gemini-model-selector {
+  /* Light Theme Clean Flat Design - No Shadows */
+  background: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(248, 248, 248, 0.8) 50%,
+    rgba(240, 240, 240, 0.7) 100%);
+  
+  color: rgba(0, 0, 0, 0.8);
+  
+  /* Clean flat design without shadows */
+  box-shadow: none;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  
+  /* Light backdrop effect */
+  backdrop-filter: blur(10px) saturate(110%);
+  -webkit-backdrop-filter: blur(10px) saturate(110%);
+}
+
+/* Light Theme Golden Border Effect */
+.light .gemini-model-selector::before {
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.7) 0%,
+    rgba(255, 215, 0, 0.5) 25%,
+    rgba(212, 175, 55, 0.3) 50%,
+    rgba(255, 215, 0, 0.4) 75%,
+    rgba(212, 175, 55, 0.6) 100%);
+  opacity: 0.8;
+}
+
+/* Light Theme Hover State - Clean without heavy shadows */
+.light .gemini-model-selector:hover {
+  color: rgba(212, 175, 55, 0.9);
+  
+  /* Clean hover state without shadows */
+  box-shadow: none;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  transform: translateY(-1px);
+  
+  /* Enhanced light background on hover */
+  background: linear-gradient(145deg, 
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(252, 252, 252, 0.85) 30%,
+    rgba(248, 248, 248, 0.8) 50%,
+    rgba(250, 250, 250, 0.85) 70%,
+    rgba(245, 245, 245, 0.75) 100%);
+}
+
+/* Light Theme Enhanced Golden Border on Hover */
+.light .gemini-model-selector:hover::before {
+  opacity: 1;
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.9) 0%,
+    rgba(255, 215, 0, 0.7) 25%,
+    rgba(212, 175, 55, 0.5) 50%,
+    rgba(255, 215, 0, 0.6) 75%,
+    rgba(212, 175, 55, 0.8) 100%);
+}
+
+/* Light Theme Active/Pressed State - Clean flat pressed effect */
+.light .gemini-model-selector:active {
+  /* Clean pressed effect without heavy shadows */
+  box-shadow: none;
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  transform: translateY(0px);
+  background: linear-gradient(145deg, 
+    rgba(240, 240, 240, 0.8) 0%,
+    rgba(245, 245, 245, 0.75) 50%,
+    rgba(235, 235, 235, 0.7) 100%);
 }
