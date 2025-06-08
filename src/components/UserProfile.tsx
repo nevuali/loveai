@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, User, Mail, Phone, Calendar, MessageCircle, Star, CreditCard } from 'lucide-react';
 import { authService, User as AuthUser } from '../services/authService';
 
@@ -16,13 +16,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   const [profileData, setProfileData] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && user) {
-      loadProfileData();
-    }
-  }, [isOpen, user]);
-
-  const loadProfileData = async () => {
+  const loadProfileData = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await authService.getProfile(user.id);
@@ -32,7 +26,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    if (isOpen && user) {
+      loadProfileData();
+    }
+  }, [isOpen, user, loadProfileData]);
 
   if (!isOpen) return null;
 

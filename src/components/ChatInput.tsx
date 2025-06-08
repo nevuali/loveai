@@ -1,31 +1,55 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, memo, useCallback } from 'react';
 import { Send, Image, Bot, Sparkles } from 'lucide-react';
+import VoiceInput from './VoiceInput';
+import ImageUpload from './ImageUpload';
+import { useDebouncedCallback } from '../hooks/useDebounce';
 
 interface ChatInputProps {
   onSendMessage: (message: string, imageBase64?: string | null) => void;
   isLoading: boolean;
+  onTypingStart?: () => void;
+  onTypingStop?: () => void;
 }
 
-const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
+const ChatInput = memo(({ onSendMessage, isLoading, onTypingStart, onTypingStop }: ChatInputProps) => {
   const [message, setMessage] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Debounced typing stop callback
+  const [debouncedTypingStop] = useDebouncedCallback(() => {
+    onTypingStop?.();
+  }, 1500);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() || imagePreview) {
       onSendMessage(message.trim(), imagePreview);
       setMessage('');
       setImagePreview(null);
+      onTypingStop?.();
     }
-  };
+  }, [message, imagePreview, onSendMessage, onTypingStop]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
-  };
+  }, [handleSubmit]);
+
+  const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newMessage = e.target.value;
+    setMessage(newMessage);
+    
+    // Trigger typing start only if this is the first character
+    if (newMessage.length === 1 && message.length === 0) {
+      onTypingStart?.();
+    }
+    
+    // Reset the debounced typing stop timer
+    debouncedTypingStop();
+  }, [message.length, onTypingStart, debouncedTypingStop]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,7 +103,7 @@ const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
             <div className="glass-elevated rounded-3xl border border-default shadow-lg transition-all duration-300">
               <textarea
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={handleMessageChange}
                 onKeyDown={handleKeyDown}
                 placeholder="AI LOVE ile konuşmaya başlayın..."
                 className="w-full p-4 md:p-6 pr-16 md:pr-20 bg-transparent text-primary placeholder-tertiary resize-none min-h-[48px] md:min-h-[60px] max-h-32 md:max-h-40 rounded-3xl focus:outline-none font-medium"
@@ -93,12 +117,36 @@ const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
                 }}
               />
               
-              {/* Send button */}
-              <button
-                type="submit"
-                disabled={isLoading || (!message.trim() && !imagePreview)}
-                className="absolute right-2 md:right-3 bottom-2 md:bottom-3 w-10 h-10 md:w-12 md:h-12 rounded-2xl flex-center group overflow-hidden bg-gradient-to-r from-amber-600 to-yellow-500 text-white"
-              >
+              {/* Action buttons */}
+              <div className="absolute right-2 md:right-3 bottom-2 md:bottom-3 flex items-center gap-1 md:gap-2">
+                {/* Image Upload Button */}
+                <ImageUpload
+                  onImageSelect={(base64) => setImagePreview(base64)}
+                  onImageClear={() => setImagePreview(null)}
+                  currentImage={imagePreview}
+                  size="md"
+                  disabled={isLoading}
+                  showPreview={true}
+                />
+                
+                {/* Voice Input Button */}
+                <VoiceInput
+                  onTranscript={(text) => {
+                    setMessage(prev => prev + (prev ? ' ' : '') + text);
+                  }}
+                  onError={(error) => {
+                    console.error('Voice input error:', error);
+                  }}
+                  size="md"
+                  disabled={isLoading}
+                />
+                
+                {/* Send button */}
+                <button
+                  type="submit"
+                  disabled={isLoading || (!message.trim() && !imagePreview)}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-2xl flex-center group overflow-hidden bg-gradient-to-r from-amber-600 to-yellow-500 text-white"
+                >
                 {isLoading ? (
                   <div className="w-4 h-4 md:w-5 md:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
@@ -108,7 +156,8 @@ const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-300 to-yellow-400 opacity-0 group-hover:opacity-30 transition-opacity animate-pulse" />
                   </>
                 )}
-              </button>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -123,7 +172,7 @@ const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
             <span>AI LOVE hazır ve bekliyor</span>
           </div>
           <span className="text-white/40 text-xs hidden sm:block">
-            Enter ile gönder, Shift+Enter ile yeni satır
+            📸 Fotoğraf | 🎤 Mikrofon | Enter ile gönder | Shift+Enter ile yeni satır
           </span>
         </div>
 
@@ -171,6 +220,8 @@ const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
       </form>
     </div>
   );
-};
+});
+
+ChatInput.displayName = 'ChatInput';
 
 export default ChatInput;

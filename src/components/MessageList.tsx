@@ -1,8 +1,9 @@
 import Message from './Message';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo, useMemo } from 'react';
 import { ArrowDown, Bot, Sparkles, Heart, Cpu, Zap } from 'lucide-react';
 import TypingIndicator from './TypingIndicator';
 import AuthPromptCard from './AuthPromptCard';
+import useVirtualScrolling from '../hooks/useVirtualScrolling';
 
 type MessageType = {
   role: 'user' | 'assistant';
@@ -22,7 +23,7 @@ interface MessageListProps {
   maxMessages?: number;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ 
+const MessageList: React.FC<MessageListProps> = memo(({ 
   messages, 
   isLoading, 
   showAuthPrompt = false,
@@ -35,6 +36,27 @@ const MessageList: React.FC<MessageListProps> = ({
   const [focusedMessageIndex, setFocusedMessageIndex] = useState<number | null>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Virtual scrolling configuration
+  const ITEM_HEIGHT = 120; // Estimated message height
+  const CONTAINER_HEIGHT = typeof window !== 'undefined' ? window.innerHeight - 200 : 600; // Dynamic height
+  
+  // Use virtual scrolling only for large message lists (performance optimization)
+  const shouldUseVirtualScrolling = messages.length > 50;
+  
+  const {
+    virtualItems,
+    totalHeight,
+    scrollElementProps,
+    containerProps,
+    scrollToBottom: virtualScrollToBottom
+  } = useVirtualScrolling({
+    items: shouldUseVirtualScrolling ? messages : [],
+    itemHeight: ITEM_HEIGHT,
+    containerHeight: CONTAINER_HEIGHT,
+    overscan: 5,
+    estimatedItemHeight: ITEM_HEIGHT
+  });
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -72,10 +94,12 @@ const MessageList: React.FC<MessageListProps> = ({
   }, [showScrollIndicator]);
 
   const scrollToBottom = () => {
-    if (messagesEndRef.current) {
+    if (shouldUseVirtualScrolling) {
+      virtualScrollToBottom('smooth');
+    } else if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      setTimeout(() => setShowScrollIndicator(false), 300);
     }
+    setTimeout(() => setShowScrollIndicator(false), 300);
   };
 
   return (
@@ -150,17 +174,44 @@ const MessageList: React.FC<MessageListProps> = ({
           </div>
         )}
         
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className="animate-fade-in"
-            style={{ animationDelay: `${index * 50}ms` }}
-            onMouseEnter={() => setFocusedMessageIndex(index)}
-            onMouseLeave={() => setFocusedMessageIndex(null)}
-          >
-            <Message {...message} imageBase64={message.imageBase64} isThinking={message.isThinking} />
+        {shouldUseVirtualScrolling ? (
+          // Virtual scrolling for large message lists (50+ messages)
+          <div {...scrollElementProps} className="flex-1 overflow-y-auto relative custom-scrollbar">
+            <div {...containerProps}>
+              {virtualItems.map((virtualItem) => (
+                <div
+                  key={virtualItem.index}
+                  className="animate-fade-in absolute w-full"
+                  style={{
+                    top: virtualItem.start,
+                    height: virtualItem.end - virtualItem.start,
+                  }}
+                  onMouseEnter={() => setFocusedMessageIndex(virtualItem.index)}
+                  onMouseLeave={() => setFocusedMessageIndex(null)}
+                >
+                  <Message 
+                    {...virtualItem.item} 
+                    imageBase64={virtualItem.item.imageBase64} 
+                    isThinking={virtualItem.item.isThinking} 
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
+        ) : (
+          // Regular rendering for small message lists (<50 messages)
+          messages.map((message, index) => (
+            <div
+              key={index}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 50}ms` }}
+              onMouseEnter={() => setFocusedMessageIndex(index)}
+              onMouseLeave={() => setFocusedMessageIndex(null)}
+            >
+              <Message {...message} imageBase64={message.imageBase64} isThinking={message.isThinking} />
+            </div>
+          ))
+        )}
         
         {/* Auth Prompt Card */}
         {showAuthPrompt && onRegisterClick && onLoginClick && (
@@ -205,6 +256,8 @@ const MessageList: React.FC<MessageListProps> = ({
       )}
     </div>
   );
-};
+});
+
+MessageList.displayName = 'MessageList';
 
 export default MessageList;

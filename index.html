@@ -32,15 +32,28 @@
   <meta name="twitter:description" content="Plan your perfect honeymoon with AI LOVVE - Your luxury AI-powered honeymoon planning assistant." />
   <meta name="twitter:image" content="https://ailovve.com/twitter-image.jpg" />
   
-  <!-- Performance Optimizations -->
+  <!-- Critical Resource Preloading -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="dns-prefetch" href="https://firebase.googleapis.com" />
   <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
+  <link rel="dns-prefetch" href="https://firebaseapp.com" />
+  <link rel="dns-prefetch" href="https://images.unsplash.com" />
   
-  <!-- Theme Color -->
-  <meta name="theme-color" content="#8b5cf6" />
-  <meta name="msapplication-TileColor" content="#8b5cf6" />
+  <!-- Preload Critical Fonts -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;600;700&display=swap"></noscript>
+  
+  <!-- Preload Critical Icons -->
+  <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml">
+  <link rel="preload" href="/icons/icon.svg" as="image" type="image/svg+xml">
+  
+  <!-- Preload Critical Images -->
+  <link rel="preload" href="/og-image.svg" as="image" type="image/svg+xml">
+  
+  <!-- Theme Color - AI LOVVE Golden Theme -->
+  <meta name="theme-color" content="#d4af37" />
+  <meta name="msapplication-TileColor" content="#d4af37" />
   
   <!-- Apple Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -51,7 +64,7 @@
   <!-- Microsoft Tiles -->
   <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
   
-  <!-- Google Fonts - Gemini Style -->
+  <!-- Fallback Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">

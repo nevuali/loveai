@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { HoneymoonPackage } from '../services/packageService';
 import PackageCard from './PackageCard';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -12,7 +12,7 @@ interface PackageCarouselProps {
   autoPlayDelay?: number;
 }
 
-const PackageCarousel: React.FC<PackageCarouselProps> = ({
+const PackageCarousel: React.FC<PackageCarouselProps> = memo(({
   packages,
   onSelectPackage,
   title = "✨ Curated Honeymoon Experiences",
@@ -41,21 +41,21 @@ const PackageCarousel: React.FC<PackageCarouselProps> = ({
     return () => clearInterval(interval);
   }, [autoPlay, autoPlayDelay, packages.length, isPaused]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentIndex((prev) => (prev > 0 ? prev - 1 : packages.length - 1));
       setIsTransitioning(false);
     }, 75);
-  };
+  }, [packages.length]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setIsTransitioning(true);
     setTimeout(() => {
       setCurrentIndex((prev) => (prev < packages.length - 1 ? prev + 1 : 0));
       setIsTransitioning(false);
     }, 75);
-  };
+  }, [packages.length]);
 
   const handleMouseEnter = () => {
     setIsPaused(true);
@@ -121,6 +121,8 @@ const PackageCarousel: React.FC<PackageCarouselProps> = ({
       </div>
     </div>
   );
-};
+});
+
+PackageCarousel.displayName = 'PackageCarousel';
 
 export default PackageCarousel; 

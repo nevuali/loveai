@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { HoneymoonPackage } from '../services/packageService';
 import { MapPin, Calendar, Star, Heart, Eye } from 'lucide-react';
 
@@ -13,7 +13,7 @@ interface PackageCardProps {
   totalCount?: number;
 }
 
-const PackageCard: React.FC<PackageCardProps> = ({ 
+const PackageCard: React.FC<PackageCardProps> = memo(({ 
   package: pkg, 
   onSelect,
   compact = false,
@@ -23,16 +23,16 @@ const PackageCard: React.FC<PackageCardProps> = ({
   currentIndex = 0,
   totalCount = 1
 }) => {
-  const formatPrice = (price: number, currency: string = 'USD'): string => {
+  const formatPrice = useCallback((price: number, currency: string = 'USD'): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
-  };
+  }, []);
 
-  const getCategoryColor = (category: string): string => {
+  const getCategoryColor = useCallback((category: string): string => {
     const colors: Record<string, string> = {
       luxury: 'text-amber-600',
       adventure: 'text-emerald-600',
@@ -42,7 +42,13 @@ const PackageCard: React.FC<PackageCardProps> = ({
       city: 'text-blue-600'
     };
     return colors[category] || 'text-gray-600';
-  };
+  }, []);
+
+  const handleSelect = useCallback(() => {
+    if (onSelect && pkg.id) {
+      onSelect(pkg.id);
+    }
+  }, [onSelect, pkg.id]);
 
   const getCategoryIcon = (category: string): string => {
     const icons: Record<string, string> = {
@@ -136,7 +142,7 @@ const PackageCard: React.FC<PackageCardProps> = ({
           </div>
 
           <button 
-            onClick={() => onSelect && onSelect(pkg.id)}
+            onClick={handleSelect}
             className="select-btn"
           >
             View Details
@@ -150,7 +156,7 @@ const PackageCard: React.FC<PackageCardProps> = ({
     return (
       <div 
         className="compact-card"
-        onClick={() => onSelect && onSelect(pkg.id)}
+        onClick={handleSelect}
       >
         <div className="compact-content">
           <div className="compact-header">
@@ -181,7 +187,7 @@ const PackageCard: React.FC<PackageCardProps> = ({
   return (
     <div 
       className="default-card"
-      onClick={() => onSelect && onSelect(pkg.id)}
+      onClick={handleSelect}
     >
       <div className="card-image-placeholder">
         <span className={`category-indicator ${getCategoryColor(pkg.category)}`}>
@@ -240,6 +246,8 @@ const PackageCard: React.FC<PackageCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+PackageCard.displayName = 'PackageCard';
 
 export default PackageCard; 

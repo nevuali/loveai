@@ -1,14 +1,37 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, memo, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, Edit, Plus, Bot, Moon, Sun, Trash2, ThumbsUp, ThumbsDown, Copy, Check, RotateCcw } from 'lucide-react';
-import { generateGeminiStream, getChatHistory, deleteChatHistory } from '../services/geminiService';
+import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, Edit, Plus, Bot, Moon, Sun, Trash2, ThumbsUp, ThumbsDown, Copy, Check, RotateCcw, Download, Users, Calendar } from 'lucide-react';
+import Message from '../components/Message';
+import { generateGeminiStream, getChatHistory, deleteChatHistory, detectAICommand, generateAICommandResponse } from '../services/geminiService';
 import { authService } from '../services/authService';
-import PackageCarousel from '../components/PackageCarousel';
 import { packageService, HoneymoonPackage } from '../services/packageService';
-import PackageDetail from './PackageDetail';
 import { useTheme } from '../contexts/ThemeContext';
 import { detectLanguage, generateResponse, parseRegistrationData, parseLoginData, looksLikeRegistrationData, looksLikeLoginData, isChatCommand, processChatCommand } from '../services/geminiService';
+import { logger } from '../utils/logger';
+import { checkRateLimit, recordSuccess, recordFailure } from '../utils/rate-limiter';
+import { 
+  setAnalyticsUser, 
+  trackChatEvent, 
+  trackUserInteraction, 
+  trackPackageEvent, 
+  trackFeatureUsage,
+  trackSearch,
+  trackPageView,
+  updateUserProperties 
+} from '../utils/analytics';
+import { useNotifications } from '../hooks/useNotifications';
+import { offlineManager, cacheForOffline, getCachedData, queueForSync } from '../utils/offline-manager';
+import { useDebounce, useDebouncedCallback } from '../hooks/useDebounce';
+
+// Lazy load heavy components
+const PackageCarousel = lazy(() => import('../components/PackageCarousel'));
+const PackageDetail = lazy(() => import('./PackageDetail'));
+const VoiceInput = lazy(() => import('../components/VoiceInput'));
+const ImageUpload = lazy(() => import('../components/ImageUpload'));
+const OfflineIndicator = lazy(() => import('../components/OfflineIndicator'));
+const ProfileAnalysisWizard = lazy(() => import('../components/ProfileAnalysisWizard'));
+const HoneymoonPlannerWizard = lazy(() => import('../components/HoneymoonPlannerWizard'));
 
 type Message = {
   role: 'user' | 'assistant';
@@ -18,6 +41,7 @@ type Message = {
   packages?: HoneymoonPackage[];
   sessionId?: string;
   feedback?: 'thumbs_up' | 'thumbs_down' | null;
+  actionData?: any;
 };
 
 type Chat = {
@@ -34,6 +58,14 @@ const Index = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { actualTheme, toggleTheme } = useTheme();
+  // Temporarily disabled due to hook error
+  // const { canInstall, installPWA } = usePWA();
+  const canInstall = false;
+  const installPWA = async () => false;
+  const { notifyNewChatResponse, notifyPackageRecommendation } = useNotifications({ 
+    enabled: true, 
+    autoRequestPermission: false // Let user decide in settings
+  });
   
   // Kullanıcının baş harfini al
   const getUserInitial = () => {
@@ -46,8 +78,8 @@ const Index = () => {
     return '👤';
   };
 
-  // Premium degrade rengi üret (kullanıcı email'ine göre sabit)
-  const getUserGradient = () => {
+  // Premium degrade rengi üret (kullanıcı email'ine göre sabit) - Memoized
+  const userGradient = useMemo(() => {
     const email = user?.email || 'default';
     const hash = email.split('').reduce((a, b) => {
       a = ((a << 5) - a) + b.charCodeAt(0);
@@ -66,12 +98,13 @@ const Index = () => {
     ];
     
     return gradients[Math.abs(hash) % gradients.length];
-  };
+  }, [user?.email]);
   
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -86,6 +119,21 @@ const Index = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Profile Analysis and Honeymoon Planner states
+  const [showProfileWizard, setShowProfileWizard] = useState(false);
+  const [showHoneymoonPlanner, setShowHoneymoonPlanner] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+  
+  // Debounced search for better performance
+  const debouncedSearchInput = useDebounce(searchInput, 300);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  
+  // Debounced typing indicator for chat input
+  const [isTyping, setIsTyping] = useState(false);
+  const [debouncedTypingStop] = useDebouncedCallback(() => {
+    setIsTyping(false);
+  }, 1000);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [currentEmoji] = useState(() => {
     const emojis = ['💖', '✨', '💫', '🌟', '💎', '👑', '🌹', '💝'];
@@ -140,6 +188,9 @@ const Index = () => {
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
   const [messageFeedback, setMessageFeedback] = useState<{[key: number]: 'thumbs_up' | 'thumbs_down' | null}>({});
+  const [rateLimitStatus, setRateLimitStatus] = useState<{[key: string]: boolean}>({});
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   // Büyülü ve sürekli değişen placeholder için state ve metinler
   const [placeholderText, setPlaceholderText] = useState("Whisper your heart's desires to AI LOVVE...");
@@ -404,7 +455,7 @@ const Index = () => {
       return allPackages.slice(0, 6);
       
     } catch (error) {
-      console.error('Error parsing package recommendations:', error);
+      logger.error('Error parsing package recommendations:', error);
       return [];
     }
   };
@@ -485,78 +536,141 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Filter chats based on search query
+  // Memoized search results for better performance with debouncing
+  const magicalResults = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) {
+      return chats;
+    }
+
+    const lowerQuery = debouncedSearchQuery.toLowerCase();
+    return chats.filter(chat => {
+      const titleMatch = chat.title.toLowerCase().includes(lowerQuery);
+      const lastMessageMatch = chat.lastMessage.toLowerCase().includes(lowerQuery);
+      const messagesMatch = chat.messages.some(message => 
+        message.content.toLowerCase().includes(lowerQuery)
+      );
+      
+      return titleMatch || lastMessageMatch || messagesMatch;
+    });
+  }, [chats, debouncedSearchQuery]);
+
+  const performMagicalSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  // Update filtered chats when magical results change
   useEffect(() => {
-    performMagicalSearch(searchQuery);
-  }, [chats, searchQuery]);
+    setFilteredChats(magicalResults);
+  }, [magicalResults]);
 
   // Initialize session and load chat history
   useEffect(() => {
     const initializeApp = async () => {
-      console.log('🚀 Initializing app...');
+      logger.log('🚀 Initializing app...');
       
       try {
         const sessionId = await authService.getChatSessionId();
         setCurrentSessionId(sessionId);
-        console.log('✅ Session ID obtained:', sessionId);
+        logger.log('✅ Session ID obtained:', sessionId);
+        
+        // Set analytics user if available
+        if (user?.uid) {
+          setAnalyticsUser(user.uid, {
+            user_type: user.isPremium ? 'premium' : 'free',
+            registration_date: user.createdAt || new Date().toISOString(),
+            total_chats: chats.length
+          });
+        }
+        
+        // Track app initialization
+        trackPageView('/chat', 'AI LOVVE Chat Interface');
+        trackUserInteraction('app_initialized', 'session_start', {
+          session_id: sessionId,
+          user_type: user?.isPremium ? 'premium' : 'free'
+        });
         
         // Always try to load from Firebase first (primary data source)
-        console.log('📡 Loading chat history from Firebase (primary source)...');
+        logger.log('📡 Loading chat history from Firebase (primary source)...');
         await loadChatHistory(sessionId);
         
         // If no Firebase data, then try localStorage as fallback
         if (chats.length === 0) {
-          console.log('📱 No Firebase data, trying localStorage fallback...');
-          const backupChats = localStorage.getItem('ailovve_chats_backup');
-          if (backupChats) {
-            try {
-              const parsedChats = JSON.parse(backupChats);
-              setChats(parsedChats);
-              console.log('📦 Restored from localStorage fallback:', parsedChats.length, 'chats');
-            } catch (error) {
-              console.error('❌ Error parsing backup chats:', error);
-              localStorage.removeItem('ailovve_chats_backup');
+          logger.log('📱 No Firebase data, trying localStorage fallback...');
+          
+          // Try offline cache first
+          let backupChats = getCachedData<any[]>('user_chats');
+          
+          // If no cached data, try localStorage backup
+          if (!backupChats) {
+            const localBackup = localStorage.getItem('ailovve_chats_backup');
+            if (localBackup) {
+              try {
+                backupChats = JSON.parse(localBackup);
+              } catch (error) {
+                logger.error('❌ Error parsing localStorage backup:', error);
+                localStorage.removeItem('ailovve_chats_backup');
+              }
             }
+          }
+          
+          if (backupChats && backupChats.length > 0) {
+            setChats(backupChats);
+            logger.log('📦 Restored from offline cache/backup:', backupChats.length, 'chats');
+            
+            // Track chat history restore
+            trackUserInteraction('chat_history_restored', navigator.onLine ? 'localStorage_fallback' : 'offline_cache', {
+              restored_chats_count: backupChats.length,
+              is_offline: !navigator.onLine
+            });
           }
         }
         
       } catch (error) {
-        console.error('❌ Error initializing app:', error);
+        logger.error('❌ Error initializing app:', error);
+        trackError(error as Error, 'app_initialization_failed', 'high');
+        
         // Try localStorage as emergency fallback
-        console.log('🆘 Firebase failed, using localStorage emergency backup...');
+        logger.log('🆘 Firebase failed, using localStorage emergency backup...');
         const backupChats = localStorage.getItem('ailovve_chats_backup');
         if (backupChats) {
           try {
             const parsedChats = JSON.parse(backupChats);
             setChats(parsedChats);
-            console.log('🔧 Emergency restore from localStorage:', parsedChats.length, 'chats');
+            logger.log('🔧 Emergency restore from localStorage:', parsedChats.length, 'chats');
+            
+            // Track emergency fallback
+            trackUserInteraction('emergency_restore', 'localStorage_backup', {
+              restored_chats_count: parsedChats.length
+            });
           } catch (parseError) {
-            console.error('❌ Emergency backup also failed:', parseError);
+            logger.error('❌ Emergency backup also failed:', parseError);
+            trackError(parseError as Error, 'emergency_backup_failed', 'high');
           }
         }
       }
     };
 
     initializeApp();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // Load chat history from Firebase
   const loadChatHistory = async (sessionId: string) => {
     if (!sessionId) {
-      console.log('❌ loadChatHistory: No sessionId provided');
+      logger.log('❌ loadChatHistory: No sessionId provided');
       return;
     }
     
-    console.log('🔄 Starting chat history load for sessionId:', sessionId);
+    logger.log('🔄 Starting chat history load for sessionId:', sessionId);
     setIsLoadingHistory(true);
     
     try {
-      console.log('🔧 Calling getChatHistory with sessionId:', sessionId);
+      logger.log('🔧 Calling getChatHistory with sessionId:', sessionId);
       const history = await getChatHistory(sessionId, 20);
-      console.log('📋 getChatHistory response:', history);
+      logger.log('📋 getChatHistory response:', history);
       
       if (history && history.length > 0) {
-        console.log('✅ Found chat history, converting', history.length, 'messages');
+        logger.log('✅ Found chat history, converting', history.length, 'messages');
         
         // Convert Firebase history to frontend format
         const convertedHistory: Message[] = history.map((msg: any) => ({
@@ -565,7 +679,7 @@ const Index = () => {
           timestamp: msg.createdAt || new Date().toISOString()
         }));
 
-        console.log('🔄 Converted history:', convertedHistory);
+        logger.log('🔄 Converted history:', convertedHistory);
 
         // Sort all messages by timestamp first
         convertedHistory.sort((a, b) => {
@@ -574,7 +688,7 @@ const Index = () => {
           return timeA - timeB;
         });
         
-        console.log('🔄 Converted history:', convertedHistory);
+        logger.log('🔄 Converted history:', convertedHistory);
         
         // Group messages by time gaps (create new chat if >1 hour gap)
         const chatSessions: Message[][] = [];
@@ -606,7 +720,7 @@ const Index = () => {
           chatSessions.push(currentSession);
         }
         
-        console.log('📊 Messages grouped into', chatSessions.length, 'chat sessions');
+        logger.log('📊 Messages grouped into', chatSessions.length, 'chat sessions');
         
         // Create chat objects for each session
         const newChats: Chat[] = chatSessions.map((messages, index) => {
@@ -631,7 +745,7 @@ const Index = () => {
           };
         });
         
-        console.log('📦 Created', newChats.length, 'chat objects from history');
+        logger.log('📦 Created', newChats.length, 'chat objects from history');
 
         // Update chats list without removing existing chats
         setChats(prev => {
@@ -649,11 +763,11 @@ const Index = () => {
           newChats.forEach(newChat => {
             const existingChatIndex = firebaseBasedChats.findIndex(chat => chat.id === newChat.id);
             if (existingChatIndex >= 0) {
-              console.log('🔄 Updating existing Firebase-based chat:', newChat.title);
+              logger.log('🔄 Updating existing Firebase-based chat:', newChat.title);
               // Update existing Firebase chat
               updatedChats.push(newChat);
             } else {
-              console.log('➕ Adding new Firebase chat:', newChat.title);
+              logger.log('➕ Adding new Firebase chat:', newChat.title);
               updatedChats.push(newChat);
             }
           });
@@ -672,19 +786,19 @@ const Index = () => {
         
         // DON'T automatically select the most recent chat
         // Let the welcome screen show first, user can manually select chats
-        console.log('✅ Chat history loaded. Welcome screen will be shown.');
+        logger.log('✅ Chat history loaded. Welcome screen will be shown.');
         
-        console.log('✅ Chat history loaded and applied successfully');
+        logger.log('✅ Chat history loaded and applied successfully');
       } else {
-        console.log('ℹ️ No chat history found for sessionId:', sessionId);
+        logger.log('ℹ️ No chat history found for sessionId:', sessionId);
       }
     } catch (error) {
-      console.error('❌ Error loading chat history:', error);
-      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+      logger.error('❌ Error loading chat history:', error);
+      logger.error('❌ Error details:', JSON.stringify(error, null, 2));
       // Don't show error toast for empty history
     } finally {
       setIsLoadingHistory(false);
-      console.log('🏁 Chat history loading completed');
+      logger.log('🏁 Chat history loading completed');
     }
   };
 
@@ -716,19 +830,28 @@ const Index = () => {
       if (settingsMenuOpen && !target.closest('.settings-menu-container')) {
         setSettingsMenuOpen(false);
       }
+      if (exportMenuOpen && !target.closest('.export-menu-container')) {
+        setExportMenuOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [profileMenuOpen, modelMenuOpen, settingsMenuOpen]);
+  }, [profileMenuOpen, modelMenuOpen, settingsMenuOpen, exportMenuOpen]);
 
   const createNewChat = async () => {
     try {
       // Her yeni chat için yeni büyülü isim
       const newMagicalTitle = getRandomNewChatTitle();
       setCurrentNewChatTitle(newMagicalTitle);
+      
+      // Track new chat creation
+      trackChatEvent('chat_started', {
+        chat_title: newMagicalTitle,
+        user_type: user?.isPremium ? 'premium' : 'free'
+      });
       
       // Büyülü efekt - sidebar'ı kapat
       setSidebarOpen(false);
@@ -750,10 +873,11 @@ const Index = () => {
       setCurrentSessionId(newSessionId);
       setMessages([]);
       
-      console.log(`✨ New magical chat created: ${newMagicalTitle}`);
+      logger.log(`✨ New magical chat created: ${newMagicalTitle}`);
       
     } catch (error) {
-      console.error('Error creating new chat:', error);
+      logger.error('Error creating new chat:', error);
+      trackError(error as Error, 'new_chat_creation_failed');
     }
   };
 
@@ -765,17 +889,73 @@ const Index = () => {
       setMessages(chat.messages);
       setSidebarOpen(false);
       
+      // Track chat selection
+      trackUserInteraction('chat_selected', 'sidebar', {
+        chat_id: chatId,
+        chat_title: chat.title,
+        message_count: chat.messages.length
+      });
+      
       // Scroll to bottom after chat is loaded
       setTimeout(() => {
         scrollToBottom(false); // Instant scroll for chat switching
       }, 100);
       
-      console.log(`✅ Selected chat: ${chat.title} with ${chat.messages.length} messages`);
+      logger.log(`✅ Selected chat: ${chat.title} with ${chat.messages.length} messages`);
     }
   };
 
-  const handleSendMessage = async (content: string) => {
+  // Rate limiting helper function
+  const handleRateLimit = async (action: string, weight = 1): Promise<boolean> => {
+    try {
+      const userId = user?.uid;
+      const result = await checkRateLimit(action, userId, undefined, weight);
+      
+      if (!result.allowed) {
+        const resetTime = new Date(result.info.resetTime);
+        const timeUntilReset = Math.ceil((result.info.resetTime - Date.now()) / 60000); // minutes
+        
+        const message = result.info.isBlocked 
+          ? `⛔ You've been temporarily blocked for ${Math.ceil((result.info.blockedUntil! - Date.now()) / 60000)} minutes due to excessive usage.`
+          : `🚫 Rate limit exceeded for ${action.replace('_', ' ')}. Please wait ${timeUntilReset} minutes.`;
+        
+        // Show user feedback through console and potential UI notification
+        logger.warn(`Rate limit hit for ${action}:`, result.info);
+        
+        // Update rate limit status for UI feedback
+        setRateLimitStatus(prev => ({ ...prev, [action]: true }));
+        
+        // Clear rate limit status after some time
+        setTimeout(() => {
+          setRateLimitStatus(prev => ({ ...prev, [action]: false }));
+        }, 5000);
+        
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      logger.error('Rate limiting error:', error);
+      return true; // Allow on error to prevent blocking legitimate users
+    }
+  };
+
+  const handleSendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;
+    
+    // Check rate limit before processing message
+    const rateLimitPassed = await handleRateLimit('chat_message');
+    if (!rateLimitPassed) {
+      return; // Exit early if rate limited
+    }
+    
+    // Track message sending
+    trackChatEvent('message_sent', {
+      message_length: content.length,
+      chat_id: currentChatId || 'new_chat',
+      user_type: user?.isPremium ? 'premium' : 'free',
+      selected_model: selectedModel
+    });
     
     setIsLoading(true);
     const newUserMessage: Message = { 
@@ -865,6 +1045,78 @@ const Index = () => {
     setInputValue('');
 
     try {
+      // Check for AI command before sending to Gemini
+      const aiCommand = detectAICommand(content);
+      if (aiCommand) {
+        const aiResponse = generateAICommandResponse(aiCommand, user?.displayName);
+        
+        // Handle AI command response
+        const assistantMessage: Message = {
+          role: 'assistant', 
+          content: aiResponse.content, 
+          timestamp: new Date().toISOString(),
+          isThinking: false,
+          actionData: aiResponse.actionData
+        };
+
+        // Replace typing indicator with AI command response
+        setMessages(prev => {
+          const updated = prev.slice(0, -1).concat(assistantMessage);
+          setTimeout(() => scrollToBottom(true), 200);
+          return updated;
+        });
+
+        // Update chat with AI command response
+        setChats(prev => {
+          const updatedChats = prev.map(chat => 
+            chat.id === (chatId || currentChatId) 
+              ? {
+                  ...chat, 
+                  messages: [...chat.messages, assistantMessage],
+                  lastMessage: aiResponse.content.slice(0, 50) + (aiResponse.content.length > 50 ? '...' : ''),
+                  title: chat.title === 'Now' || chat.title.startsWith('💬') ? content.slice(0, 40) + '...' : chat.title
+                }
+              : chat
+          );
+          
+          return updatedChats.sort((a, b) => {
+            const timeA = a.messages[a.messages.length - 1]?.timestamp 
+              ? new Date(a.messages[a.messages.length - 1].timestamp!).getTime() 
+              : 0;
+            const timeB = b.messages[b.messages.length - 1]?.timestamp 
+              ? new Date(b.messages[b.messages.length - 1].timestamp!).getTime() 
+              : 0;
+            return timeB - timeA;
+          });
+        });
+
+        // Handle AI command actions
+        setTimeout(() => {
+          switch (aiResponse.actionType) {
+            case 'SHOW_PROFILE_WIZARD':
+              setShowProfileWizard(true);
+              break;
+            case 'SHOW_HONEYMOON_PLANNER':
+              setShowHoneymoonPlanner(true);
+              break;
+            case 'SHOW_AI_PREDICTIONS':
+              // Navigate to AI dashboard or show predictions
+              logger.log('🔮 AI Predictions requested');
+              break;
+            case 'ACTIVATE_PERSONALIZATION':
+              // Enable real-time personalization
+              logger.log('✨ Personalization activated');
+              break;
+            default:
+              logger.log('🤖 AI command processed:', aiResponse.actionType);
+          }
+        }, 1000);
+
+        setIsLoading(false);
+        recordSuccess('chat_message', user?.uid);
+        return;
+      }
+
       // Use Firebase Functions to generate response and save to Firestore
       let responseContent = '';
       const userId = user?.uid || null;
@@ -898,6 +1150,49 @@ const Index = () => {
       const packages = await parsePackageRecommendations(responseContent);
       if (packages.length > 0) {
         assistantMessage.packages = packages;
+        
+        // Track package recommendations
+        packages.forEach(pkg => {
+          trackPackageEvent('package_viewed', {
+            package_id: pkg.id,
+            package_title: pkg.title,
+            package_category: pkg.category,
+            package_price: pkg.price,
+            package_location: pkg.location,
+            package_duration: pkg.duration
+          });
+        });
+      }
+      
+      // Track response received
+      trackChatEvent('response_received', {
+        response_length: responseContent.length,
+        packages_count: packages.length,
+        chat_id: chatId || currentChatId,
+        selected_model: selectedModel,
+        response_time: Date.now() - Date.parse(newUserMessage.timestamp)
+      });
+
+      // Send notification for chat response (if user is not actively using the app)
+      const currentChat = chats.find(chat => chat.id === (chatId || currentChatId));
+      if (currentChat) {
+        notifyNewChatResponse({
+          chatId: currentChat.id,
+          chatTitle: currentChat.title,
+          messagePreview: responseContent.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').trim(),
+          responseLength: responseContent.length
+        });
+      }
+
+      // Send notification for package recommendations
+      if (packages.length > 0) {
+        notifyPackageRecommendation(packages.map(pkg => ({
+          packageId: pkg.id,
+          packageTitle: pkg.title,
+          packageLocation: pkg.location,
+          packagePrice: pkg.price,
+          packageCategory: pkg.category
+        })));
       }
 
       // Replace typing indicator with final message
@@ -933,27 +1228,98 @@ const Index = () => {
         });
       });
 
+      // Record successful message for rate limiting
+      recordSuccess('chat_message', user?.uid);
+
+      // Queue message for offline sync if needed
+      if (!navigator.onLine) {
+        queueForSync({
+          type: 'message',
+          action: 'create',
+          data: {
+            chatId: chatId || currentChatId,
+            userMessage: newUserMessage,
+            assistantMessage: assistantMessage,
+            sessionId: sessionId
+          }
+        });
+      }
+
     } catch (e: any) {
-      // Remove user message and typing indicator on error
-      setMessages(prev => prev.slice(0, prev.length - 2));
+      logger.error('❌ Error sending message:', e);
       
-      // Also revert chat updates
-      setChats(prev => prev.map(chat => 
-        chat.id === (chatId || currentChatId) 
-          ? {...chat, messages: chat.messages.slice(0, -1)}
-          : chat
-      ));
+      // If online, remove message and show error
+      if (navigator.onLine) {
+        // Remove user message and typing indicator on error
+        setMessages(prev => prev.slice(0, prev.length - 2));
+        
+        // Also revert chat updates
+        setChats(prev => prev.map(chat => 
+          chat.id === (chatId || currentChatId) 
+            ? {...chat, messages: chat.messages.slice(0, -1)}
+            : chat
+        ));
+      } else {
+        // If offline, queue for later sync and show offline message
+        const offlineMessage: Message = {
+          role: 'assistant',
+          content: "📱 You're currently offline. This message will be sent when you're back online.",
+          timestamp: new Date().toISOString(),
+          isThinking: false
+        };
+        
+        setMessages(prev => prev.slice(0, -1).concat(offlineMessage));
+        
+        // Queue the failed message for retry when online
+        queueForSync({
+          type: 'message',
+          action: 'create',
+          data: {
+            chatId: chatId || currentChatId,
+            userMessage: newUserMessage,
+            sessionId: sessionId,
+            retryOnline: true
+          }
+        });
+      }
+
+      // Record failed message for rate limiting
+      recordFailure('chat_message', user?.uid);
     } finally {
       setIsLoading(false);
       // Final scroll to ensure we're at bottom
       setTimeout(() => scrollToBottom(true), 300);
     }
-  };
+  }, [
+    currentChatId,
+    user,
+    selectedModel,
+    messages,
+    currentSessionId,
+    chats,
+    setIsLoading,
+    setMessages,
+    setCurrentChatId,
+    setCurrentSessionId,
+    setChats,
+    setInputValue,
+    handleRateLimit,
+    trackChatEvent,
+    scrollToBottom,
+    generateGeminiStream,
+    parsePackageRecommendations,
+    trackPackageEvent,
+    notifyNewChatResponse,
+    notifyPackageRecommendation,
+    recordSuccess,
+    queueForSync,
+    recordFailure
+  ]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     handleSendMessage(inputValue);
-  };
+  }, [handleSendMessage, inputValue]);
 
   const openSettings = () => {
     navigate('/settings');
@@ -961,14 +1327,22 @@ const Index = () => {
 
   const openActivity = () => {
     // Activity sayfası geliştiriliyor, sessizce işle
-    console.log('Activity page is under development...');
+    logger.log('Activity page is under development...');
   };
 
   const handleModelChange = (model: ModelType) => {
     setSelectedModel(model);
     setModelMenuOpen(false);
+    
+    // Track model change
+    trackUserInteraction('model_changed', 'model_selector', {
+      new_model: model,
+      previous_model: selectedModel,
+      user_type: user?.isPremium ? 'premium' : 'free'
+    });
+    
     // Toast yerine sessizce model değiştir
-    console.log(`Model changed to: ${model === 'ai-lovv3' ? 'Advanced AI' : 'Fast AI'}`);
+    logger.log(`Model changed to: ${model === 'ai-lovv3' ? 'Advanced AI' : 'Fast AI'}`);
   };
 
   const handleLogout = async () => {
@@ -985,6 +1359,11 @@ const Index = () => {
     setSearchInput(value);
     setIsSearching(true);
     
+    // Track search if there's a query
+    if (value.trim()) {
+      trackSearch(value, 'general', filteredChats.length);
+    }
+    
     // Büyülü arama gecikme efekti
     setTimeout(() => {
       setSearchQuery(value);
@@ -992,27 +1371,34 @@ const Index = () => {
     }, 300);
   };
 
-  const performMagicalSearch = (query: string) => {
-    if (!query.trim()) {
-      setFilteredChats(chats);
-      return;
-    }
-
-    setIsSearching(true);
+  // AI kart tıklama işleyicisi
+  const handleCardClick = useCallback((cardId: string, cardData: any) => {
+    logger.log('AI Card clicked:', { cardId, cardData });
     
-    // Büyülü arama algoritması
-    setTimeout(() => {
-      const filtered = chats.filter(chat => 
-        chat.title.toLowerCase().includes(query.toLowerCase()) ||
-        chat.messages.some(msg => 
-          msg.content.toLowerCase().includes(query.toLowerCase())
-        )
-      );
-      setFilteredChats(filtered);
-      setIsSearching(false);
-      console.log(`✨ Magical search found ${filtered.length} treasures for: "${query}"`);
-    }, 200);
-  };
+    // Send user's selection as a message
+    const selectionMessage = `${cardData.icon} ${cardData.title} seçtim - ${cardData.description}`;
+    
+    // Generate next step based on card selection
+    let nextStepResponse = '';
+    
+    if (cardData.id === 'romantic') {
+      nextStepResponse = `💕 Harika seçim! Romantik balayı tercihlerinizi not ettim.\n\n**PROFIL_ANALYSIS_CARDS**\n\nŞimdi bütçe aralığınızı belirleyelim:`;
+      // Add budget selection cards
+    } else if (cardData.id === 'beach') {
+      nextStepResponse = `🏖️ Mükemmel! Plaj balayısı planlıyoruz.\n\n**HONEYMOON_PLANNER_CARDS**\n\nHangi aktiviteleri tercih edersiniz?`;
+      // Add activity selection cards
+    }
+    
+    // Add user selection message
+    handleSendMessage(selectionMessage);
+    
+    // Track card click
+    trackUserInteraction('ai_card_clicked', 'chat_cards', {
+      card_id: cardId,
+      card_type: cardData.title,
+      step: cardData.step || 'unknown'
+    });
+  }, [handleSendMessage, trackUserInteraction]);
 
   const suggestionPrompts = [
     {
@@ -1051,20 +1437,30 @@ const Index = () => {
   };
 
   // Toggle sidebar and update body class
-  const toggleSidebar = () => {
+  const toggleSidebar = useCallback(() => {
     setSidebarOpen(!sidebarOpen);
     if (!sidebarOpen) {
       document.body.classList.remove('sidebar-closed');
     } else {
       document.body.classList.add('sidebar-closed');
     }
-  };
+  }, [sidebarOpen]);
 
   // Package modal functions
   const openPackageModal = (packageId: string) => {
     setSelectedPackageId(packageId);
     setIsPackageModalOpen(true);
     document.body.style.overflow = 'hidden';
+    
+    // Track package modal opening
+    trackPackageEvent('package_clicked', {
+      package_id: packageId,
+      package_title: '', // Will be filled by the actual package data
+      package_category: '',
+      package_price: 0,
+      package_location: '',
+      package_duration: 0
+    });
   };
 
   const closePackageModal = () => {
@@ -1096,23 +1492,26 @@ const Index = () => {
     if (chats.length > 0) {
       try {
         localStorage.setItem('ailovve_chats_backup', JSON.stringify(chats));
-        console.log('💾 Auto-backup saved to localStorage:', chats.length, 'chats');
+        logger.log('💾 Auto-backup saved to localStorage:', chats.length, 'chats');
+        
+        // Cache for offline use (24 hour expiry)
+        cacheForOffline('user_chats', chats, 24 * 60 * 60 * 1000);
       } catch (error) {
-        console.error('❌ Failed to backup chats to localStorage:', error);
+        logger.error('❌ Failed to backup chats to localStorage:', error);
       }
     }
-  }, [chats]);
+  }, [chats, chats.length]);
 
   const deleteChat = async (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering selectChat
     
     try {
-      console.log('🗑️ Deleting chat:', chatId);
+      logger.log('🗑️ Deleting chat:', chatId);
       
       // Find the chat to get its sessionId
       const chatToDelete = chats.find(chat => chat.id === chatId);
       if (!chatToDelete) {
-        console.error('❌ Chat not found:', chatId);
+        logger.error('❌ Chat not found:', chatId);
         return;
       }
       
@@ -1137,13 +1536,13 @@ const Index = () => {
       }
       
       // Delete from Firebase Firestore
-      console.log('🔥 Deleting from Firebase, sessionId:', chatToDelete.sessionId);
+      logger.log('🔥 Deleting from Firebase, sessionId:', chatToDelete.sessionId);
       const firebaseDeleteSuccess = await deleteChatHistory(chatToDelete.sessionId);
       
       if (firebaseDeleteSuccess) {
-        console.log('✅ Chat deleted from Firebase successfully');
+        logger.log('✅ Chat deleted from Firebase successfully');
       } else {
-        console.warn('⚠️ Failed to delete from Firebase, but local deletion completed');
+        logger.warn('⚠️ Failed to delete from Firebase, but local deletion completed');
       }
       
       // Also remove from localStorage backup
@@ -1153,10 +1552,10 @@ const Index = () => {
       const updatedChats = chats.filter(chat => chat.id !== chatId);
       localStorage.setItem('ailovve_chats_backup', JSON.stringify(updatedChats));
       
-      console.log('✅ Chat deleted successfully from all sources');
+      logger.log('✅ Chat deleted successfully from all sources');
       
     } catch (error) {
-      console.error('❌ Error deleting chat:', error);
+      logger.error('❌ Error deleting chat:', error);
       
       // Revert the optimistic update on error
       const originalChats = [...chats];
@@ -1186,7 +1585,7 @@ const Index = () => {
       // Auto-hide copied state
       setTimeout(() => setCopiedMessageIndex(null), 2000);
     } catch (error) {
-      console.error('Failed to copy message:', error);
+      logger.error('Failed to copy message:', error);
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = content.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').trim();
@@ -1216,7 +1615,7 @@ const Index = () => {
     }
     
     // Here you could also send feedback to analytics or backend
-    console.log(`Message ${index} feedback:`, newFeedback || 'removed');
+    logger.log(`Message ${index} feedback:`, newFeedback || 'removed');
     
     // Optional: Send feedback to backend
     // await sendFeedbackToBackend(messages[index], newFeedback);
@@ -1253,6 +1652,99 @@ const Index = () => {
     await handleSendMessage(userMessage.content);
   };
 
+  // PDF Export functions
+  const exportCurrentChatToPDF = async () => {
+    if (!currentChatId || messages.length === 0) {
+      logger.warn('No current chat to export');
+      return;
+    }
+
+    setIsExportingPDF(true);
+    try {
+      // Lazy load PDF export function
+      const { exportChatToPDF } = await import('../utils/pdf-export');
+      
+      const currentChat = chats.find(chat => chat.id === currentChatId);
+      if (!currentChat) {
+        throw new Error('Current chat not found');
+      }
+
+      await exportChatToPDF(
+        currentChat.id,
+        currentChat.title,
+        currentChat.messages,
+        user?.email
+      );
+
+      // Track PDF export
+      trackChatEvent('chat_exported', {
+        chat_id: currentChat.id,
+        chat_title: currentChat.title,
+        message_count: currentChat.messages.length,
+        export_type: 'single_chat_pdf'
+      });
+
+      logger.log('✅ Current chat exported to PDF successfully');
+      
+      // Haptic feedback for success
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100]);
+      }
+    } catch (error) {
+      logger.error('❌ Failed to export current chat to PDF:', error);
+      trackError(error as Error, 'pdf_export_failed');
+      alert('Failed to export chat to PDF. Please try again.');
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
+  const exportAllChatsToPDFHandler = async () => {
+    if (chats.length === 0) {
+      logger.warn('No chats to export');
+      return;
+    }
+
+    setIsExportingPDF(true);
+    try {
+      // Lazy load PDF export function
+      const { exportAllChatsToPDF } = await import('../utils/pdf-export');
+      
+      // Filter out chats with no messages
+      const chatsWithMessages = chats.filter(chat => chat.messages.length > 0);
+      
+      if (chatsWithMessages.length === 0) {
+        throw new Error('No chats with messages found');
+      }
+
+      await exportAllChatsToPDF(chatsWithMessages, user?.email);
+
+      // Track bulk PDF export
+      trackChatEvent('chat_exported', {
+        export_type: 'all_chats_pdf',
+        chat_count: chatsWithMessages.length,
+        total_messages: chatsWithMessages.reduce((total, chat) => total + chat.messages.length, 0)
+      });
+
+      logger.log(`✅ All chats (${chatsWithMessages.length}) exported to PDF successfully`);
+      
+      // Haptic feedback for success
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100, 50, 100]);
+      }
+    } catch (error) {
+      logger.error('❌ Failed to export all chats to PDF:', error);
+      alert('Failed to export chat history to PDF. Please try again.');
+    } finally {
+      setIsExportingPDF(false);
+      setExportMenuOpen(false);
+    }
+  };
+
+  const getTotalMessageCount = () => {
+    return chats.reduce((total, chat) => total + chat.messages.length, 0);
+  };
+
   return (
     <div className="flex h-screen">
       {/* CLASSIC SIDEBAR DESIGN - RESTORED */}
@@ -1263,7 +1755,7 @@ const Index = () => {
           <div className="sidebar-button-container">
             {/* Menu Button - 25% */}
             <button
-              onClick={() => toggleSidebar()}
+              onClick={toggleSidebar}
               className="gemini-menu-button sidebar-menu-btn-half"
             >
               <Menu className="w-4 h-4" />
@@ -1286,66 +1778,99 @@ const Index = () => {
         </div>
         
         <div className="gemini-chat-list">
+          {/* AI-Powered Smart Suggestions */}
           <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Plan romantic Paris honeymoon")}
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => {
+              if (!rateLimitStatus['chat_message']) {
+                trackUserInteraction('ai_feature_clicked', 'sidebar_ai', { feature: 'profile_analysis' });
+                handleSendMessage("🧠 AI Profil Analizi başlat - beni tanıyın ve kişiselleştirilmiş öneriler verin");
+              }
+            }}
+          >
+            <Users className="gem-icon w-4 h-4 flex-shrink-0" />
+            <span>AI Profil Analizi</span>
+          </div>
+          <div 
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => {
+              if (!rateLimitStatus['chat_message']) {
+                trackUserInteraction('ai_feature_clicked', 'sidebar_ai', { feature: 'honeymoon_planner' });
+                handleSendMessage("💕 AI Balayı Planlayıcısı - adım adım hayalimde balayını planla");
+              }
+            }}
+          >
+            <Calendar className="gem-icon w-4 h-4 flex-shrink-0" />
+            <span>AI Balayı Planlayıcı</span>
+          </div>
+          
+          <div 
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => {
+              if (!rateLimitStatus['chat_message']) {
+                trackUserInteraction('suggestion_clicked', 'sidebar_suggestion', { suggestion: 'romantic_paris_honeymoon' });
+                handleSendMessage("Plan romantic Paris honeymoon");
+              }
+            }}
           >
             <Heart className="gem-icon w-4 h-4 flex-shrink-0" />
             <span>Romantic Paris Honeymoon</span>
           </div>
           <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Budget honeymoon destinations under $5000")}
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => !rateLimitStatus['chat_message'] && handleSendMessage("Budget honeymoon destinations under $5000")}
           >
             <MapPin className="gem-icon w-4 h-4 flex-shrink-0" />
             <span>Budget Honeymoon Destinations</span>
           </div>
           <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Best time to visit Maldives for honeymoon")}
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => !rateLimitStatus['chat_message'] && handleSendMessage("Best time to visit Maldives for honeymoon")}
           >
             <Sparkles className="gem-icon w-4 h-4 flex-shrink-0" />
             <span>Maldives Honeymoon Guide</span>
           </div>
           <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Romantic surprises for honeymoon")}
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => !rateLimitStatus['chat_message'] && handleSendMessage("Romantic surprises for honeymoon")}
           >
             <Crown className="gem-icon w-4 h-4 flex-shrink-0" />
             <span>Romantic Surprise Ideas</span>
           </div>
           <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Greek islands honeymoon itinerary")}
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => !rateLimitStatus['chat_message'] && handleSendMessage("Greek islands honeymoon itinerary")}
           >
             <Star className="gem-icon w-4 h-4 flex-shrink-0" />
             <span>Greek Islands Honeymoon</span>
           </div>
           <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Tuscany wine honeymoon tour")}
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => !rateLimitStatus['chat_message'] && handleSendMessage("Tuscany wine honeymoon tour")}
           >
             <Zap className="gem-icon w-4 h-4 flex-shrink-0" />
             <span>Tuscany Wine Honeymoon</span>
           </div>
           <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Swiss Alps winter honeymoon")}
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => !rateLimitStatus['chat_message'] && handleSendMessage("Swiss Alps winter honeymoon")}
           >
             <Sparkles className="gem-icon w-4 h-4 flex-shrink-0" />
             <span>Swiss Alps Winter Romance</span>
           </div>
           <div 
-            className="gemini-chat-item" 
-            style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-            onClick={() => handleSendMessage("Bali temple honeymoon experience")}
+            className={`gemini-chat-item ${rateLimitStatus['chat_message'] ? 'disabled' : ''}`}
+            style={{ display: 'flex', alignItems: 'center', cursor: rateLimitStatus['chat_message'] ? 'not-allowed' : 'pointer', opacity: rateLimitStatus['chat_message'] ? 0.5 : 1 }}
+            onClick={() => !rateLimitStatus['chat_message'] && handleSendMessage("Bali temple honeymoon experience")}
           >
             <Heart className="gem-icon w-4 h-4 flex-shrink-0" />
             <span>Bali Temple Honeymoon</span>
@@ -1461,7 +1986,66 @@ const Index = () => {
 
         {/* Sidebar Footer */}
         <div className="gemini-sidebar-footer">
-          <div className="flex items-center justify-center">
+          <div className="flex flex-col gap-2">
+            {/* Export Menu */}
+            <div className="export-menu-container relative">
+              <button 
+                onClick={() => setExportMenuOpen(!exportMenuOpen)}
+                className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-lg transition-colors w-full justify-center sm:justify-start"
+                disabled={isExportingPDF || chats.length === 0}
+              >
+                <Download className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-gray-400">
+                  {isExportingPDF ? 'Exporting...' : 'Export magical chats'}
+                </span>
+              </button>
+              
+              {exportMenuOpen && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-2 z-50">
+                  {/* Export current chat */}
+                  {currentChatId && messages.length > 0 && (
+                    <button
+                      onClick={exportCurrentChatToPDF}
+                      className="flex items-center gap-2 hover:bg-gray-700 p-2 transition-colors w-full text-left"
+                      disabled={isExportingPDF}
+                    >
+                      <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-200">Export Current Chat</div>
+                        <div className="text-xs text-gray-400">
+                          {messages.length} messages · {estimatePDFSize(messages.length)}
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                  
+                  {/* Export all chats */}
+                  {chats.length > 0 && (
+                    <button
+                      onClick={exportAllChatsToPDFHandler}
+                      className="flex items-center gap-2 hover:bg-gray-700 p-2 transition-colors w-full text-left"
+                      disabled={isExportingPDF}
+                    >
+                      <Download className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-200">Export All Chats</div>
+                        <div className="text-xs text-gray-400">
+                          {chats.length} conversations · {getTotalMessageCount()} messages · {estimatePDFSize(getTotalMessageCount())}
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                  
+                  {chats.length === 0 && (
+                    <div className="p-3 text-center text-gray-400 text-sm">
+                      No chats to export yet
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Settings */}
             <button 
               onClick={() => navigate('/settings')}
               className="flex items-center gap-2 hover:bg-gray-700 p-2 rounded-lg transition-colors w-full justify-center sm:justify-start"
@@ -1474,12 +2058,12 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <div className="gemini-main">
+      <main id="main-content" className="gemini-main" role="main" aria-label="Chat interface">
         {/* Header */}
         <div className="gemini-header">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <button
-              onClick={() => toggleSidebar()}
+              onClick={toggleSidebar}
               className="gemini-menu-button flex-shrink-0"
             >
               <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1523,28 +2107,57 @@ const Index = () => {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {/* Offline Indicator */}
+            <Suspense fallback={<div className="w-4 h-4 rounded-full bg-gray-300 animate-pulse" />}>
+              <OfflineIndicator className="hidden sm:flex" />
+            </Suspense>
+            
             <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">PRO</span>
             
             <div className="profile-menu-container relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                 className="gemini-profile text-sm sm:text-base"
+                aria-expanded={profileMenuOpen}
+                aria-haspopup="menu"
+                aria-label={`User menu for ${user?.email || 'user'}`}
               >
                 {getUserInitial()}
               </button>
               
               {profileMenuOpen && (
-                <div className={`gemini-dropdown-menu ${profileMenuOpen ? 'open' : ''}`} style={{ top: '100%', right: 0, marginTop: '8px' }}>
+                <div 
+                  className={`gemini-dropdown-menu ${profileMenuOpen ? 'open' : ''}`} 
+                  style={{ top: '100%', right: 0, marginTop: '8px' }}
+                  role="menu"
+                  aria-label="User menu"
+                >
                   <div className="gemini-dropdown-header">
                     <div className="user-name truncate">{user?.displayName || 'Beloved User'}</div>
                     <div className="user-email truncate">{user?.email}</div>
                   </div>
+                  {canInstall && (
+                    <button
+                      onClick={async () => {
+                        await installPWA();
+                        setProfileMenuOpen(false);
+                      }}
+                      className="gemini-dropdown-item mb-1"
+                      role="menuitem"
+                      aria-label="Install app as PWA"
+                    >
+                      <Download className="w-4 h-4" />
+                      Install App
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       navigate('/settings');
                       setProfileMenuOpen(false);
                     }}
                     className="gemini-dropdown-item"
+                    role="menuitem"
+                    aria-label="Go to profile settings"
                   >
                     <User className="w-4 h-4" />
                     Profile settings
@@ -1555,16 +2168,35 @@ const Index = () => {
                       setProfileMenuOpen(false);
                     }}
                     className="gemini-dropdown-item"
+                    role="menuitem"
+                    aria-label="Open preferences"
                   >
                     <Settings className="w-4 h-4" />
                     Preferences
                   </button>
+                  {currentChatId && messages.length > 0 && (
+                    <button
+                      onClick={() => {
+                        exportCurrentChatToPDF();
+                        setProfileMenuOpen(false);
+                      }}
+                      className="gemini-dropdown-item"
+                      role="menuitem"
+                      aria-label="Export current chat to PDF"
+                      disabled={isExportingPDF}
+                    >
+                      <Download className="w-4 h-4" />
+                      {isExportingPDF ? 'Exporting...' : 'Export to PDF'}
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       toggleTheme();
                       setProfileMenuOpen(false);
                     }}
                     className="gemini-dropdown-item theme-toggle"
+                    role="menuitem"
+                    aria-label={`Switch to ${actualTheme === 'dark' ? 'light' : 'dark'} mode`}
                   >
                     {actualTheme === 'dark' ? (
                       <Sun className="w-4 h-4" />
@@ -1580,6 +2212,8 @@ const Index = () => {
                       setProfileMenuOpen(false);
                     }}
                     className="gemini-dropdown-item danger"
+                    role="menuitem"
+                    aria-label="Sign out of account"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign out
@@ -1601,33 +2235,80 @@ const Index = () => {
                 <div className="gemini-welcome-subtitle text-center text-sm sm:text-base lg:text-lg max-w-3xl mx-auto">
                   {currentSubtitle}
                 </div>
+                
+                {/* Offline Status on Welcome Screen */}
+                <div className="mt-8 flex justify-center">
+                  <Suspense fallback={<div className="w-8 h-4 rounded bg-gray-300 animate-pulse" />}>
+                    <OfflineIndicator showDetails={!navigator.onLine} className="sm:hidden" />
+                  </Suspense>
+                </div>
+                
+                {/* Offline Notice */}
+                {!navigator.onLine && (
+                  <div className="mt-6 max-w-md mx-auto p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <div className="text-center">
+                      <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                        📱 Offline Mode
+                      </h3>
+                      <p className="mt-1 text-xs text-yellow-700 dark:text-yellow-300">
+                        You can still view your chat history and cached data. New messages will be sent when you're back online.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
             <div className="gemini-messages">
               {messages.map((message, index) => (
                 <div key={index} className="gemini-message">
-                  {message.role === 'user' ? (
-                    <div className="gemini-message-user text-sm sm:text-base">
-                      {message.content}
-                    </div>
-                  ) : (
-                    <div className="gemini-message-assistant text-sm sm:text-base">
-                      {/* Package Cards - Show ONLY if packages exist, NO text */}
-                      {message.packages && message.packages.length > 0 ? (
+                  <Message
+                    role={message.role}
+                    content={message.content}
+                    timestamp={message.timestamp}
+                    isThinking={message.isThinking}
+                    actionData={message.actionData}
+                    onCardClick={handleCardClick}
+                  />
+                  
+                  {/* Package Cards - Show ONLY if packages exist */}
+                  {message.packages && message.packages.length > 0 && (
+                    <div className="mt-4">
+                      <Suspense fallback={
+                        <div className="flex gap-4 overflow-x-auto pb-4">
+                          {[1,2,3].map(i => (
+                            <div key={i} className="min-w-[280px] h-[200px] bg-gray-300 rounded-lg animate-pulse" />
+                          ))}
+                        </div>
+                      }>
                         <PackageCarousel 
                           packages={message.packages}
                           onSelectPackage={(packageId) => {
-                            console.log('Package selected:', packageId);
+                            logger.log('Package selected:', packageId);
                             openPackageModal(packageId);
                           }}
                         />
-                      ) : (
-                        /* Regular text message - Clean without **SHOW_PACKAGES:** */
-                        <>
-                          <div className="whitespace-pre-wrap">
-                            {message.content.replace(/\*\*SHOW_PACKAGES:[^*]+\*\*/g, '').trim()}
-                          </div>
+                      </Suspense>
+                    </div>
+                  )}
+                  
+                  {/* Message Feedback Toolkit - Only for completed assistant messages */}
+                  {message.role === 'assistant' && !message.isThinking && (
+                    <div className="message-feedback-toolkit">
+                      <div className="feedback-actions">
+                        {/* Copy Button */}
+                        <button
+                          onClick={() => copyMessage(message.content, index)}
+                          className={`feedback-button ${copiedMessageIndex === index ? 'copied' : ''}`}
+                          title="Copy message"
+                          aria-label={copiedMessageIndex === index ? 'Copied!' : 'Copy message'}
+                        >
+                          {copiedMessageIndex === index ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </button>
                           
                           {/* Message Feedback Toolkit - Only for completed assistant messages */}
                           {!message.isThinking && (
@@ -1717,8 +2398,11 @@ const Index = () => {
             <button
               type="button"
               className="gemini-toolbox-button"
-              disabled={isLoading}
-              onClick={() => handleSendMessage("Suggest romantic luxury honeymoon experiences and activities for couples")}
+              disabled={isLoading || rateLimitStatus['chat_message']}
+              onClick={() => {
+                trackUserInteraction('toolbox_clicked', 'loves_symphony', { action: 'romantic_experiences' });
+                handleSendMessage("Suggest romantic luxury honeymoon experiences and activities for couples");
+              }}
             >
               <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Love's Symphony</span>
@@ -1728,8 +2412,11 @@ const Index = () => {
             <button
               type="button"
               className="gemini-toolbox-button"
-              disabled={isLoading}
-              onClick={() => handleSendMessage("Recommend top 5 dreamy honeymoon destinations with unique experiences")}
+              disabled={isLoading || rateLimitStatus['chat_message']}
+              onClick={() => {
+                trackUserInteraction('toolbox_clicked', 'enchanted_realms', { action: 'dreamy_destinations' });
+                handleSendMessage("Recommend top 5 dreamy honeymoon destinations with unique experiences");
+              }}
             >
               <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Enchanted Realms</span>
@@ -1739,8 +2426,11 @@ const Index = () => {
             <button
               type="button"
               className="gemini-toolbox-button"
-              disabled={isLoading}
-              onClick={() => handleSendMessage("Suggest luxury honeymoon packages and exclusive experiences for couples")}
+              disabled={isLoading || rateLimitStatus['chat_message']}
+              onClick={() => {
+                trackUserInteraction('toolbox_clicked', 'royal_romance', { action: 'luxury_packages' });
+                handleSendMessage("Suggest luxury honeymoon packages and exclusive experiences for couples");
+              }}
             >
               <Crown className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Royal Romance</span>
@@ -1771,20 +2461,51 @@ const Index = () => {
               }}
             />
             
+            {/* Image Upload Button */}
+            <Suspense fallback={<div className="w-10 h-10 bg-gray-300 rounded animate-pulse" />}>
+              <ImageUpload
+                onImageSelect={async (base64) => {
+                  // Check rate limit for image upload
+                  const rateLimitPassed = await handleRateLimit('image_upload');
+                  if (rateLimitPassed) {
+                    setImagePreview(base64);
+                    recordSuccess('image_upload', user?.uid);
+                  }
+                }}
+                onImageClear={() => setImagePreview(null)}
+                currentImage={imagePreview}
+                size="md"
+                disabled={isLoading || rateLimitStatus['image_upload']}
+                showPreview={true}
+              />
+            </Suspense>
+            
+            {/* Voice Input Button */}
+            <Suspense fallback={<div className="w-10 h-10 bg-gray-300 rounded animate-pulse" />}>
+              <VoiceInput
+                onTranscript={async (text) => {
+                  // Check rate limit for voice input
+                  const rateLimitPassed = await handleRateLimit('voice_input');
+                  if (rateLimitPassed) {
+                    setInputValue(prev => prev + (prev ? ' ' : '') + text);
+                    recordSuccess('voice_input', user?.uid);
+                  }
+                }}
+                onError={(error) => {
+                  console.error('Voice input error:', error);
+                  recordFailure('voice_input', user?.uid);
+                }}
+                size="md"
+                disabled={isLoading || rateLimitStatus['voice_input']}
+              />
+            </Suspense>
+            
             <button
               type="submit"
               className="gemini-send-button"
-              disabled={isLoading || !inputValue.trim()}
+              disabled={isLoading || (!inputValue.trim() && !imagePreview) || rateLimitStatus['chat_message']}
             >
               <Send className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-            
-            <button
-              type="button"
-              className="gemini-mic-button"
-              disabled={isLoading}
-            >
-              <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </form>
           
@@ -1792,7 +2513,7 @@ const Index = () => {
             AI LOVVE weaves dreams but double-check the sacred details of your journey
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Mobile overlay */}
       <div
@@ -1814,6 +2535,41 @@ const Index = () => {
             <PackageDetail packageId={selectedPackageId} isModal={true} />
           </div>
         </div>
+      )}
+
+      {/* Profile Analysis Wizard */}
+      {showProfileWizard && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <ProfileAnalysisWizard
+            onComplete={(profile) => {
+              setUserProfile(profile);
+              setShowProfileWizard(false);
+              setShowHoneymoonPlanner(true); // Auto-open planner after profile
+            }}
+            onClose={() => setShowProfileWizard(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Honeymoon Planner Wizard */}
+      {showHoneymoonPlanner && (
+        <Suspense fallback={<div>Loading...</div>}>
+          <HoneymoonPlannerWizard
+            userProfile={userProfile}
+            onComplete={(plan, recommendations) => {
+              setShowHoneymoonPlanner(false);
+              // Add recommendations to messages
+              const recommendationMessage: Message = {
+                role: 'assistant',
+                content: `🎉 Balayı planınız hazır! Size özel ${recommendations.length} paket önerisi buldum.`,
+                packages: recommendations,
+                timestamp: new Date().toISOString()
+              };
+              setMessages(prev => [...prev, recommendationMessage]);
+            }}
+            onClose={() => setShowHoneymoonPlanner(false)}
+          />
+        </Suspense>
       )}
     </div>
   );

@@ -2,7 +2,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 import { getFunctions } from "firebase/functions";
 
 // Analytics'i lazy load için
@@ -15,36 +14,41 @@ let analytics: any = null;
 const isDevelopment = import.meta.env.DEV;
 const useEmulators = false; // Always use production Firebase
 
+import { env, debugLog } from './utils/environment';
+
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAtKZbqm_hBqsiICk3zarhP2KTlFMZPbFY",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ailovve.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ailovve",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ailovve.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "67784907260",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:67784907260:web:bdde3514cea143949ffa79",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-70KJQL4737"
+  apiKey: env.FIREBASE_API_KEY,
+  authDomain: env.FIREBASE_AUTH_DOMAIN,
+  projectId: env.FIREBASE_PROJECT_ID,
+  storageBucket: env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.FIREBASE_APP_ID,
+  measurementId: env.FIREBASE_MEASUREMENT_ID
 };
 
 // Debug logging for development
-if (isDevelopment) {
-  console.log('🔥 Firebase Config:', {
-    projectId: firebaseConfig.projectId,
-    authDomain: firebaseConfig.authDomain,
-    isDev: isDevelopment,
-    useEmulators: useEmulators
-  });
-}
+debugLog('🔥 Firebase Config:', {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  isDev: isDevelopment,
+  useEmulators: useEmulators
+});
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Analytics'i lazy load et
+// Analytics'i lazy load et - sadece production'da ve ihtiyaç halinde
 const getAnalytics = async () => {
-  if (!analytics && !isDevelopment) {
-    const { getAnalytics: getAnalyticsImport } = await import("firebase/analytics");
-    analytics = getAnalyticsImport(app);
+  if (!analytics && import.meta.env.PROD) {
+    try {
+      const { getAnalytics: getAnalyticsImport } = await import("firebase/analytics");
+      analytics = getAnalyticsImport(app);
+      console.log('📊 Analytics initialized');
+    } catch (error) {
+      console.warn('⚠️ Analytics initialization failed:', error);
+    }
   }
   return analytics;
 };
@@ -52,7 +56,6 @@ const getAnalytics = async () => {
 const auth = getAuth(app);
 // Firestore'u varsayılan database ile initialize et
 const db = getFirestore(app, "(default)");
-const storage = getStorage(app);
 const functions = getFunctions(app, 'europe-west1');
 
 // Connect to emulators in development
@@ -76,10 +79,9 @@ const connectionType = useEmulators ? 'EMULATORS' : 'PRODUCTION';
 console.log(`✅ Firebase services initialized for ${connectionType}`, {
   auth: !!auth,
   db: !!db,
-  storage: !!storage,
   functions: !!functions,
   emulators: useEmulators,
   databaseId: "(default)"
 });
 
-export { app, getAnalytics, auth, db, storage, functions, firebaseConfig }; 
+export { app, getAnalytics, auth, db, functions, firebaseConfig }; 

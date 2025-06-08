@@ -181,6 +181,90 @@
     transform: translateY(-1px);
   }
 
+  /* === ACCESSIBILITY & FOCUS SYSTEM === */
+  /* High contrast focus indicators */
+  .focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+  }
+
+  /* Focus styles for buttons */
+  button:focus-visible,
+  .btn:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+    transform: translateY(-1px);
+  }
+
+  /* Focus styles for links */
+  a:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Focus styles for form inputs */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-accent-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.2);
+    border-color: var(--color-accent-primary);
+  }
+
+  /* Skip link for screen readers */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--color-accent-primary);
+    color: #1f1f1f;
+    padding: 8px;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    z-index: 1000;
+    transition: top 0.3s ease;
+  }
+
+  .skip-link:focus {
+    top: 6px;
+  }
+
+  /* Ensure sufficient color contrast */
+  .high-contrast {
+    --color-text-primary: #ffffff;
+    --color-text-secondary: rgba(255, 255, 255, 0.9);
+    --color-background: #000000;
+    --color-surface: #1a1a1a;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Increase contrast for users who prefer it */
+  @media (prefers-contrast: high) {
+    :root {
+      --color-text-primary: #ffffff;
+      --color-text-secondary: rgba(255, 255, 255, 0.95);
+      --color-border: rgba(255, 255, 255, 0.3);
+      --color-border-strong: rgba(255, 255, 255, 0.5);
+    }
+  }
+
   /* === MODERN BUTTON SYSTEM === */
   .btn {
     @apply inline-flex items-center justify-center;
@@ -194,6 +278,7 @@
     outline: none;
     text-decoration: none;
     user-select: none;
+    position: relative;
   }
   
   .btn:disabled {

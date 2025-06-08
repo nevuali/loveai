@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState, ReactNode, useCa
 import { onAuthStateChanged, User as FirebaseUser, getRedirectResult } from 'firebase/auth';
 import { auth, firebaseConfig } from '../firebase';
 import { authService, User, RegisterData } from '../services/authService';
+import { logger } from '../utils/logger';
+import { trackUserInteraction, setAnalyticsUser, updateUserProperties } from '../utils/analytics';
 
 interface AuthContextType {
   user: User | null;
@@ -17,6 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // useAuth hook'unu Fast Refresh için optimize et
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -35,14 +38,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔄 Setting up auth state listener...');
+    logger.log('🔄 Setting up auth state listener...');
     
     // Check for Google redirect result on app load (for mobile)
     const checkRedirectResult = async () => {
       try {
         const result = await getRedirectResult(auth);
         if (result) {
-          console.log('🔍 Google redirect result found:', {
+          logger.log('🔍 Google redirect result found:', {
             uid: result.user.uid,
             email: result.user.email,
             displayName: result.user.displayName
@@ -58,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkRedirectResult();
     
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔄 Auth state changed:', {
+      logger.log('🔄 Auth state changed:', {
         hasUser: !!firebaseUser,
         uid: firebaseUser?.uid,
         email: firebaseUser?.email
@@ -69,11 +72,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (firebaseUser) {
         try {
           const userProfile = await authService.getUserProfile(firebaseUser.uid);
-          console.log('👤 User profile loaded:', {
+          logger.log('👤 User profile loaded:', {
             hasProfile: !!userProfile,
             uid: userProfile?.uid
           });
           setUser(userProfile);
+          
+          // Set analytics user and properties
+          if (userProfile) {
+            setAnalyticsUser(userProfile.uid, {
+              user_type: userProfile.isPremium ? 'premium' : 'free',
+              registration_date: userProfile.createdAt || new Date().toISOString(),
+              total_chats: 0, // Will be updated when chats are loaded
+            });
+            
+            trackUserInteraction('user_authenticated', 'auth_state_change', {
+              user_type: userProfile.isPremium ? 'premium' : 'free',
+              is_verified: userProfile.isVerified
+            });
+          }
         } catch (error) {
           console.error('❌ Error loading user profile:', error);
           // Firestore hatası olsa bile Firebase user varsa minimal profil oluştur
@@ -89,16 +106,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             messageCount: 0,
           };
           setUser(minimalUser);
+          
+          // Set analytics for minimal user
+          setAnalyticsUser(minimalUser.uid, {
+            user_type: 'free',
+            registration_date: new Date().toISOString(),
+            total_chats: 0,
+          });
         }
       } else {
         setUser(null);
+        trackUserInteraction('user_unauthenticated', 'auth_state_change', {});
       }
       
       setLoading(false);
     });
 
     return () => {
-      console.log('🔄 Cleaning up auth state listener');
+      logger.log('🔄 Cleaning up auth state listener');
       unsubscribe();
     };
   }, []);
@@ -109,11 +134,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success && response.user) {
         setUser(response.user);
         setFirebaseUser(response.firebaseUser || null);
+        
+        // Track successful login
+        trackUserInteraction('user_login', 'email_password', {
+          user_type: response.user.isPremium ? 'premium' : 'free',
+          login_method: 'email_password'
+        });
+        
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Login error:', error);
+      trackUserInteraction('login_failed', 'email_password', { error: error instanceof Error ? error.message : 'Unknown error' });
       return false;
     }
   }, []);
@@ -124,11 +157,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success && response.user) {
         setUser(response.user);
         setFirebaseUser(response.firebaseUser || null);
+        
+        // Track successful registration
+        trackUserInteraction('user_register', 'email_password', {
+          user_type: 'free', // New users start as free
+          registration_method: 'email_password'
+        });
+        
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Register error:', error);
+      logger.error('Register error:', error);
+      trackUserInteraction('registration_failed', 'email_password', { error: error instanceof Error ? error.message : 'Unknown error' });
       return false;
     }
   }, []);
@@ -136,15 +177,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = useCallback(async () => {
     setLoading(true);
     try {
+      // Track logout before clearing user data
+      trackUserInteraction('user_logout', 'manual', {
+        user_type: user?.isPremium ? 'premium' : 'free'
+      });
+      
       await authService.logout();
       setUser(null);
       setFirebaseUser(null);
     } catch (error) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   const signInWithGoogle = useCallback(async (): Promise<boolean> => {
     try {
@@ -152,11 +198,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success && response.user) {
         setUser(response.user);
         setFirebaseUser(response.firebaseUser || null);
+        
+        // Track successful Google sign-in
+        trackUserInteraction('user_login', 'google', {
+          user_type: response.user.isPremium ? 'premium' : 'free',
+          login_method: 'google'
+        });
+        
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Google Sign-In error:', error);
+      logger.error('Google Sign-In error:', error);
+      trackUserInteraction('login_failed', 'google', { error: error instanceof Error ? error.message : 'Unknown error' });
       return false;
     }
   }, []);

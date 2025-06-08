@@ -1,18 +1,10 @@
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-  User as FirebaseUser,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore';
+import type { User as FirebaseUser } from 'firebase/auth';
+import type { FieldValue } from 'firebase/firestore';
+import { GoogleAuthProvider } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from '../firebase';
+import { getAuthFunctions, getFirestoreFunctions } from '../utils/firebase-lazy';
+import { logger } from '../utils/logger';
 
 // Development/Debug mode configuration
 const isDevelopment = import.meta.env.DEV;
@@ -120,7 +112,7 @@ class AuthService {
         firebaseUser,
       };
     } catch (error: any) {
-      console.error('Firebase Registration error:', error);
+      logger.error('Firebase Registration error:', error);
       return { success: false, message: error.message, errorCode: error.code };
     }
   }
@@ -147,7 +139,7 @@ class AuthService {
         firebaseUser,
       };
     } catch (error: any) {
-      console.error('Firebase Login error:', error);
+      logger.error('Firebase Login error:', error);
       return { success: false, message: error.message, errorCode: error.code };
     }
   }
@@ -159,7 +151,7 @@ class AuthService {
       
       if (isMobile()) {
         // Mobile cihazlar için redirect kullan
-        console.log('🔍 Mobile device detected, using signInWithRedirect');
+        logger.log('🔍 Mobile device detected, using signInWithRedirect');
         await signInWithRedirect(auth, googleProvider);
         
         // Redirect sonrası kullanıcı geri döndüğünde sonucu kontrol et
@@ -171,13 +163,13 @@ class AuthService {
         }
       } else {
         // Desktop için popup kullan
-        console.log('🔍 Desktop device detected, using signInWithPopup');
+        logger.log('🔍 Desktop device detected, using signInWithPopup');
         userCredential = await signInWithPopup(auth, googleProvider);
       }
 
       const firebaseUser = userCredential.user;
 
-      console.log('🔍 Google Sign-In Firebase User:', {
+      logger.log('🔍 Google Sign-In Firebase User:', {
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         displayName: firebaseUser.displayName,
@@ -190,7 +182,7 @@ class AuthService {
       
       // Eğer profil yoksa, Google bilgileriyle oluştur
       if (!userProfile) {
-        console.log('🔍 Creating new profile for Google user');
+        logger.log('🔍 Creating new profile for Google user');
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const displayName = firebaseUser.displayName || '';
         const nameParts = displayName.split(' ');
@@ -212,12 +204,12 @@ class AuthService {
           chatSessionId: `google-session-${firebaseUser.uid}-${Date.now()}`
         };
         
-        console.log('🔍 New user data being saved:', newUser);
+        logger.log('🔍 New user data being saved:', newUser);
         await setDoc(userDocRef, newUser, { merge: true });
         userProfile = await this.getUserProfile(firebaseUser.uid);
-        console.log('🔍 Profile after creation:', userProfile);
+        logger.log('🔍 Profile after creation:', userProfile);
       } else {
-        console.log('🔍 Existing user profile found:', userProfile);
+        logger.log('🔍 Existing user profile found:', userProfile);
         // Mevcut kullanıcı, photoURL'i güncelle ve lastLogin'i güncelle
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         await updateDoc(userDocRef, {
@@ -226,7 +218,7 @@ class AuthService {
         });
         // Güncellenmiş profili al
         userProfile = await this.getUserProfile(firebaseUser.uid);
-        console.log('🔍 Updated user profile:', userProfile);
+        logger.log('🔍 Updated user profile:', userProfile);
       }
 
       return {
@@ -236,7 +228,7 @@ class AuthService {
         firebaseUser,
       };
     } catch (error: any) {
-      console.error('Google Sign-In error:', error);
+      logger.error('Google Sign-In error:', error);
       
       // Specific error handling for mobile
       if (error.code === 'auth/popup-blocked') {
@@ -271,9 +263,9 @@ class AuthService {
       // Firebase oturumu zaten sonlandı.
       // localStorage.removeItem('ailovve_user');
       // localStorage.removeItem('ailovve_chat_session');
-      console.log('User logged out from Firebase.');
+      logger.log('User logged out from Firebase.');
     } catch (error) {
-      console.error('Firebase Logout error:', error);
+      logger.error('Firebase Logout error:', error);
       throw error;
     }
   }
@@ -300,7 +292,7 @@ class AuthService {
   // Kullanıcı profilini Firestore'dan getirir
   async getUserProfile(uid: string): Promise<User | null> {
     if (!uid) {
-      console.warn('getUserProfile: UID is required');
+      logger.warn('getUserProfile: UID is required');
       return null;
     }
     
@@ -320,13 +312,13 @@ class AuthService {
           ...firestoreData,
         } as User;
       } else {
-        console.warn(`No profile found in Firestore for UID: ${uid}`);
+        logger.warn(`No profile found in Firestore for UID: ${uid}`);
         
         // Eğer Firebase Auth kullanıcısı varsa ama Firestore'da profil yoksa,
         // Firebase Auth bilgilerini kullanarak minimal profil oluştur
         const firebaseAuthUser = auth.currentUser;
         if (firebaseAuthUser && firebaseAuthUser.uid === uid) {
-          console.log('Creating basic profile from Firebase Auth data');
+          logger.log('Creating basic profile from Firebase Auth data');
           
           const displayName = firebaseAuthUser.displayName || '';
           const nameParts = displayName.split(' ');
@@ -350,7 +342,7 @@ class AuthService {
           
           try {
             await setDoc(userDocRef, basicProfile, { merge: true });
-            console.log('Basic profile created successfully');
+            logger.log('Basic profile created successfully');
             
             // Yeni oluşturulan profili geri döndür
             return {
@@ -360,7 +352,7 @@ class AuthService {
               lastLogin: new Date().toISOString(),
             } as User;
           } catch (createError) {
-            console.error('Error creating basic profile:', createError);
+            logger.error('Error creating basic profile:', createError);
             // Firestore hatası olsa bile minimal profil döndür
             return {
               uid,
@@ -380,12 +372,12 @@ class AuthService {
         return null;
       }
     } catch (error) {
-      console.error('Error fetching user profile from Firestore:', error);
+      logger.error('Error fetching user profile from Firestore:', error);
       
       // Hata durumunda Firebase Auth kullanıcısı varsa minimal profil oluştur
       const firebaseAuthUser = auth.currentUser;
       if (firebaseAuthUser && firebaseAuthUser.uid === uid) {
-        console.log('Returning minimal profile due to Firestore error');
+        logger.log('Returning minimal profile due to Firestore error');
         const displayName = firebaseAuthUser.displayName || '';
         const nameParts = displayName.split(' ');
         const firstName = nameParts[0] || 'User';
@@ -421,10 +413,10 @@ class AuthService {
 
   // Chat session ID'sini Firestore'dan alır veya oluşturur
   async getChatSessionId(): Promise<string> {
-    console.log('🔑 getChatSessionId called');
+    logger.log('🔑 getChatSessionId called');
     
     const firebaseUser = auth.currentUser;
-    console.log('👤 Current Firebase user:', firebaseUser ? {
+    logger.log('👤 Current Firebase user:', firebaseUser ? {
       uid: firebaseUser.uid,
       email: firebaseUser.email,
       displayName: firebaseUser.displayName
@@ -436,36 +428,36 @@ class AuthService {
       if (!anonSessionId) {
         anonSessionId = `anonymous-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         localStorage.setItem('ailovve_anon_chat_session', anonSessionId);
-        console.log('🆔 Created new anonymous session ID:', anonSessionId);
+        logger.log('🆔 Created new anonymous session ID:', anonSessionId);
       } else {
-        console.log('🆔 Using existing anonymous session ID:', anonSessionId);
+        logger.log('🆔 Using existing anonymous session ID:', anonSessionId);
       }
       return anonSessionId;
     }
 
     try {
-      console.log('🔄 Getting user profile for session ID...');
+      logger.log('🔄 Getting user profile for session ID...');
       const userProfile = await this.getUserProfile(firebaseUser.uid);
-      console.log('👤 User profile:', userProfile);
+      logger.log('👤 User profile:', userProfile);
       
       if (userProfile && userProfile.chatSessionId) {
-        console.log('✅ Found existing session ID:', userProfile.chatSessionId);
+        logger.log('✅ Found existing session ID:', userProfile.chatSessionId);
         return userProfile.chatSessionId;
       }
 
       // Eğer Firestore'da chatSessionId yoksa yeni bir tane oluştur ve kaydet
       const newChatSessionId = `user-session-${firebaseUser.uid}-${Date.now()}`;
-      console.log('🆕 Creating new session ID:', newChatSessionId);
+      logger.log('🆕 Creating new session ID:', newChatSessionId);
       
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       await updateDoc(userDocRef, { chatSessionId: newChatSessionId });
-      console.log('💾 Session ID saved to Firestore');
+      logger.log('💾 Session ID saved to Firestore');
       return newChatSessionId;
     } catch (error) {
-      console.error('❌ Error updating chatSessionId in Firestore:', error);
+      logger.error('❌ Error updating chatSessionId in Firestore:', error);
       // Hata durumunda bile session ID üret
       const fallbackSessionId = `user-session-${firebaseUser.uid}-${Date.now()}`;
-      console.log('⚠️ Using fallback session ID:', fallbackSessionId);
+      logger.log('⚠️ Using fallback session ID:', fallbackSessionId);
       return fallbackSessionId;
     }
   }
@@ -492,7 +484,7 @@ class AuthService {
         }
       }
     } catch (error) {
-      console.error('Error updating user profile in Firestore:', error);
+      logger.error('Error updating user profile in Firestore:', error);
       throw error;
     }
   }

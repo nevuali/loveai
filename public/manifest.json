@@ -1,12 +1,13 @@
 {
   "name": "AI LOVVE - Luxury Honeymoon Planning Assistant",
   "short_name": "AI LOVVE",
-  "description": "Plan your perfect honeymoon with AI LOVVE - Your luxury AI-powered honeymoon planning assistant",
+  "description": "Plan your perfect honeymoon with AI LOVVE - Your luxury AI-powered honeymoon planning assistant with voice input and personalized recommendations",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1f1f1f",
-  "theme_color": "#8b5cf6",
   "orientation": "portrait-primary",
+  "background_color": "#1a1a1a",
+  "theme_color": "#8b5cf6",
+  "lang": "en",
   "scope": "/",
   "categories": ["travel", "lifestyle", "productivity"],
   "icons": [
@@ -15,6 +16,40 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.svg",
+      "sizes": "1200x630",
+      "type": "image/svg+xml",
+      "form_factor": "wide",
+      "label": "AI LOVVE main chat interface"
+    }
+  ],
+  "features": [
+    "voice-input",
+    "ai-chat", 
+    "image-upload",
+    "offline-ready"
+  ],
+  "prefer_related_applications": false,
+  "dir": "ltr",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  }
 } 

@@ -1,3 +1,4 @@
+import React, { memo } from 'react';
 import { Bot, User, Sparkles } from 'lucide-react';
 
 interface MessageProps {
@@ -6,9 +7,11 @@ interface MessageProps {
   timestamp?: string;
   isThinking?: boolean;
   imageBase64?: string | null;
+  actionData?: any;
+  onCardClick?: (cardId: string, cardData: any) => void;
 }
 
-const Message = ({ role, content, isThinking, imageBase64 }: MessageProps) => {
+const Message = memo(({ role, content, isThinking, imageBase64, actionData, onCardClick }: MessageProps) => {
   if (role === 'user') {
     return (
       <div className="flex justify-end mb-4 md:mb-6 animate-fade-in">
@@ -63,6 +66,8 @@ const Message = ({ role, content, isThinking, imageBase64 }: MessageProps) => {
                 className="whitespace-pre-wrap break-words"
                 dangerouslySetInnerHTML={{ 
                   __html: content
+                    .replace(/\*\*PROFIL_ANALYSIS_CARDS\*\*/g, '')
+                    .replace(/\*\*HONEYMOON_PLANNER_CARDS\*\*/g, '')
                     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-primary">$1</strong>')
                     .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
                     .replace(/`(.*?)`/g, '<code class="px-2 py-1 bg-surface rounded text-sm font-mono">$1</code>')
@@ -70,12 +75,43 @@ const Message = ({ role, content, isThinking, imageBase64 }: MessageProps) => {
                     .replace(/\n/g, '<br>')
                 }}
               />
+              
+              {/* Render AI Cards */}
+              {(content.includes('**PROFIL_ANALYSIS_CARDS**') || content.includes('**HONEYMOON_PLANNER_CARDS**')) && actionData?.options && (
+                <div className="mt-4 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {actionData.options.map((option: any, index: number) => (
+                      <button
+                        key={option.id}
+                        onClick={() => onCardClick?.(option.id, option)}
+                        className="gemini-chat-item p-4 rounded-xl border border-gray-200 hover:border-amber-300 hover:bg-amber-50/50 transition-all duration-200 text-left group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl flex-shrink-0">
+                            {option.icon}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 group-hover:text-amber-700 transition-colors">
+                              {option.title}
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {option.description}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
     </div>
   );
-};
+});
+
+Message.displayName = 'Message';
 
 export default Message;

@@ -8,6 +8,8 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster as HotToaster } from 'react-hot-toast';
+import ErrorBoundary from "./components/ErrorBoundary";
+import PWAInstall from "./components/PWAInstall";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -22,6 +24,7 @@ const RecentSearchesPage = lazy(() => import("./pages/RecentSearchesPage"));
 const CappaLovePremiumPage = lazy(() => import("./pages/CappaLovePremiumPage"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const Settings = lazy(() => import("./pages/Settings"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
 // Create a query client with configuration options
 const queryClient = new QueryClient({
@@ -57,11 +60,12 @@ const PageLoading = () => (
 // Properly defined React function component to ensure hooks work correctly
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <BrowserRouter>
               <Suspense fallback={
                 <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#1a1a1a] dark:via-[#1f1f1f] dark:to-[#2a2a2a]">
                   <div className="text-center">
@@ -127,6 +131,7 @@ function App() {
                       <Settings />
                     </ProtectedRoute>
                   } />
+                  <Route path="/admin" element={<AdminDashboard />} />
                 </Routes>
               </Suspense>
 
@@ -180,11 +185,12 @@ function App() {
                   },
                 }}
               />
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

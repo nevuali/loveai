@@ -1,4 +1,4 @@
-import { Plus, Bot, Settings, HelpCircle, X, Sparkles, Heart, MapPin, Zap, Search, Menu } from 'lucide-react';
+import { Plus, Bot, Settings, HelpCircle, X, Sparkles, Heart, MapPin, Zap, Search, Menu, Users, Calendar } from 'lucide-react';
 import { useState } from 'react';
 
 interface SidebarProps {
@@ -9,9 +9,11 @@ interface SidebarProps {
   currentChatId: string;
   setCurrentChatId: (id: string) => void;
   initiateAIChat: (message: string) => void;
+  onStartProfileAnalysis: () => void;
+  onStartHoneymoonPlanner: () => void;
 }
 
-const Sidebar = ({ isOpen, onClose, initiateAIChat }: SidebarProps) => {
+const Sidebar = ({ isOpen, onClose, initiateAIChat, onStartProfileAnalysis, onStartHoneymoonPlanner }: SidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [chatHistory] = useState([
@@ -26,6 +28,22 @@ const Sidebar = ({ isOpen, onClose, initiateAIChat }: SidebarProps) => {
   );
 
   const quickPrompts = [
+    { 
+      icon: Users, 
+      text: "Profil Analizi", 
+      description: "Sizi tanıyalım",
+      action: () => onStartProfileAnalysis(),
+      gradient: "from-purple-600 to-purple-500",
+      isSpecial: true
+    },
+    { 
+      icon: Calendar, 
+      text: "Balayı Planlayıcı", 
+      description: "Adım adım planla",
+      action: () => onStartHoneymoonPlanner(),
+      gradient: "from-pink-600 to-rose-500",
+      isSpecial: true
+    },
     { 
       icon: Bot, 
       text: "AI Planner", 
@@ -184,8 +202,13 @@ const Sidebar = ({ isOpen, onClose, initiateAIChat }: SidebarProps) => {
                   <button
                     key={index}
                     onClick={() => {
-                      initiateAIChat(prompt.action);
-                      onClose();
+                      if (prompt.isSpecial && typeof prompt.action === 'function') {
+                        prompt.action();
+                        onClose();
+                      } else if (typeof prompt.action === 'string') {
+                        initiateAIChat(prompt.action);
+                        onClose();
+                      }
                     }}
                     className="w-full p-4 rounded-xl hover:bg-white/10 transition-all duration-300 flex items-center gap-3 text-left group glass hover:glass-elevated"
                   >

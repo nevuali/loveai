@@ -1,6 +1,21 @@
 import { Part, Content } from "@google/generative-ai";
 import { httpsCallable } from "firebase/functions";
 import { functions } from "../firebase";
+import { logger } from "../utils/logger";
+import { contextManager } from "./contextManager";
+import { responseCache } from "./responseCache";
+import { intelligentCacheSystem } from "./intelligentCacheSystem";
+import { smartRecommendationEngine } from "./smartRecommendationEngine";
+import { aiLearningEngine } from "./aiLearningEngine";
+import { aiExperimentEngine } from "./aiExperimentEngine";
+import { conversationPredictor, ConversationState } from "./conversationPredictor";
+import { realTimeDataService } from "./realTimeDataService";
+import { emotionalIntelligenceEngine, EmotionalState, PersonalityProfile } from "./emotionalIntelligence";
+import { multiAgentSystem } from "./multiAgentSystem";
+import { semanticSearchEngine } from "./semanticSearch";
+import { geminiVisionService, VisionAnalysis } from "./geminiVision";
+import { dynamicInstructionsEngine, InstructionContext } from "./dynamicInstructions";
+import { selfEvaluationSystem, ResponseEvaluation } from "./selfEvaluationSystem";
 
 // Type definitions for our application
 interface AppMessage {
@@ -12,65 +27,29 @@ interface AppMessage {
   userId?: string;
 }
 
-// System prompt for AI LOVVE
-const SYSTEM_PROMPT = `You are AI LOVVE, the world's most sophisticated luxury honeymoon planning assistant. You are an expert in:
+// Optimized system prompt - compressed for better performance
+const SYSTEM_PROMPT = `AI LOVVE - luxury honeymoon expert. EXPERTISE: destinations, luxury accommodations, romantic experiences, travel logistics.
 
-🏝️ DESTINATIONS: Exclusive resorts, hidden gems, seasonal perfection
-💎 LUXURY: Private villas, yacht charters, Michelin-starred experiences  
-💕 ROMANCE: Couples activities, surprise planning, intimate moments
-✈️ LOGISTICS: Visa requirements, optimal timing, seamless transitions
-🌍 CULTURE: Local customs, authentic experiences, respectful travel
+RESPONSE FORMAT: 100-200 words max, 2-3 emojis, actionable advice, specific recommendations, paragraph breaks.
 
-PERSONALITY: Warm, sophisticated, intuitive, and magical
-TONE: Elegant but approachable, knowledgeable but not overwhelming
+PACKAGE TRIGGERS:
+**SHOW_PACKAGES:[category]** - Shows packages (luxury, romantic, adventure, cultural, beach, city)
+**SHOW_PACKAGES:[location]** - Location-specific packages
+**SHOW_PACKAGES:cities** - Kapadokya, Antalya, İstanbul, Sri Lanka, Phuket, Bali
 
-RESPONSE RULES:
-✨ Keep responses 100-200 words maximum
-💎 Use 2-3 relevant emojis naturally
-🎯 Always include actionable advice or specific recommendations
-📍 Mention exact locations, hotels, or experiences when possible
-💫 ALWAYS use separate paragraphs - break ideas into distinct sections
+AI SYSTEM TRIGGERS:
+**START_PROFILE_ANALYSIS** - Launches AI profile analysis wizard for personalized recommendations
+**START_HONEYMOON_PLANNER** - Launches step-by-step honeymoon planning system
+**AI_PREDICTION** - Shows AI behavior predictions and recommendations
+**PERSONALIZE_EXPERIENCE** - Activates real-time personalization
 
-CRITICAL FORMATTING RULES:
-- Use double line breaks between paragraphs
-- Each new idea gets its own paragraph  
-- Never write one long block of text
-- Structure: Introduction → Main content → Question/closing
-- Example structure:
+DETECTION PATTERNS:
+- "AI Profil Analizi" or "profil analizi" or "beni tanı" → **START_PROFILE_ANALYSIS**
+- "AI Balayı Planlayıcı" or "balayı planla" or "adım adım" → **START_HONEYMOON_PLANNER**
+- "AI tahmin" or "davranış analizi" → **AI_PREDICTION**
+- "kişiselleştir" or "bana özel" → **PERSONALIZE_EXPERIENCE**
 
-"Paris offers incredible honeymoon magic! ✨ The George V hotel provides luxury with Eiffel Tower views.
-
-For romance, enjoy sunset Seine cruises and private Louvre tours. The Marais district has charming cafes perfect for intimate dinners.
-
-Spring (April-May) offers perfect weather and fewer crowds. Would you prefer city luxury or countryside châteaux? 💕"
-
-PACKAGE RECOMMENDATIONS:
-When users ask about honeymoon destinations, packages, or travel planning, you can recommend our curated luxury packages. Use this special format to trigger package displays:
-
-**SHOW_PACKAGES:[category]** - Shows packages by category (luxury, romantic, adventure, cultural, beach, city)
-**SHOW_PACKAGES:[location]** - Shows packages by location (Paris, Santorini, Maldives, etc.)
-**SHOW_PACKAGES:featured** - Shows top-rated featured packages
-
-SPECIAL CITY DESTINATIONS:
-When users ask for "Curated Honeymoon Experiences" or "city destinations", show these popular honeymoon cities:
-**SHOW_PACKAGES:cities** - Shows cards for: Kapadokya, Antalya, İstanbul, Sri Lanka, Phuket, Bali
-
-For specific cities, use:
-**SHOW_PACKAGES:Kapadokya** - Hot air balloons & unique landscapes
-**SHOW_PACKAGES:Antalya** - Mediterranean beaches & luxury resorts  
-**SHOW_PACKAGES:İstanbul** - Historic charm & Bosphorus romance
-**SHOW_PACKAGES:Sri Lanka** - Tropical paradise & ancient culture
-**SHOW_PACKAGES:Phuket** - Thai beaches & luxury wellness
-**SHOW_PACKAGES:Bali** - Island of gods & romantic villas
-
-Example responses with city packages:
-"Here are our curated honeymoon destinations! ✨ Each offers unique romantic experiences and luxury accommodations.
-
-**SHOW_PACKAGES:cities**
-
-From historic İstanbul to tropical Bali, these destinations provide unforgettable honeymoon memories. Which style of romance appeals to you most? 💕"
-
-Always format responses with clear paragraph breaks for easy reading!`;
+TONE: Sophisticated, warm, magical. Structure: intro → content → question.`;
 
 // Configure Gemini AI with enhanced error handling
 // ❌ Direct Gemini API removed - Using Firebase Functions only
@@ -116,32 +95,66 @@ Always format responses with clear paragraph breaks for easy reading!`;
 //   },
 // });
 
-// Rate limiting helper
-class RateLimiter {
+// Enhanced rate limiting with exponential backoff
+class OptimizedRateLimiter {
   private requests: number[] = [];
-  private readonly maxRequests = 10; // 10 requests per minute
+  private readonly maxRequests = 15; // Increased to 15 requests per minute
   private readonly timeWindow = 60000; // 1 minute
+  private retryCount = 0;
+  private lastFailureTime = 0;
 
   canMakeRequest(): boolean {
     const now = Date.now();
+    
+    // Check exponential backoff
+    if (this.retryCount > 0) {
+      const backoffDelay = Math.min(1000 * Math.pow(2, this.retryCount - 1), 30000); // Max 30s
+      if (now - this.lastFailureTime < backoffDelay) {
+        return false;
+      }
+    }
+    
+    // Clean old requests
     this.requests = this.requests.filter(time => now - time < this.timeWindow);
     
     if (this.requests.length >= this.maxRequests) {
+      this.handleFailure();
       return false;
     }
     
     this.requests.push(now);
+    this.resetBackoff();
     return true;
   }
 
+  private handleFailure(): void {
+    this.retryCount++;
+    this.lastFailureTime = Date.now();
+  }
+
+  private resetBackoff(): void {
+    this.retryCount = 0;
+    this.lastFailureTime = 0;
+  }
+
   getResetTime(): number {
+    const now = Date.now();
+    
+    // If in backoff, return backoff time
+    if (this.retryCount > 0) {
+      const backoffDelay = Math.min(1000 * Math.pow(2, this.retryCount - 1), 30000);
+      const backoffRemaining = Math.max(0, backoffDelay - (now - this.lastFailureTime));
+      if (backoffRemaining > 0) return backoffRemaining;
+    }
+    
+    // Otherwise return rate limit reset time
     if (this.requests.length === 0) return 0;
     const oldestRequest = Math.min(...this.requests);
-    return Math.max(0, this.timeWindow - (Date.now() - oldestRequest));
+    return Math.max(0, this.timeWindow - (now - oldestRequest));
   }
 }
 
-const rateLimiter = new RateLimiter();
+const rateLimiter = new OptimizedRateLimiter();
 
 // Enhanced error types
 export class GeminiError extends Error {
@@ -196,7 +209,7 @@ function extractBase64Data(base64String: string): { mimeType: string; data: stri
   if (match && match[1] && match[2]) {
     return { mimeType: match[1], data: match[2] };
   }
-  console.warn("Geçersiz base64 formatı veya desteklenmeyen resim tipi.");
+  logger.warn("Geçersiz base64 formatı veya desteklenmeyen resim tipi.");
   return null;
 }
 
@@ -231,6 +244,138 @@ function formatMessagesForGemini(messages: AppMessage[]): Content[] {
 // Generate session ID for conversation tracking
 function generateSessionId(): string {
   return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// AI Command Detection Functions
+export function detectAICommand(message: string): string | null {
+  const lowerMessage = message.toLowerCase();
+  
+  // Profile Analysis patterns
+  if (lowerMessage.includes('ai profil analizi') || 
+      lowerMessage.includes('profil analizi') || 
+      lowerMessage.includes('beni tanı') ||
+      lowerMessage.includes('kişiselleştirilmiş öneriler')) {
+    return 'START_PROFILE_ANALYSIS';
+  }
+  
+  // Honeymoon Planner patterns
+  if (lowerMessage.includes('ai balayı planlayıcı') || 
+      lowerMessage.includes('balayı planla') || 
+      lowerMessage.includes('adım adım') ||
+      lowerMessage.includes('hayalimde balayı')) {
+    return 'START_HONEYMOON_PLANNER';
+  }
+  
+  // AI Prediction patterns
+  if (lowerMessage.includes('ai tahmin') || 
+      lowerMessage.includes('davranış analizi') ||
+      lowerMessage.includes('rezervasyon olasılığı')) {
+    return 'AI_PREDICTION';
+  }
+  
+  // Personalization patterns
+  if (lowerMessage.includes('kişiselleştir') || 
+      lowerMessage.includes('bana özel') ||
+      lowerMessage.includes('özelleştir')) {
+    return 'PERSONALIZE_EXPERIENCE';
+  }
+  
+  return null;
+}
+
+export function generateAICommandResponse(command: string, userName?: string): { 
+  content: string; 
+  actionType: string; 
+  actionData?: any 
+} {
+  const name = userName || 'sevgili kullanıcımız';
+  
+  switch (command) {
+    case 'START_PROFILE_ANALYSIS':
+      return {
+        content: `🧠 Mükemmel ${name}! AI Profil Analizi başlatıyorum. Size en uygun balayı önerilerini sunabilmek için sizi daha yakından tanımam gerekiyor.
+
+**PROFIL_ANALYSIS_CARDS**
+
+Hangi kişilik özelliğinizi analiz etmek istersiniz?`,
+        actionType: 'SHOW_PROFILE_CARDS',
+        actionData: { 
+          step: 'personality_selection',
+          options: [
+            { id: 'romantic', title: 'Romantik', description: 'Aşk ve romantizm odaklı', icon: '💕' },
+            { id: 'adventurous', title: 'Maceracı', description: 'Yeni deneyimler arayan', icon: '🌍' },
+            { id: 'luxury', title: 'Lüks Seven', description: 'Konfor ve kalite öncelikli', icon: '👑' },
+            { id: 'cultural', title: 'Kültür Meraklısı', description: 'Tarih ve sanat ilgili', icon: '🏛️' }
+          ]
+        }
+      };
+
+    case 'START_HONEYMOON_PLANNER':
+      return {
+        content: `💕 Harika ${name}! AI Balayı Planlayıcınız devreye giriyor. Hayalinizdeki balayını adım adım birlikte oluşturacağız.
+
+**HONEYMOON_PLANNER_CARDS**
+
+Hangi tür bir balayı hayal ediyorsunuz?`,
+        actionType: 'SHOW_HONEYMOON_CARDS',
+        actionData: { 
+          step: 'destination_type',
+          options: [
+            { id: 'beach', title: 'Plaj Balayısı', description: 'Deniz, kum ve güneş', icon: '🏖️' },
+            { id: 'city', title: 'Şehir Turu', description: 'Kültür ve sanat dolu', icon: '🏙️' },
+            { id: 'nature', title: 'Doğa Kaçamağı', description: 'Dağlar ve yeşillik', icon: '🌲' },
+            { id: 'luxury', title: 'Lüks Tatil', description: 'En iyi oteller ve hizmet', icon: '💎' }
+          ]
+        }
+      };
+
+    case 'AI_PREDICTION':
+      return {
+        content: `🔮 ${name}, AI Tahmin Motorunuz analiz sonuçlarını hazırlıyor!
+
+📊 Size özel analizler:
+• Rezervasyon yapma olasılığınız
+• En uygun rezervasyon zamanı
+• Fiyat optimizasyonu önerileri
+• Kişiselleştirilmiş teklifler
+
+🎯 Davranış kalıplarınıza göre özel stratejiler geliştiriyorum...
+
+Detaylı analiz sonuçlarınızı görmek ister misiniz? 📈`,
+        actionType: 'SHOW_AI_PREDICTIONS',
+        actionData: { includePredictions: true }
+      };
+
+    case 'PERSONALIZE_EXPERIENCE':
+      return {
+        content: `✨ ${name}, deneyiminizi tam size göre kişiselleştiriyorum!
+
+🎨 Aktif kişiselleştirmeler:
+• Size özel tema ve renkler
+• Kişilik tipinize uygun içerik
+• Davranışlarınıza göre öneriler
+• Real-time deneyim optimizasyonu
+
+🚀 Artık her etkileşim sizin için özelleştirilecek!
+
+Kişiselleştirilmiş deneyiminiz nasıl? Daha fazla ince ayar yapalım mı? 🎯`,
+        actionType: 'ACTIVATE_PERSONALIZATION',
+        actionData: { realTime: true }
+      };
+
+    default:
+      return {
+        content: `🤖 AI sistemleriniz hazır! Hangi özelliği kullanmak istersiniz?
+
+🧠 "AI Profil Analizi" - Sizi tanıyalım
+💕 "AI Balayı Planlayıcı" - Adım adım planlama  
+🔮 "AI Tahmin" - Davranış analizleri
+✨ "Kişiselleştir" - Size özel deneyim
+
+Nasıl yardımcı olabilirim? 😊`,
+        actionType: 'SHOW_AI_OPTIONS'
+      };
+  }
 }
 
 // Get or create session ID
@@ -391,326 +536,1103 @@ export function looksLikeLoginData(message: string): boolean {
          (lowerMessage.includes('password:') || lowerMessage.includes('şifre:'));
 }
 
-// Kullanıcı mesajının dilini tespit eden yardımcı fonksiyon
+// Optimized language detection - focus on common languages only
 function detectLanguage(message: string): string {
-  // Yaygın diller için karakter ve kelime tabanlı tespitler
-  const languagePatterns: Record<string, { chars: string[], words: string[] }> = {
-    'tr': { // Türkçe
-      chars: ['ç', 'ğ', 'ı', 'İ', 'ö', 'ş', 'ü', 'Ç', 'Ğ', 'Ö', 'Ş', 'Ü'],
-      words: ['merhaba', 'selam', 'nasıl', 'iyi', 'teşekkür', 'ederim', 'lütfen', 've', 'ama', 'için']
-    },
-    'es': { // İspanyolca
-      chars: ['á', 'é', 'í', 'ó', 'ú', 'ñ', '¿', '¡', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'],
-      words: ['hola', 'gracias', 'buenos', 'días', 'cómo', 'está', 'por', 'favor', 'adiós', 'amigo']
-    },
-    'fr': { // Fransızca
-      chars: ['é', 'è', 'ê', 'à', 'â', 'ç', 'ô', 'œ', 'ù', 'û', 'É', 'È', 'Ê', 'À', 'Â', 'Ç', 'Ô', 'Œ', 'Ù', 'Û'],
-      words: ['bonjour', 'merci', 'comment', 'ça', 'va', 's\'il', 'vous', 'plaît', 'au', 'revoir']
-    },
-    'de': { // Almanca
-      chars: ['ä', 'ö', 'ü', 'ß', 'Ä', 'Ö', 'Ü'],
-      words: ['hallo', 'danke', 'bitte', 'guten', 'tag', 'wie', 'geht', 'es', 'ihnen', 'auf', 'wiedersehen']
-    },
-    'ru': { // Rusça (Kiril alfabesi)
-      chars: ['а', 'б', 'в', 'г', 'д', 'е', 'ё', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я'],
-      words: ['привет', 'спасибо', 'пожалуйста', 'как', 'дела', 'хорошо', 'да', 'нет', 'здравствуйте', 'до', 'свидания']
-    },
-    'ar': { // Arapça
-      chars: ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي', 'ء', 'ة'],
-      words: ['مرحبا', 'شكرا', 'من', 'فضلك', 'كيف', 'حالك', 'نعم', 'لا', 'السلام', 'عليكم', 'وداعا']
-    },
-    'zh': { // Çince (Basitleştirilmiş)
-      chars: ['你', '好', '谢', '请', '再', '见', '吗', '是', '的', '我'],
-      words: ['你好', '谢谢', '请', '再见', '是的', '不是', '我', '你', '他', '她']
-    },
-    'ja': { // Japonca
-      chars: ['あ', 'い', 'う', 'え', 'お', 'か', 'き', 'く', 'け', 'こ', 'さ', 'し', 'す', 'せ', 'そ', 'た', 'ち', 'つ', 'て', 'と', 'な', 'に', 'ぬ', 'ね', 'の', 'は', 'ひ', 'ふ', 'へ', 'ほ', 'ま', 'み', 'む', 'め', 'も', 'や', 'ゆ', 'よ', 'ら', 'り', 'る', 'れ', 'ろ', 'わ', 'を', 'ん'],
-      words: ['こんにちは', 'ありがとう', 'お願いします', 'はい', 'いいえ', 'さようなら', 'おはよう', 'こんばんは', 'すみません', 'ごめんなさい']
-    },
-    'it': { // İtalyanca
-      chars: ['à', 'è', 'é', 'ì', 'í', 'ò', 'ó', 'ù', 'ú', 'À', 'È', 'É', 'Ì', 'Í', 'Ò', 'Ó', 'Ù', 'Ú'],
-      words: ['ciao', 'grazie', 'per', 'favore', 'come', 'stai', 'buongiorno', 'buonasera', 'arrivederci', 'prego']
-    }
-  };
-
-  // Mesajı küçük harfe çevir
   const lowerMessage = message.toLowerCase();
   
-  // Her dil için puan hesapla
-  const scores: Record<string, number> = {};
+  // Priority languages with simple detection
+  const patterns = [
+    { lang: 'tr', test: /[çğıöşüÇĞIÖŞÜ]|merhaba|selam|teşekkür|nasıl/ },
+    { lang: 'es', test: /[ñáéíóú¿¡]|hola|gracias|cómo|está/ },
+    { lang: 'fr', test: /[àâéèêçôœ]|bonjour|merci|comment/ },
+    { lang: 'de', test: /[äöüß]|hallo|danke|bitte/ },
+    { lang: 'ru', test: /[а-я]|привет|спасибо/ }
+  ];
   
-  for (const [lang, pattern] of Object.entries(languagePatterns)) {
-    // Karakterler için puan
-    let charScore = 0;
-    for (const char of pattern.chars) {
-      const count = (lowerMessage.match(new RegExp(char, 'g')) || []).length;
-      charScore += count;
-    }
-    
-    // Kelimeler için puan
-    let wordScore = 0;
-    for (const word of pattern.words) {
-      const regex = new RegExp(`\\b${word}\\b`, 'i');
-      if (regex.test(lowerMessage)) {
-        wordScore += 10; // Kelime eşleşmesine daha yüksek puan
-      }
-    }
-    
-    scores[lang] = charScore + wordScore;
+  for (const { lang, test } of patterns) {
+    if (test.test(lowerMessage)) return lang;
   }
   
-  // En yüksek puanlı dili bul
-  let detectedLanguage = 'en'; // Varsayılan olarak İngilizce
-  let highestScore = 0;
-  
-  for (const [lang, score] of Object.entries(scores)) {
-    if (score > highestScore) {
-      highestScore = score;
-      detectedLanguage = lang;
-    }
-  }
-  
-  // Eğer hiçbir dil belirli bir eşiği geçemediyse İngilizce kabul et
-  if (highestScore < 5) {
-    return 'en';
-  }
-  
-  console.log(`Detected language: ${detectedLanguage} (score: ${highestScore})`);
-  return detectedLanguage;
+  return 'en';
 }
 
-// 🔥 Firebase Functions kullanarak Gemini response generate etme
+// Ultimate AI System: Learning + Experimentation + Prediction + Intelligence
 export async function* generateGeminiStream(messages: AppMessage[], sessionId?: string, userId?: string | null, modelType?: string) {
-  console.log("generateGeminiStream called with Firebase Functions", { messages, sessionId, userId, modelType });
+  const startTime = Date.now();
+  logger.log("🚀 Ultimate AI called with full intelligence stack", { messages, sessionId, userId, modelType });
   
-  try {
-    const finalSessionId = sessionId || getSessionId();
+  const finalSessionId = sessionId || getSessionId();
+  const lastUserMessage = messages[messages.length - 1];
+  const lastBotMessage = messages.length > 1 ? messages[messages.length - 2] : null;
+  const detectedLanguage = lastUserMessage?.role === 'user' ? detectLanguage(lastUserMessage.content) : 'en';
+  
+  // 🔮 0. Conversation Flow Prediction & State Management
+  let conversationState: ConversationState | null = null;
+  if (lastUserMessage?.role === 'user') {
+    conversationState = conversationPredictor.updateConversationState(
+      finalSessionId,
+      lastUserMessage.content,
+      lastBotMessage?.content || '',
+      userId || undefined
+    );
     
-    // Frontend'deki AppMessage formatını backend'in beklediği formata dönüştür
-    const convertedMessages = messages.map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : 'user', // Backend 'model' rolünü bekliyor
-      parts: [{ text: msg.content }], // content'i parts formatına dönüştür
-      sessionId: finalSessionId,
-      userId: userId || null,
-      createdAt: new Date().toISOString()
-    }));
+    logger.log(`🔮 Conversation phase: ${conversationState.currentPhase}`);
+    logger.log(`📈 Conversion probability: ${(conversationState.conversionProbability * 100).toFixed(1)}%`);
+    logger.log(`⚡ Urgency level: ${conversationState.urgencyLevel}`);
+  }
+  
+  // 🎭 0.5. Emotional Intelligence Analysis
+  let emotionalState: EmotionalState | null = null;
+  let personalityProfile: PersonalityProfile | null = null;
+  let emotionalResponse = null;
+  
+  if (lastUserMessage?.role === 'user' && userId) {
+    emotionalState = emotionalIntelligenceEngine.analyzeEmotionalState(lastUserMessage.content, detectedLanguage);
+    emotionalIntelligenceEngine.updateEmotionalHistory(userId, emotionalState);
     
-    // Eğer history'de ilk mesaj 'model' ise, sadece son kullanıcı mesajını gönder
-    let messagesToSend = convertedMessages;
-    if (convertedMessages.length > 1 && convertedMessages[0].role === 'model') {
-      console.log('First message is model, sending only last user message');
-      messagesToSend = convertedMessages.slice(-1); // Sadece son mesaj
+    // Build personality profile from conversation history
+    const userMessages = messages.filter(m => m.role === 'user').map(m => m.content);
+    personalityProfile = emotionalIntelligenceEngine.buildPersonalityProfile(userId, userMessages);
+    
+    // Generate emotional response strategy
+    emotionalResponse = emotionalIntelligenceEngine.generateEmotionalResponse(
+      emotionalState, 
+      personalityProfile, 
+      lastUserMessage.content
+    );
+    
+    logger.log(`🎭 Emotional state: ${emotionalState.primary} (intensity: ${emotionalState.intensity.toFixed(2)}, confidence: ${emotionalState.confidence.toFixed(2)})`);
+    logger.log(`👤 Communication style: ${personalityProfile.communicationStyle}, Decision making: ${personalityProfile.decisionMaking}`);
+    logger.log(`💬 Recommended tone: ${emotionalResponse.tone}, Approach: ${emotionalResponse.approach}`);
+  }
+  
+  // 🖼️ 0.7. Gemini Vision Analysis (if image provided)
+  let visionAnalysis: VisionAnalysis | null = null;
+  
+  if (lastUserMessage?.role === 'user' && lastUserMessage.imageBase64) {
+    try {
+      logger.log('🖼️ Image detected - starting Gemini Vision analysis...');
+      
+      visionAnalysis = await geminiVisionService.analyzeImage(
+        lastUserMessage.imageBase64,
+        {
+          userMessage: lastUserMessage.content,
+          conversationHistory: messages.slice(-5).map(m => ({ role: m.role, content: m.content })),
+          userId: userId || undefined,
+          sessionId: finalSessionId
+        }
+      );
+      
+      logger.log(`✨ Vision analysis completed: ${visionAnalysis.sceneType} scene, ${visionAnalysis.mood} mood (confidence: ${visionAnalysis.confidenceScore}%)`);
+      logger.log(`🎯 Suggested destinations: ${visionAnalysis.suggestedDestinations.join(', ')}`);
+      
+      // Enhance conversation state with vision insights
+      if (conversationState && visionAnalysis.suggestedDestinations.length > 0) {
+        conversationState.collectedInfo.destinations = [
+          ...(conversationState.collectedInfo.destinations || []),
+          ...visionAnalysis.suggestedDestinations.slice(0, 2) // Add top 2 vision suggestions
+        ];
+        
+        // Add travel style from vision
+        if (visionAnalysis.personalityInsights.travelStyle) {
+          conversationState.collectedInfo.travelStyle = visionAnalysis.personalityInsights.travelStyle;
+        }
+        
+        // Add preferences from vision
+        if (visionAnalysis.personalityInsights.preferences.length > 0) {
+          conversationState.collectedInfo.preferences = [
+            ...(conversationState.collectedInfo.preferences || []),
+            ...visionAnalysis.personalityInsights.preferences
+          ];
+        }
+      }
+      
+    } catch (error) {
+      logger.error('❌ Gemini Vision analysis failed:', error);
+      // Continue without vision analysis
+    }
+  }
+  
+  // 🧠 1. AI Learning Engine - Smart Response Suggestion
+  const responseOptimization = lastUserMessage?.role === 'user' 
+    ? aiLearningEngine.suggestOptimalResponse(lastUserMessage.content, userId || undefined)
+    : null;
+  
+  logger.log("🧠 AI Learning suggestions:", responseOptimization);
+  
+  // 🚀 2. Intelligent Cache Check (Multi-layer caching)
+  if (lastUserMessage?.role === 'user') {
+    // Try intelligent cache first (fastest)
+    const intelligentCache = intelligentCacheSystem.findSmartCache(
+      lastUserMessage.content, 
+      userId || undefined, 
+      detectedLanguage
+    );
+    
+    if (intelligentCache) {
+      logger.log(`⚡ Intelligent cache hit! Similarity: ${intelligentCache.similarity || 1.0}`);
+      
+      // Get smart recommendations for this user
+      if (userId) {
+        const recommendations = smartRecommendationEngine.generateSmartRecommendations(
+          userId,
+          lastUserMessage.content,
+          { conversationPhase: conversationState?.currentPhase, urgencyLevel: conversationState?.urgencyLevel }
+        );
+        
+        // If this is a package-related query, enhance response with smart recommendations
+        if (lastUserMessage.content.toLowerCase().includes('paket') || 
+            lastUserMessage.content.toLowerCase().includes('package') ||
+            lastUserMessage.content.toLowerCase().includes('öner')) {
+          
+          let enhancedResponse = intelligentCache.response;
+          
+          if (recommendations.packages.length > 0 && recommendations.timing === 'immediate') {
+            const topPackage = recommendations.packages[0];
+            enhancedResponse += `\n\n✨ **Kişisel Önerim**: ${topPackage.packageId} paketi ${topPackage.reasons.slice(0, 2).join(', ')} nedeniyle size çok uygun! (Uygunluk skoru: ${(topPackage.score * 100).toFixed(0)}%)`;
+            
+            if (recommendations.strategy === 'aggressive' && recommendations.packages.length > 1) {
+              enhancedResponse += `\n\n🎯 Diğer favori seçimleriniz: ${recommendations.packages.slice(1, 3).map(p => p.packageId).join(', ')}`;
+            }
+          }
+          
+          yield enhancedResponse;
+        } else {
+          yield intelligentCache.response;
+        }
+      } else {
+        yield intelligentCache.response;
+      }
+      
+      // Record experiment result for intelligent cache usage
+      const cacheExperimentResult = {
+        variantId: 'intelligent_cache_hit',
+        sessionId: finalSessionId,
+        userId: userId || undefined,
+        query: lastUserMessage.content,
+        response: intelligentCache.response,
+        engagementMetrics: {
+          responseTime: Date.now() - startTime,
+          userResponseTime: 0,
+          messageLength: intelligentCache.response.length,
+          containsPackageClick: intelligentCache.response.includes('SHOW_PACKAGES'),
+          leadToBooking: false
+        },
+        timestamp: Date.now()
+      };
+      
+      aiExperimentEngine.recordExperimentResult('response_source', cacheExperimentResult);
+      return;
     }
     
-    // Son kullanıcı mesajının dilini tespit et
-    const lastUserMessage = messages[messages.length - 1];
-    const detectedLanguage = lastUserMessage.role === 'user' ? detectLanguage(lastUserMessage.content) : 'en';
-    
-    // Dile göre system prompt'u belirle
-    let systemPrompt = modelType === 'ai-lovv2' 
-      ? `AI LOVE v2 - Expert honeymoon concierge! Quick, precise, magical answers. Include specific recommendations and one insider tip. Keep responses under 100 words but make them count! ✨💕`
-      : SYSTEM_PROMPT;
-    
-    // Kullanıcının dili İngilizce değilse, ek talimat ekle
-    if (detectedLanguage !== 'en') {
-      systemPrompt += `\n\nIMPORTANT: I've detected that the user is writing in a language that appears to be '${detectedLanguage}'. Please respond in the SAME LANGUAGE that the user is using. Match their language, tone, and style while maintaining your helpful persona. If you're unsure about the language, respond in the language the user last used.`;
-    }
-    
-    // Firebase Functions çağrısı - public access
-    const generateGeminiResponse = httpsCallable(functions, 'generateGeminiResponse', {
-      timeout: 30000 // 30 seconds timeout
-    });
-    
-    console.log("🔥 Calling Firebase Functions (public)...", {
-      endpoint: 'generateGeminiResponse',
-      region: 'europe-west1',
-      messageCount: messagesToSend.length,
-      language: detectedLanguage
-    });
-    
-    const result = await generateGeminiResponse({
-      messages: messagesToSend,
-      sessionId: finalSessionId,
-      userId: userId || null,
-      systemInstruction: systemPrompt,
-      modelType: modelType || 'ai-lovv3',
-      language: detectedLanguage // Dil bilgisini backend'e ilet
-    });
-    
-    const data = result.data as any;
-    
-    if (!data.success) {
-      throw new Error(data.message || 'Firebase Functions error');
-    }
-    
-    // Yanıtı streaming formatında döndür
-    const content = data.generatedContent?.parts?.[0]?.text || data.message || '';
-    yield content;
-    
-  } catch (error: unknown) {
-    console.error("Firebase Functions error:", error);
-    let errorMessage = "I'm having trouble connecting right now";
-    
-    // Son kullanıcı mesajının dilini tespit et
-    const lastUserMessage = messages.length > 0 ? messages[messages.length - 1] : null;
-    const detectedLanguage = lastUserMessage && lastUserMessage.role === 'user' ? detectLanguage(lastUserMessage.content) : 'en';
-    
-    // Bazı yaygın dillerde hata mesajları
-    const errorMessages: Record<string, string> = {
-      'en': "I'm having trouble connecting right now",
-      'tr': "Şu anda bağlantı kurmakta sorun yaşıyorum",
-      'es': "Estoy teniendo problemas para conectarme en este momento",
-      'fr': "J'ai des difficultés à me connecter en ce moment",
-      'de': "Ich habe im Moment Schwierigkeiten, eine Verbindung herzustellen",
-      'ru': "У меня сейчас проблемы с подключением",
-      'it': "Sto avendo problemi di connessione in questo momento",
-      'zh': "我现在连接有问题",
-      'ja': "現在接続に問題があります",
-      'ar': "أواجه مشكلة في الاتصال الآن"
-    };
-    
-    // Tespit edilen dilde hata mesajı varsa kullan
-    if (errorMessages[detectedLanguage]) {
-      errorMessage = errorMessages[detectedLanguage];
-    }
-    
-    if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    
-    // Hata mesajlarını çok dilli hale getir
-    const timeoutErrors: Record<string, string> = {
-      'en': "The request is taking longer than expected. Please try again!",
-      'tr': "İsteğiniz beklenenden uzun sürüyor. Lütfen tekrar deneyin!",
-      'es': "La solicitud está tardando más de lo esperado. ¡Inténtalo de nuevo!",
-      'fr': "La requête prend plus de temps que prévu. Veuillez réessayer !",
-      'de': "Die Anfrage dauert länger als erwartet. Bitte versuche es erneut!",
-      'ru': "Запрос занимает больше времени, чем ожидалось. Пожалуйста, попробуйте снова!",
-      'it': "La richiesta sta impiegando più tempo del previsto. Per favore riprova!",
-      'zh': "请求花费的时间比预期的长。请再试一次！",
-      'ja': "リクエストに予想以上に時間がかかっています。もう一度お試しください！",
-      'ar': "يستغرق الطلب وقتًا أطول من المتوقع. يرجى المحاولة مرة أخرى!"
-    };
-
-    const configErrors: Record<string, string> = {
-      'en': "Service configuration issue. Please contact support.",
-      'tr': "Servis yapılandırma sorunu. Lütfen destek ile iletişime geçin.",
-      'es': "Problema de configuración del servicio. Póngase en contacto con soporte.",
-      'fr': "Problème de configuration du service. Veuillez contacter le support.",
-      'de': "Problem mit der Servicekonfiguration. Bitte kontaktieren Sie den Support.",
-      'ru': "Проблема с конфигурацией сервиса. Пожалуйста, обратитесь в службу поддержки.",
-      'it': "Problema di configurazione del servizio. Si prega di contattare l'assistenza.",
-      'zh': "服务配置问题。请联系支持。",
-      'ja': "サービス構成の問題。サポートにお問い合わせください。",
-      'ar': "مشكلة في تكوين الخدمة. يرجى الاتصال بالدعم."
-    };
-
-    const authErrors: Record<string, string> = {
-      'en': "Connection issue resolved! Please try your message again.",
-      'tr': "Bağlantı sorunu çözüldü! Lütfen mesajınızı tekrar deneyin.",
-      'es': "¡Problema de conexión resuelto! Intenta enviar tu mensaje nuevamente.",
-      'fr': "Problème de connexion résolu ! Veuillez réessayer votre message.",
-      'de': "Verbindungsproblem behoben! Bitte versuche es erneut mit deiner Nachricht.",
-      'ru': "Проблема с подключением решена! Пожалуйста, попробуйте отправить сообщение снова.",
-      'it': "Problema di connessione risolto! Riprova con il tuo messaggio.",
-      'zh': "连接问题已解决！请再次尝试您的消息。",
-      'ja': "接続の問題が解決しました！メッセージをもう一度お試しください。",
-      'ar': "تم حل مشكلة الاتصال! يرجى تجربة رسالتك مرة أخرى."
-    };
-
-    const quotaErrors: Record<string, string> = {
-      'en': "High demand right now! Please wait a moment and try again.",
-      'tr': "Şu anda yoğun talep var! Lütfen bir süre bekleyip tekrar deneyin.",
-      'es': "¡Alta demanda en este momento! Espera un momento y vuelve a intentarlo.",
-      'fr': "Forte demande en ce moment ! Veuillez patienter un instant et réessayer.",
-      'de': "Hohe Nachfrage im Moment! Bitte warte einen Moment und versuche es erneut.",
-      'ru': "Высокий спрос прямо сейчас! Подождите немного и попробуйте снова.",
-      'it': "Alta richiesta in questo momento! Attendi un attimo e riprova.",
-      'zh': "现在需求很高！请稍等片刻，然后重试。",
-      'ja': "現在需要が高いです！少し待ってからもう一度お試しください。",
-      'ar': "الطلب مرتفع الآن! يرجى الانتظار لحظة والمحاولة مرة أخرى."
-    };
-    
-    // Handle specific error cases with user-friendly messages
-    if (typeof error === 'object' && error !== null && 'message' in error) {
-      const apiError = error as { message: string };
-      if (apiError.message.includes("DEADLINE_EXCEEDED") || apiError.message.includes("timeout")) {
-        errorMessage = timeoutErrors[detectedLanguage] || timeoutErrors['en'];
-      } else if (apiError.message.includes("API_KEY_INVALID")) {
-        errorMessage = configErrors[detectedLanguage] || configErrors['en'];
-      } else if (apiError.message.includes("unauthenticated") || apiError.message.includes("permission")) {
-        errorMessage = authErrors[detectedLanguage] || authErrors['en'];
-      } else if (apiError.message.includes("quota") || apiError.message.includes("limit")) {
-        errorMessage = quotaErrors[detectedLanguage] || quotaErrors['en'];
+    // Fallback to original cache if intelligent cache misses
+    if (responseOptimization?.shouldUseCache) {
+      const cachedResponse = responseCache.findSimilarResponse(lastUserMessage.content, detectedLanguage);
+      if (cachedResponse) {
+        logger.log(`✅ Fallback cache hit! Similarity: ${cachedResponse.similarity}`);
+        
+        // Record experiment result for fallback cache usage
+        const cacheExperimentResult = {
+          variantId: 'fallback_cache_hit',
+          sessionId: finalSessionId,
+          userId: userId || undefined,
+          query: lastUserMessage.content,
+          response: cachedResponse.response,
+          engagementMetrics: {
+            responseTime: Date.now() - startTime,
+            userResponseTime: 0,
+            messageLength: cachedResponse.response.length,
+            containsPackageClick: cachedResponse.response.includes('SHOW_PACKAGES'),
+            leadToBooking: false
+          },
+          timestamp: Date.now()
+        };
+        
+        aiExperimentEngine.recordExperimentResult('response_source', cacheExperimentResult);
+        yield cachedResponse.response;
+        return;
       }
     }
-    
-    throw new Error(errorMessage);
   }
+  
+  // Check rate limit
+  if (!rateLimiter.canMakeRequest()) {
+    const resetTime = rateLimiter.getResetTime();
+    throw new Error(`Rate limit exceeded. Please wait ${Math.ceil(resetTime / 1000)} seconds.`);
+  }
+  
+  // 🧠 3. Context yönetimi - akıllı mesaj seçimi
+  const context = contextManager.updateContext(finalSessionId, messages);
+  const relevantMessages = contextManager.selectRelevantMessages(messages, finalSessionId);
+  
+  // 🌍 3.5. Real-time data enrichment
+  let realTimeData = null;
+  if (conversationState && conversationState.collectedInfo.destinations?.length) {
+    const destination = conversationState.collectedInfo.destinations[0];
+    logger.log(`🌍 Fetching real-time data for ${destination}`);
+    
+    try {
+      realTimeData = await realTimeDataService.getComprehensiveTravelData(
+        destination,
+        undefined, // origin can be extracted from user location later
+        conversationState.collectedInfo.timeframe ? {
+          checkIn: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+          checkOut: new Date(Date.now() + 37 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]  // 7 days trip
+        } : undefined
+      );
+      logger.log(`✅ Real-time data fetched for ${destination}`);
+    } catch (error) {
+      logger.error(`❌ Real-time data fetch failed for ${destination}:`, error);
+    }
+  }
+  
+  // 🧪 4. A/B Testing - Select experimental variant
+  const promptStyleVariant = aiExperimentEngine.selectVariant('prompt_style', userId, finalSessionId);
+  const packageStrategyVariant = aiExperimentEngine.selectVariant('package_strategy', userId, finalSessionId);
+  
+  logger.log(`🧪 Experiment variants:`, {
+    promptStyle: promptStyleVariant?.id,
+    packageStrategy: packageStrategyVariant?.id
+  });
+  
+  logger.log(`🎯 Context-aware: Selected ${relevantMessages.length}/${messages.length} messages`);
+  logger.log(`📊 User preferences:`, context.userPreferences);
+  logger.log(`🔄 Conversation phase: ${context.conversationPhase}`);
+  
+  const maxRetries = 3;
+  let attempt = 0;
+  
+  while (attempt < maxRetries) {
+    try {
+      // Optimized message conversion with context awareness
+      const messagesToSend = relevantMessages.slice(-8).map(msg => ({ // Max 8 most relevant messages
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }],
+        sessionId: finalSessionId,
+        userId: userId || null
+      }));
+      
+      // 🎯 5. Multi-layer prompt generation with conversation flow awareness
+      let baseSystemPrompt = contextManager.generateDynamicSystemPrompt(context);
+      
+      // 🧠 5.5. Dynamic Instructions Optimization
+      let systemPrompt = baseSystemPrompt;
+      
+      if (lastUserMessage?.role === 'user') {
+        try {
+          logger.log('🧠 Applying Dynamic Instructions optimization...');
+          
+          // Create instruction context
+          const instructionContext: InstructionContext = {
+            conversationPhase: conversationState?.currentPhase || 'greeting',
+            messageCount: messages.length,
+            emotionalState,
+            personalityProfile,
+            visionAnalysis,
+            urgencyLevel: conversationState?.urgencyLevel || 'low',
+            userIntent: conversationState?.userIntent?.primary || 'discovery',
+            collectedInfo: conversationState?.collectedInfo || {},
+            detectedLanguage,
+            conversionProbability: conversationState?.conversionProbability || 0.1,
+            realTimeData
+          };
+          
+          // Generate optimized instructions
+          const optimizedInstructions = dynamicInstructionsEngine.generateOptimizedInstructions(
+            baseSystemPrompt,
+            instructionContext,
+            finalSessionId
+          );
+          
+          systemPrompt = optimizedInstructions.baseInstruction;
+          
+          // Add enhanced instructions
+          optimizedInstructions.enhancedInstructions.forEach(instruction => {
+            systemPrompt += `\n\n${instruction.instructionTemplate}`;
+          });
+          
+          logger.log(`✨ Dynamic instructions applied: ${optimizedInstructions.enhancedInstructions.length} enhancements, optimization level: ${optimizedInstructions.optimizationLevel}`);
+          
+        } catch (error) {
+          logger.error('❌ Dynamic Instructions optimization failed:', error);
+          // Continue with base system prompt
+        }
+      }
+      
+      // Add conversation flow intelligence
+      if (conversationState) {
+        systemPrompt += `\n\nCONVERSATION FLOW INTELLIGENCE:`;
+        systemPrompt += `\n- Current phase: ${conversationState.currentPhase}`;
+        systemPrompt += `\n- Conversion probability: ${(conversationState.conversionProbability * 100).toFixed(1)}%`;
+        systemPrompt += `\n- Urgency level: ${conversationState.urgencyLevel}`;
+        
+        // Add collected information context
+        if (Object.keys(conversationState.collectedInfo).length > 0) {
+          systemPrompt += `\n- Known user info: ${JSON.stringify(conversationState.collectedInfo)}`;
+        }
+        
+        // Add predicted actions
+        if (conversationState.predictedNextActions.length > 0) {
+          const topAction = conversationState.predictedNextActions[0];
+          systemPrompt += `\n- Recommended action: ${topAction.type} - ${topAction.content}`;
+        }
+        
+        // Phase-specific instructions
+        switch (conversationState.currentPhase) {
+          case 'greeting':
+            systemPrompt += `\n- PHASE GUIDANCE: Be welcoming, ask about dream destination and travel preferences`;
+            break;
+          case 'discovery':
+            systemPrompt += `\n- PHASE GUIDANCE: Focus on understanding needs, ask clarifying questions, probe for budget/preferences`;
+            break;
+          case 'exploration':
+            systemPrompt += `\n- PHASE GUIDANCE: Show specific packages, highlight unique features, address concerns`;
+            break;
+          case 'comparison':
+            systemPrompt += `\n- PHASE GUIDANCE: Help compare options, highlight differences, recommend based on preferences`;
+            break;
+          case 'decision':
+            systemPrompt += `\n- PHASE GUIDANCE: Support their choice, create gentle urgency, explain next steps`;
+            break;
+          case 'booking':
+            systemPrompt += `\n- PHASE GUIDANCE: Guide through booking process, address security concerns, be supportive`;
+            break;
+          case 'confirmation':
+            systemPrompt += `\n- PHASE GUIDANCE: Confirm details, explain next steps, offer additional services`;
+            break;
+        }
+        
+        // Urgency-based modifications
+        if (conversationState.urgencyLevel === 'high' || conversationState.urgencyLevel === 'urgent') {
+          systemPrompt += `\n- URGENCY ALERT: User has urgent timing needs. Prioritize quick solutions and immediate assistance.`;
+        }
+      }
+      
+      // 🌍 Add real-time data context
+      if (realTimeData) {
+        systemPrompt += `\n\nREAL-TIME DATA CONTEXT:`;
+        
+        // Weather information
+        if (realTimeData.weather) {
+          systemPrompt += `\n- Current weather: ${realTimeData.weather.current.temperature}°C, ${realTimeData.weather.current.condition}`;
+          const forecast = realTimeData.weather.forecast[0];
+          if (forecast) {
+            systemPrompt += `\n- Tomorrow's forecast: ${forecast.high}°C high, ${forecast.condition}`;
+          }
+        }
+        
+        // Currency information
+        if (realTimeData.currency) {
+          const eurRate = realTimeData.currency.rates.EUR;
+          const tryRate = realTimeData.currency.rates.TRY;
+          if (eurRate) systemPrompt += `\n- Exchange rate: 1 USD = ${eurRate.toFixed(2)} EUR`;
+          if (tryRate) systemPrompt += `\n- Exchange rate: 1 USD = ${tryRate.toFixed(2)} TRY`;
+        }
+        
+        // Events information
+        if (realTimeData.events && realTimeData.events.events.length > 0) {
+          const upcomingEvents = realTimeData.events.events.slice(0, 2);
+          systemPrompt += `\n- Upcoming events: ${upcomingEvents.map(e => `${e.name} (${e.date})`).join(', ')}`;
+          
+          const highImpactEvents = upcomingEvents.filter(e => e.impact === 'high');
+          if (highImpactEvents.length > 0) {
+            systemPrompt += `\n- PRICE ALERT: High-impact events may increase accommodation prices by up to ${highImpactEvents[0].priceImpact}%`;
+          }
+        }
+        
+        // Travel advisory
+        if (realTimeData.advisory) {
+          systemPrompt += `\n- Safety level: ${realTimeData.advisory.safetyLevel}`;
+          if (realTimeData.advisory.requirements.visa) {
+            systemPrompt += `\n- IMPORTANT: Visa required for this destination`;
+          }
+          if (realTimeData.advisory.advisories.length > 0) {
+            systemPrompt += `\n- Travel advisories: ${realTimeData.advisory.advisories.map(a => a.message).join(', ')}`;
+          }
+        }
+        
+        // Insights
+        if (realTimeData.insights) {
+          systemPrompt += `\n- Best time to visit: ${realTimeData.insights.bestTimeToVisit}`;
+          if (realTimeData.insights.priceInsights.length > 0) {
+            systemPrompt += `\n- Price insights: ${realTimeData.insights.priceInsights.join(', ')}`;
+          }
+          if (realTimeData.insights.travelTips.length > 0) {
+            systemPrompt += `\n- Travel tips: ${realTimeData.insights.travelTips.join(', ')}`;
+          }
+        }
+        
+        // Flight data (if available)
+        if (realTimeData.flights && realTimeData.flights.prices.length > 0) {
+          const bestPrice = realTimeData.flights.bestDeal;
+          systemPrompt += `\n- Best flight deal: ${bestPrice.airline} at $${bestPrice.price} (save $${bestPrice.savings})`;
+        }
+        
+        // Hotel data (if available)
+        if (realTimeData.hotels && realTimeData.hotels.hotels.length > 0) {
+          const avgPrice = realTimeData.hotels.priceRange.average;
+          const minPrice = realTimeData.hotels.priceRange.min;
+          systemPrompt += `\n- Hotel prices: from $${minPrice}/night (average: $${avgPrice}/night)`;
+        }
+        
+        systemPrompt += `\n\nUSE THIS REAL-TIME DATA: Incorporate current weather, prices, events, and travel conditions into your response. Make specific recommendations based on this live information.`;
+      }
+      
+      // 🎭 Add emotional intelligence context
+      if (emotionalState && personalityProfile && emotionalResponse) {
+        systemPrompt += `\n\nEMOTIONAL INTELLIGENCE CONTEXT:`;
+        systemPrompt += `\n- User's emotional state: ${emotionalState.primary} (intensity: ${emotionalState.intensity.toFixed(2)})`;
+        systemPrompt += `\n- Secondary emotion: ${emotionalState.secondary || 'none'}`;
+        systemPrompt += `\n- Emotional indicators: ${emotionalState.indicators.join(', ')}`;
+        systemPrompt += `\n- Communication style: ${personalityProfile.communicationStyle}`;
+        systemPrompt += `\n- Decision making: ${personalityProfile.decisionMaking}`;
+        systemPrompt += `\n- Risk tolerance: ${personalityProfile.riskTolerance}`;
+        systemPrompt += `\n- Personality traits: Openness ${(personalityProfile.traits.openness * 100).toFixed(0)}%, Extraversion ${(personalityProfile.traits.extraversion * 100).toFixed(0)}%, Conscientiousness ${(personalityProfile.traits.conscientiousness * 100).toFixed(0)}%`;
+        
+        // Emotional response strategy
+        systemPrompt += `\n\nEMOTIONAL RESPONSE STRATEGY:`;
+        systemPrompt += `\n- Recommended tone: ${emotionalResponse.tone}`;
+        systemPrompt += `\n- Approach: ${emotionalResponse.approach}`;
+        systemPrompt += `\n- Urgency level: ${emotionalResponse.urgency}`;
+        systemPrompt += `\n- Response style: ${emotionalResponse.suggestions.responseStyle}`;
+        
+        if (emotionalResponse.suggestions.keyPoints.length > 0) {
+          systemPrompt += `\n- Key points to address: ${emotionalResponse.suggestions.keyPoints.join(', ')}`;
+        }
+        
+        if (emotionalResponse.suggestions.emphasizeTopics.length > 0) {
+          systemPrompt += `\n- Topics to emphasize: ${emotionalResponse.suggestions.emphasizeTopics.join(', ')}`;
+        }
+        
+        if (emotionalResponse.suggestions.avoidTopics.length > 0) {
+          systemPrompt += `\n- Topics to avoid: ${emotionalResponse.suggestions.avoidTopics.join(', ')}`;
+        }
+        
+        // Specific emotional guidance
+        switch (emotionalState.primary) {
+          case 'anxiety':
+            systemPrompt += `\n\nANXIETY RESPONSE: User is anxious. Use reassuring language, provide concrete solutions, address their concerns directly, avoid mentioning risks or problems. Focus on safety and support.`;
+            break;
+          case 'excitement':
+            systemPrompt += `\n\nEXCITEMENT RESPONSE: User is excited! Match their energy with enthusiastic language, use exclamation marks, build on their excitement with specific details about amazing experiences.`;
+            break;
+          case 'disappointment':
+            systemPrompt += `\n\nDISAPPOINTMENT RESPONSE: User is disappointed. Show empathy, validate their feelings, then pivot to better alternatives and solutions. Focus on positive outcomes.`;
+            break;
+          case 'confusion':
+            systemPrompt += `\n\nCONFUSION RESPONSE: User is confused. Use simple, clear language, break down complex information, ask clarifying questions, provide step-by-step explanations.`;
+            break;
+          case 'joy':
+            systemPrompt += `\n\nJOY RESPONSE: User is happy! Celebrate with them, maintain the positive energy, build confidence in their choices, share their enthusiasm.`;
+            break;
+        }
+        
+        systemPrompt += `\n\nIMPORTANT: Adapt your entire response style, tone, and content based on the user's emotional state and personality. Be emotionally intelligent and empathetic.`;
+      }
+      
+      // 🖼️ Add vision analysis context
+      if (visionAnalysis) {
+        systemPrompt += `\n\nVISION ANALYSIS CONTEXT:`;
+        systemPrompt += `\n- Image scene type: ${visionAnalysis.sceneType}`;
+        systemPrompt += `\n- Detected mood: ${visionAnalysis.mood}`;
+        systemPrompt += `\n- Analysis confidence: ${visionAnalysis.confidenceScore}%`;
+        systemPrompt += `\n- Suggested destinations: ${visionAnalysis.suggestedDestinations.join(', ')}`;
+        
+        if (visionAnalysis.detectedElements.architecture?.length) {
+          systemPrompt += `\n- Architectural style: ${visionAnalysis.detectedElements.architecture.join(', ')}`;
+        }
+        
+        if (visionAnalysis.detectedElements.naturalFeatures?.length) {
+          systemPrompt += `\n- Natural features: ${visionAnalysis.detectedElements.naturalFeatures.join(', ')}`;
+        }
+        
+        if (visionAnalysis.detectedElements.activities?.length) {
+          systemPrompt += `\n- Activities detected: ${visionAnalysis.detectedElements.activities.join(', ')}`;
+        }
+        
+        systemPrompt += `\n- Travel style preference: ${visionAnalysis.personalityInsights.travelStyle}`;
+        systemPrompt += `\n- Group type: ${visionAnalysis.personalityInsights.groupType}`;
+        
+        if (visionAnalysis.personalityInsights.preferences.length > 0) {
+          systemPrompt += `\n- Visual preferences: ${visionAnalysis.personalityInsights.preferences.join(', ')}`;
+        }
+        
+        if (visionAnalysis.colorPalette.length > 0) {
+          systemPrompt += `\n- Color palette: ${visionAnalysis.colorPalette.join(', ')}`;
+        }
+        
+        systemPrompt += `\n- Time of day: ${visionAnalysis.timeOfDay}`;
+        systemPrompt += `\n- Season detected: ${visionAnalysis.season}`;
+        
+        if (visionAnalysis.recommendedPackages.length > 0) {
+          systemPrompt += `\n- Recommended package types: ${visionAnalysis.recommendedPackages.join(', ')}`;
+        }
+        
+        systemPrompt += `\n\nVISION-BASED RECOMMENDATIONS:`;
+        systemPrompt += `\n- IMPORTANT: The user shared an image that shows ${visionAnalysis.sceneType} scenery with ${visionAnalysis.mood} mood`;
+        systemPrompt += `\n- Tailor your response to match this visual aesthetic and atmosphere`;
+        systemPrompt += `\n- Prioritize destinations similar to what they showed: ${visionAnalysis.suggestedDestinations.slice(0, 3).join(', ')}`;
+        systemPrompt += `\n- Match their visual preferences in your recommendations`;
+        systemPrompt += `\n- Reference the image they shared to create a more personalized connection`;
+        
+        // Add specific package triggers based on vision
+        if (visionAnalysis.sceneType === 'beach') {
+          systemPrompt += `\n- Use **SHOW_PACKAGES:beach** for beach-related recommendations`;
+        } else if (visionAnalysis.sceneType === 'luxury') {
+          systemPrompt += `\n- Use **SHOW_PACKAGES:luxury** for luxury experiences`;
+        } else if (visionAnalysis.sceneType === 'romantic') {
+          systemPrompt += `\n- Use **SHOW_PACKAGES:romantic** for romantic packages`;
+        } else if (visionAnalysis.suggestedDestinations.length > 0) {
+          const topDestination = visionAnalysis.suggestedDestinations[0].toLowerCase();
+          systemPrompt += `\n- Use **SHOW_PACKAGES:${topDestination}** for destination-specific packages`;
+        }
+        
+        systemPrompt += `\n\nVISUAL RESPONSE ENHANCEMENT: Incorporate the visual aesthetic they shared into your language and recommendations. Make them feel understood based on their image choice.`;
+      }
+      
+      // 🤖 6. Multi-Agent System Coordination
+      let multiAgentResponse = null;
+      let multiAgentInsights = null;
+      
+      if (lastUserMessage?.role === 'user') {
+        try {
+          logger.log('🤖 Initializing Multi-Agent System coordination...');
+          
+          const agentResult = await multiAgentSystem.coordinateResponse(
+            lastUserMessage.content,
+            finalSessionId,
+            conversationState,
+            emotionalState,
+            personalityProfile,
+            userId || undefined
+          );
+          
+          multiAgentResponse = agentResult.response;
+          multiAgentInsights = agentResult.systemInsights;
+          
+          logger.log(`✨ Multi-Agent coordination completed: ${agentResult.agentContributions.length} agents, quality: ${agentResult.systemInsights.qualityScore.toFixed(2)}`);
+          
+          // If multi-agent system provides high-quality response, use it directly
+          if (agentResult.systemInsights.qualityScore > 0.85 && !agentResult.agentContributions.some(a => a.requiresHumanReview)) {
+            logger.log('🎯 Using Multi-Agent System response directly (high quality)');
+            
+            // Record experiment result for multi-agent usage
+            const multiAgentExperimentResult = {
+              variantId: 'multi_agent_direct',
+              sessionId: finalSessionId,
+              userId: userId || undefined,
+              query: lastUserMessage.content,
+              response: multiAgentResponse,
+              engagementMetrics: {
+                responseTime: Date.now() - startTime,
+                userResponseTime: 0,
+                messageLength: multiAgentResponse.length,
+                containsPackageClick: multiAgentResponse.includes('SHOW_PACKAGES'),
+                leadToBooking: false
+              },
+              timestamp: Date.now()
+            };
+            
+            aiExperimentEngine.recordExperimentResult('response_source', multiAgentExperimentResult);
+            
+            // Cache the high-quality multi-agent response
+            responseCache.addToCache(lastUserMessage.content, multiAgentResponse, detectedLanguage, 'thumbs_up');
+            
+            yield multiAgentResponse;
+            return;
+          } else {
+            // Use multi-agent insights to enhance the system prompt
+            systemPrompt += `\n\nMULTI-AGENT INSIGHTS:`;
+            systemPrompt += `\n- Task complexity: ${agentResult.systemInsights.taskComplexity}`;
+            systemPrompt += `\n- Coordination quality: ${agentResult.systemInsights.qualityScore.toFixed(2)}`;
+            systemPrompt += `\n- Agents involved: ${agentResult.systemInsights.agentsInvolved}`;
+            
+            // Add agent-specific recommendations
+            const topRecommendations = agentResult.agentContributions
+              .filter(a => a.confidence > 0.7)
+              .flatMap(a => a.recommendations)
+              .slice(0, 3);
+              
+            if (topRecommendations.length > 0) {
+              systemPrompt += `\n- Agent recommendations: ${topRecommendations.join(', ')}`;
+            }
+            
+            // Add partial multi-agent content as context
+            if (multiAgentResponse && multiAgentResponse.length > 50) {
+              const enhancedContent = multiAgentResponse.substring(0, 200);
+              systemPrompt += `\n- Multi-agent baseline response: "${enhancedContent}..."`;
+              systemPrompt += `\n\nENHANCE AND EXPAND the above multi-agent response with your advanced capabilities.`;
+            }
+          }
+        } catch (error) {
+          logger.error('❌ Multi-Agent System coordination failed:', error);
+          // Continue with normal processing if multi-agent fails
+        }
+      }
+      
+      // Add AI Learning personalization
+      if (userId) {
+        systemPrompt = aiLearningEngine.generatePersonalizedPrompt(userId, systemPrompt);
+      }
+      
+      // Apply A/B testing modifications
+      if (promptStyleVariant) {
+        systemPrompt = aiExperimentEngine.modifyPromptForVariant(systemPrompt, promptStyleVariant);
+      }
+      
+      // Apply response optimization insights
+      if (responseOptimization) {
+        systemPrompt += `\n\nOPTIMIZATION INSIGHTS:`;
+        systemPrompt += `\n- Recommended tone: ${responseOptimization.suggestedTone}`;
+        systemPrompt += `\n- Recommended length: ${responseOptimization.recommendedLength}`;
+        if (responseOptimization.includePackages) {
+          systemPrompt += `\n- Include package recommendations`;
+        }
+        if (responseOptimization.personalizations.length > 0) {
+          systemPrompt += `\n- Personalizations: ${responseOptimization.personalizations.join(', ')}`;
+        }
+      }
+      
+      if (detectedLanguage !== 'en') {
+        systemPrompt += `\n\nIMPORTANT: Respond in ${detectedLanguage} language.`;
+      }
+      
+      // Model type optimizasyonu
+      if (modelType === 'ai-lovv2') {
+        systemPrompt = `AI LOVE v2 - Next-gen personalized concierge with learning capabilities! ✨💕\n\n${systemPrompt}`;
+      }
+      
+      // Firebase Functions call with progressive timeout
+      const timeoutMs = Math.min(15000 + (attempt * 5000), 30000);
+      const generateGeminiResponse = httpsCallable(functions, 'generateGeminiResponse', {
+        timeout: timeoutMs
+      });
+      
+      logger.log(`🚀 Ultimate AI attempt ${attempt + 1}/${maxRetries}`, {
+        relevantMessages: messagesToSend.length,
+        language: detectedLanguage,
+        conversationPhase: conversationState?.currentPhase,
+        conversionProbability: conversationState?.conversionProbability,
+        urgencyLevel: conversationState?.urgencyLevel,
+        realTimeDataAvailable: !!realTimeData,
+        emotionalState: emotionalState?.primary,
+        emotionalIntensity: emotionalState?.intensity,
+        personalityStyle: personalityProfile?.communicationStyle,
+        experimentVariants: {
+          promptStyle: promptStyleVariant?.id,
+          packageStrategy: packageStrategyVariant?.id
+        },
+        timeout: timeoutMs
+      });
+      
+      const result = await generateGeminiResponse({
+        messages: messagesToSend,
+        sessionId: finalSessionId,
+        userId: userId || null,
+        systemInstruction: systemPrompt,
+        modelType: modelType || 'ai-lovv3',
+        language: detectedLanguage,
+        // Enhanced context bilgileri
+        userPreferences: context.userPreferences,
+        conversationPhase: context.conversationPhase,
+        // Conversation flow data
+        conversationState: conversationState ? {
+          phase: conversationState.currentPhase,
+          conversionProbability: conversationState.conversionProbability,
+          urgencyLevel: conversationState.urgencyLevel,
+          collectedInfo: conversationState.collectedInfo,
+          predictedActions: conversationState.predictedNextActions.slice(0, 2) // Top 2 actions
+        } : null,
+        // Real-time data summary
+        realTimeContext: realTimeData ? {
+          destination: realTimeData.weather?.destination,
+          currentWeather: realTimeData.weather?.current,
+          upcomingEvents: realTimeData.events?.events.slice(0, 2),
+          safetyLevel: realTimeData.advisory?.safetyLevel,
+          bestInsights: realTimeData.insights
+        } : null,
+        // Emotional intelligence context
+        emotionalContext: emotionalState && personalityProfile ? {
+          emotionalState: emotionalState.primary,
+          intensity: emotionalState.intensity,
+          indicators: emotionalState.indicators,
+          communicationStyle: personalityProfile.communicationStyle,
+          decisionMaking: personalityProfile.decisionMaking,
+          riskTolerance: personalityProfile.riskTolerance,
+          recommendedTone: emotionalResponse?.tone,
+          recommendedApproach: emotionalResponse?.approach
+        } : null,
+        experimentVariants: {
+          promptStyle: promptStyleVariant?.id,
+          packageStrategy: packageStrategyVariant?.id
+        }
+      });
+      
+      const data = result.data as any;
+      
+      if (!data.success) {
+        throw new Error(data.message || 'Firebase Functions error');
+      }
+      
+      const content = data.generatedContent?.parts?.[0]?.text || data.message || '';
+      const responseTime = Date.now() - startTime;
+      
+      // 💾 6. Multi-layer result processing
+      
+      // 🚀 Multi-layer cache storage
+      if (lastUserMessage?.role === 'user' && content) {
+        // Add to intelligent cache with enhanced metadata
+        intelligentCacheSystem.addSmartCache(
+          lastUserMessage.content,
+          content,
+          userId || undefined,
+          detectedLanguage,
+          responseTime,
+          [
+            context.conversationPhase || 'unknown',
+            conversationState?.urgencyLevel || 'normal',
+            emotionalState?.primary || 'neutral'
+          ]
+        );
+        
+        // Update user profile in recommendation engine
+        if (userId) {
+          smartRecommendationEngine.updateUserProfile(userId, {
+            query: lastUserMessage.content,
+            sessionDuration: responseTime
+          });
+        }
+        
+        // Fallback cache
+        responseCache.addToCache(lastUserMessage.content, content, detectedLanguage);
+      }
+      
+      // Record experiment results
+      if (promptStyleVariant && lastUserMessage?.role === 'user') {
+        const experimentResult = {
+          variantId: promptStyleVariant.id,
+          sessionId: finalSessionId,
+          userId: userId || undefined,
+          query: lastUserMessage.content,
+          response: content,
+          engagementMetrics: {
+            responseTime,
+            userResponseTime: 0, // Will be updated when user responds
+            messageLength: content.length,
+            containsPackageClick: content.includes('SHOW_PACKAGES'),
+            leadToBooking: false // Will be updated based on user actions
+          },
+          timestamp: Date.now()
+        };
+        
+        aiExperimentEngine.recordExperimentResult('prompt_style', experimentResult);
+        aiExperimentEngine.recordExperimentResult('response_source', {
+          ...experimentResult,
+          variantId: 'ai_generated'
+        });
+      }
+      
+      logger.log(`🚀 Ultimate AI response generated in ${responseTime}ms with ${content.length} characters`);
+      
+      // Log conversation insights
+      if (conversationState) {
+        logger.log(`📊 Conversation insights: Phase=${conversationState.currentPhase}, Conversion=${(conversationState.conversionProbability * 100).toFixed(1)}%, Urgency=${conversationState.urgencyLevel}`);
+      }
+      
+      // Log real-time data usage
+      if (realTimeData) {
+        logger.log(`🌍 Real-time data used: Weather=${!!realTimeData.weather}, Events=${realTimeData.events?.events.length || 0}, Advisory=${!!realTimeData.advisory}`);
+      }
+      
+      // Log emotional intelligence usage
+      if (emotionalState && personalityProfile) {
+        logger.log(`🎭 Emotional intelligence: ${emotionalState.primary} emotion, ${personalityProfile.communicationStyle} style, ${emotionalResponse?.tone} tone recommended`);
+      }
+      
+      // Log multi-agent system usage
+      if (multiAgentInsights) {
+        logger.log(`🤖 Multi-Agent System: ${multiAgentInsights.agentsInvolved} agents, complexity: ${multiAgentInsights.taskComplexity}, quality: ${multiAgentInsights.qualityScore.toFixed(2)}, time: ${multiAgentInsights.coordinationTime}ms`);
+      }
+      
+      // Log vision analysis usage
+      if (visionAnalysis) {
+        logger.log(`🖼️ Vision Analysis: ${visionAnalysis.sceneType} scene, ${visionAnalysis.mood} mood, confidence: ${visionAnalysis.confidenceScore}%, destinations: ${visionAnalysis.suggestedDestinations.slice(0, 2).join(', ')}`);
+      }
+      
+      // 📊 7. Self-Evaluation & Continuous Improvement
+      if (lastUserMessage?.role === 'user' && content) {
+        // Run async self-evaluation (don't block response)
+        setTimeout(async () => {
+          try {
+            logger.log('📊 Starting async self-evaluation...');
+            
+            const evaluationContext = {
+              conversationPhase: conversationState?.currentPhase,
+              emotionalState: emotionalState?.primary,
+              visionAnalysis: visionAnalysis ? {
+                sceneType: visionAnalysis.sceneType,
+                mood: visionAnalysis.mood,
+                confidenceScore: visionAnalysis.confidenceScore
+              } : undefined,
+              messageCount: messages.length,
+              conversionProbability: conversationState?.conversionProbability,
+              urgencyLevel: conversationState?.urgencyLevel,
+              realTimeDataUsed: !!realTimeData,
+              multiAgentQuality: multiAgentInsights?.qualityScore,
+              responseTime
+            };
+            
+            const evaluation = await selfEvaluationSystem.evaluateResponse(
+              lastUserMessage.content,
+              content,
+              finalSessionId,
+              userId || undefined,
+              evaluationContext
+            );
+            
+            logger.log(`✨ Self-evaluation completed: Quality ${evaluation.overallQuality.toFixed(1)}/10, Confidence ${(evaluation.confidence * 100).toFixed(0)}%`);
+            
+            // Log key insights
+            if (evaluation.strengths.length > 0) {
+              logger.log(`💪 Strengths: ${evaluation.strengths.slice(0, 2).join(', ')}`);
+            }
+            if (evaluation.improvements.length > 0) {
+              logger.log(`🔧 Improvements: ${evaluation.improvements.slice(0, 2).join(', ')}`);
+            }
+            
+            // Auto-generate improvement recommendations if quality is consistently low
+            const recentEvaluations = selfEvaluationSystem.getRecentEvaluations(5);
+            const avgRecentQuality = recentEvaluations.reduce((sum, evaluation) => sum + evaluation.overallQuality, 0) / recentEvaluations.length;
+            
+            if (recentEvaluations.length >= 5 && avgRecentQuality < 6) {
+              logger.log('🔄 Generating improvement recommendations due to low quality trend...');
+              const recommendations = await selfEvaluationSystem.generateImprovementRecommendations();
+              logger.log(`💡 Generated ${recommendations.length} improvement recommendations`);
+            }
+            
+          } catch (error) {
+            logger.error('❌ Self-evaluation failed:', error);
+          }
+        }, 100); // Small delay to not block response
+      }
+      
+      yield content;
+      return; // Success - exit retry loop
+      
+    } catch (error: unknown) {
+      attempt++;
+      logger.error(`Next-gen attempt ${attempt}/${maxRetries} failed:`, error);
+      
+      // If this was the last attempt or non-retryable error, throw
+      if (attempt >= maxRetries || !isRetryableError(error)) {
+        const errorMessage = getLocalizedErrorMessage(error, messages);
+        throw new Error(errorMessage);
+      }
+      
+      // Wait before retrying (exponential backoff)
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
+// Enhanced user feedback recording
+export function recordUserFeedback(
+  messageId: string,
+  sessionId: string,
+  userId: string | undefined,
+  feedback: 'thumbs_up' | 'thumbs_down',
+  query: string,
+  response: string,
+  category: string = 'general'
+): void {
+  // Original AI learning engine
+  aiLearningEngine.recordFeedback({
+    messageId,
+    sessionId,
+    userId,
+    feedback,
+    query,
+    response,
+    timestamp: Date.now(),
+    category
+  });
+  
+  // Update intelligent cache quality
+  if (userId) {
+    intelligentCacheSystem.updateCacheQuality(
+      query,
+      userId,
+      'tr', // default language
+      feedback === 'thumbs_up' ? 'positive' : 'negative'
+    );
+    
+    // Update recommendation engine
+    smartRecommendationEngine.updateUserProfile(userId, {
+      feedback: feedback === 'thumbs_up' ? 'positive' : 'negative'
+    });
+  }
+  
+  logger.log(`👍👎 Enhanced feedback recorded: ${feedback} for message ${messageId}`);
+}
+
+// AI performans istatistiklerini al
+// Conversation insights export function
+export function getConversationInsights(sessionId: string): ReturnType<typeof conversationPredictor.getConversationInsights> {
+  return conversationPredictor.getConversationInsights(sessionId);
+}
+
+// Proactive suggestion function
+export function getProactiveSuggestion(sessionId: string): ReturnType<typeof conversationPredictor.getProactiveSuggestion> {
+  return conversationPredictor.getProactiveSuggestion(sessionId);
+}
+
+// Get emotional insights for user
+export function getEmotionalInsights(userId: string): {
+  currentState: ReturnType<typeof emotionalIntelligenceEngine.analyzeEmotionalState> | null;
+  trend: ReturnType<typeof emotionalIntelligenceEngine.getEmotionalTrend>;
+  personality: PersonalityProfile | null;
+} | null {
+  if (!userId) return null;
+  
+  return {
+    currentState: null, // Would need last message to analyze
+    trend: emotionalIntelligenceEngine.getEmotionalTrend(userId),
+    personality: emotionalIntelligenceEngine.buildPersonalityProfile(userId, []) // Would need message history
+  };
+}
+
+// Enhanced AI stats with all intelligence systems including new components
+export function getAIStats(): {
+  learning: ReturnType<typeof aiLearningEngine.getLearningStats>;
+  experiments: Array<ReturnType<typeof aiExperimentEngine.generateExperimentReport>>;
+  cache: ReturnType<typeof responseCache.getCacheStats>;
+  intelligentCache: ReturnType<typeof intelligentCacheSystem.getCacheStats>;
+  recommendations: ReturnType<typeof smartRecommendationEngine.getRecommendationAnalytics>;
+  conversations: ReturnType<typeof conversationPredictor.getAnalytics>;
+  semanticSearch: ReturnType<typeof semanticSearchEngine.getStats>;
+  emotional: ReturnType<typeof emotionalIntelligenceEngine.getEmotionalAnalytics>;
+  realTimeData: ReturnType<typeof realTimeDataService.getCacheStats>;
+  multiAgent: ReturnType<typeof multiAgentSystem.getSystemAnalytics>;
+  vision: ReturnType<typeof geminiVisionService.getVisionAnalytics>;
+  dynamicInstructions: ReturnType<typeof dynamicInstructionsEngine.getInstructionAnalytics>;
+  selfEvaluation: ReturnType<typeof selfEvaluationSystem.getEvaluationAnalytics>;
+} {
+  const activeExperiments = aiExperimentEngine.getActiveExperiments();
+  
+  return {
+    learning: aiLearningEngine.getLearningStats(),
+    experiments: activeExperiments.map(expId => aiExperimentEngine.generateExperimentReport(expId)),
+    cache: responseCache.getCacheStats(),
+    intelligentCache: intelligentCacheSystem.getCacheStats(),
+    recommendations: smartRecommendationEngine.getRecommendationAnalytics(),
+    conversations: conversationPredictor.getAnalytics(),
+    semanticSearch: semanticSearchEngine.getStats(),
+    emotional: emotionalIntelligenceEngine.getEmotionalAnalytics(),
+    realTimeData: realTimeDataService.getCacheStats(),
+    multiAgent: multiAgentSystem.getSystemAnalytics(),
+    vision: geminiVisionService.getVisionAnalytics(),
+    dynamicInstructions: dynamicInstructionsEngine.getInstructionAnalytics(),
+    selfEvaluation: selfEvaluationSystem.getEvaluationAnalytics()
+  };
+}
+
+// Helper function to determine if error is retryable
+function isRetryableError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  
+  const retryableErrors = [
+    'DEADLINE_EXCEEDED',
+    'timeout',
+    'network',
+    'temporary',
+    'quota'
+  ];
+  
+  return retryableErrors.some(keyword => 
+    error.message.toLowerCase().includes(keyword.toLowerCase())
+  );
+}
+
+// Simplified error message generation
+function getLocalizedErrorMessage(error: unknown, messages: AppMessage[]): string {
+  const lastUserMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const lang = lastUserMessage?.role === 'user' ? detectLanguage(lastUserMessage.content) : 'en';
+  
+  const errorMessages: Record<string, string> = {
+    'en': "Connection issue. Please try again!",
+    'tr': "Bağlantı sorunu. Lütfen tekrar deneyin!",
+    'es': "Problema de conexión. ¡Inténtalo de nuevo!",
+    'fr': "Problème de connexion. Veuillez réessayer !",
+    'de': "Verbindungsproblem. Bitte versuche es erneut!",
+    'ru': "Проблема с подключением. Попробуйте снова!"
+  };
+  
+  return errorMessages[lang] || errorMessages['en'];
 }
 
 // 🔥 Firebase Functions kullanarak chat history alma
 export const getChatHistory = async (sessionId: string, limit: number = 20): Promise<any[]> => {
-  console.log('🔧 getChatHistory called with:', { sessionId, limit });
+  logger.log('🔧 getChatHistory called with:', { sessionId, limit });
   
   try {
-    console.log('🔄 Calling Firebase Functions - getGeminiChatHistory');
+    logger.log('🔄 Calling Firebase Functions - getGeminiChatHistory');
     const result = await httpsCallable(functions, 'getGeminiChatHistory')({
       sessionId,
       limit
     });
     
-    console.log('📋 Firebase Functions response:', result);
+    logger.log('📋 Firebase Functions response:', result);
     
     const response = result.data as any;
-    console.log('📊 Response data:', response);
+    logger.log('📊 Response data:', response);
     
     if (response.success) {
-      console.log('✅ getChatHistory successful, history length:', response.history?.length || 0);
-      console.log('📚 History data:', response.history);
+      logger.log('✅ getChatHistory successful, history length:', response.history?.length || 0);
+      logger.log('📚 History data:', response.history);
       return response.history || [];
     } else {
-      console.error('❌ getChatHistory failed:', response.error);
-      console.error('❌ Full response:', response);
+      logger.error('❌ getChatHistory failed:', response.error);
+      logger.error('❌ Full response:', response);
       return [];
     }
   } catch (error) {
-    console.error('❌ getChatHistory error:', error);
-    console.error('❌ Error type:', typeof error);
-    console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
-    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    logger.error('❌ getChatHistory error:', error);
+    logger.error('❌ Error type:', typeof error);
+    logger.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
+    logger.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return [];
   }
 };
 
 // 🗑️ Firebase Functions kullanarak chat history silme
 export const deleteChatHistory = async (sessionId: string): Promise<boolean> => {
-  console.log('🗑️ deleteChatHistory called with sessionId:', sessionId);
+  logger.log('🗑️ deleteChatHistory called with sessionId:', sessionId);
   
   try {
-    console.log('🔄 Calling Firebase Functions - deleteGeminiChatHistory');
+    logger.log('🔄 Calling Firebase Functions - deleteGeminiChatHistory');
     const result = await httpsCallable(functions, 'deleteGeminiChatHistory')({
       sessionId
     });
     
-    console.log('📋 Firebase Functions delete response:', result);
+    logger.log('📋 Firebase Functions delete response:', result);
     
     const response = result.data as any;
-    console.log('📊 Delete response data:', response);
+    logger.log('📊 Delete response data:', response);
     
     if (response.success) {
-      console.log('✅ deleteChatHistory successful');
+      logger.log('✅ deleteChatHistory successful');
       return true;
     } else {
-      console.error('❌ deleteChatHistory failed:', response.error);
-      console.error('❌ Full delete response:', response);
+      logger.error('❌ deleteChatHistory failed:', response.error);
+      logger.error('❌ Full delete response:', response);
       return false;
     }
   } catch (error) {
-    console.error('❌ deleteChatHistory error:', error);
-    console.error('❌ Error type:', typeof error);
-    console.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
-    console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    logger.error('❌ deleteChatHistory error:', error);
+    logger.error('❌ Error type:', typeof error);
+    logger.error('❌ Error message:', error instanceof Error ? error.message : 'Unknown error');
+    logger.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return false;
   }
 };
@@ -779,7 +1701,7 @@ export async function checkBackendHealth() {
     // Firebase Functions health check yapacağız
     return { status: 'Firebase Functions Active', configured: true };
   } catch (error) {
-    console.error("Firebase Functions health check error:", error);
+    logger.error("Firebase Functions health check error:", error);
     return { status: 'ERROR', configured: false };
   }
 } 

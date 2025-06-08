@@ -1,5 +1,6 @@
-import { Menu, Bot, ChevronDown, LogOut, User, Sparkles } from 'lucide-react';
+import { Menu, Bot, ChevronDown, LogOut, User, Sparkles, Download } from 'lucide-react';
 import { useState } from 'react';
+import { usePWA } from '../hooks/usePWA';
 
 interface ChatHeaderProps {
   onMenuClick: () => void;
@@ -9,6 +10,7 @@ interface ChatHeaderProps {
 
 const ChatHeader = ({ onMenuClick, currentUser, onLogout }: ChatHeaderProps) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { canInstall, installPWA } = usePWA();
 
   return (
     <header className="gemini-header">
@@ -82,6 +84,18 @@ const ChatHeader = ({ onMenuClick, currentUser, onLogout }: ChatHeaderProps) => 
                       <p className="user-email">AI LOVE Member</p>
                     </div>
                     <div className="p-2">
+                      {canInstall && (
+                        <button
+                          onClick={async () => {
+                            await installPWA();
+                            setUserMenuOpen(false);
+                          }}
+                          className="gemini-dropdown-item mb-1"
+                        >
+                          <Download className="w-4 h-4" />
+                          Install App
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           onLogout();

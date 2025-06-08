@@ -14,6 +14,7 @@ interface FirebaseAuthContextType {
 
 const FirebaseAuthContext = createContext<FirebaseAuthContextType | undefined>(undefined)
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useFirebaseAuth() {
   const context = useContext(FirebaseAuthContext)
   if (context === undefined) {

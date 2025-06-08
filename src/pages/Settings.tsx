@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Bell, Shield, Globe, User, LogOut, Eye, Lock, MessageSquare, Palette, X, Loader2 } from 'lucide-react';
 import { settingsService, UserSettings, defaultSettings } from '../services/settingsService';
+import NotificationSettings from '../components/NotificationSettings';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ const SettingsPage = () => {
     };
 
     loadSettings();
-  }, [user?.uid]);
+  }, [user]);
 
   const categories = [
     { id: 'general', label: 'General', icon: User },
@@ -249,13 +250,12 @@ const SettingsPage = () => {
               <p className="text-sm text-gray-400">Choose when and how you want to be notified</p>
             </div>
             <div className="settings-divider"></div>
+            
+            {/* Comprehensive Push Notification Settings */}
+            <NotificationSettings className="text-white" />
+            
+            <div className="settings-divider"></div>
             <div className="space-y-3">
-              <SettingItem
-                title="Push notifications"
-                description="Receive notifications on this device"
-                toggle={settings.notifications}
-                settingKey="notifications"
-              />
               <SettingItem
                 title="Email notifications"
                 description="Receive updates via email"

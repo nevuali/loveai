@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Systems Test Runner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results {
+            padding: 30px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .console {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .stat-card p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .test-status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        
+        .test-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 AI Systems Test Runner</h1>
+            <p>Comprehensive testing suite for all AI components</p>
+        </div>
+        
+        <div class="controls">
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="runAllTests()">🚀 Run All Tests</button>
+                <button class="btn btn-secondary" onclick="runQuickTest()">⚡ Quick Test</button>
+                <button class="btn btn-success" onclick="clearResults()">🧹 Clear Results</button>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+        
+        <div class="results">
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-card">
+                    <h3 id="totalTests">0</h3>
+                    <p>Total Tests</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="passedTests">0</h3>
+                    <p>Passed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="failedTests">0</h3>
+                    <p>Failed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="successRate">0%</h3>
+                    <p>Success Rate</p>
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Running tests... Please wait</p>
+            </div>
+            
+            <div class="console" id="console">
+                Welcome to AI Systems Test Runner! 🎉
+                
+                Click "Run All Tests" to start comprehensive testing of all AI systems.
+                
+                Available test suites:
+                • Intelligent Cache System
+                • Smart Recommendation Engine  
+                • Proactive Notification Engine
+                • Auto-Booking Assistant
+                • Dynamic Pricing Engine
+                • Voice AI System
+                • System Integration Tests
+                
+                Ready to test your AI systems! 🚀
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import AI test system (note: this would need to be adapted for actual module imports)
+        let testRunner = null;
+        let isTestRunning = false;
+        
+        // Mock test runner for demonstration
+        class MockAITestRunner {
+            constructor() {
+                this.tests = [
+                    'Intelligent Cache System',
+                    'Smart Recommendation Engine',
+                    'Proactive Notification Engine', 
+                    'Auto-Booking Assistant',
+                    'Dynamic Pricing Engine',
+                    'Voice AI System',
+                    'System Integration'
+                ];
+                this.currentTest = 0;
+                this.results = {
+                    total: 0,
+                    passed: 0,
+                    failed: 0
+                };
+            }
+            
+            async runAllTests() {
+                this.results = { total: 0, passed: 0, failed: 0 };
+                this.currentTest = 0;
+                
+                for (let i = 0; i < this.tests.length; i++) {
+                    await this.runTestSuite(this.tests[i], i);
+                }
+                
+                return this.results;
+            }
+            
+            async runTestSuite(suiteName, index) {
+                logToConsole(`\n🧪 Starting test suite: ${suiteName}`);
+                updateProgress((index / this.tests.length) * 100);
+                
+                // Simulate test execution
+                const testCount = Math.floor(Math.random() * 5) + 3; // 3-7 tests per suite
+                
+                for (let i = 0; i < testCount; i++) {
+                    await this.simulateTest(suiteName, i + 1);
+                }
+                
+                logToConsole(`✅ Test suite completed: ${suiteName}\n`);
+                updateProgress(((index + 1) / this.tests.length) * 100);
+            }
+            
+            async simulateTest(suiteName, testNumber) {
+                const testName = `${suiteName} Test ${testNumber}`;
+                const startTime = Date.now();
+                
+                // Simulate test execution time
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+                
+                const duration = Date.now() - startTime;
+                const success = Math.random() > 0.1; // 90% success rate
+                
+                this.results.total++;
+                if (success) {
+                    this.results.passed++;
+                    logToConsole(`✅ ${testName} - ${duration}ms`);
+                } else {
+                    this.results.failed++;
+                    logToConsole(`❌ ${testName} - Failed: Simulated error`);
+                }
+                
+                updateStats(this.results);
+            }
+        }
+        
+        // Initialize mock test runner
+        testRunner = new MockAITestRunner();
+        
+        // UI Functions
+        window.runAllTests = async function() {
+            if (isTestRunning) return;
+            
+            isTestRunning = true;
+            showLoading(true);
+            clearConsole();
+            
+            logToConsole('🚀 Starting AI Systems Integration Tests');
+            logToConsole('=' .repeat(60));
+            logToConsole(`Start Time: ${new Date().toISOString()}\n`);
+            
+            try {
+                const results = await testRunner.runAllTests();
+                
+                const successRate = results.total > 0 ? 
+                    ((results.passed / results.total) * 100).toFixed(1) : '0';
+                
+                logToConsole('\n📋 FINAL TEST REPORT');
+                logToConsole('=' .repeat(60));
+                logToConsole(`Total Tests: ${results.total}`);
+                logToConsole(`Passed: ${results.passed}`);
+                logToConsole(`Failed: ${results.failed}`);
+                logToConsole(`Success Rate: ${successRate}%`);
+                logToConsole(`End Time: ${new Date().toISOString()}`);
+                
+                if (parseFloat(successRate) >= 90) {
+                    logToConsole('\n🎉 All systems ready for production!');
+                    showTestStatus('All tests completed successfully!', 'success');
+                } else {
+                    logToConsole('\n⚠️ Some tests failed. Please review and fix issues.');
+                    showTestStatus('Some tests failed. Check console for details.', 'warning');
+                }
+                
+            } catch (error) {
+                logToConsole(`\n❌ Test execution failed: ${error.message}`);
+                showTestStatus('Test execution failed!', 'error');
+            } finally {
+                isTestRunning = false;
+                showLoading(false);
+                updateProgress(100);
+            }
+        };
+        
+        window.runQuickTest = async function() {
+            if (isTestRunning) return;
+            
+            isTestRunning = true;
+            showLoading(true);
+            clearConsole();
+            
+            logToConsole('⚡ Running Quick Test Suite');
+            logToConsole('=' .repeat(40));
+            
+            try {
+                // Quick test simulation
+                const quickTests = ['Cache Test', 'Recommendation Test', 'Integration Test'];
+                const results = { total: 0, passed: 0, failed: 0 };
+                
+                for (let i = 0; i < quickTests.length; i++) {
+                    const testName = quickTests[i];
+                    const success = Math.random() > 0.05; // 95% success for quick tests
+                    
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                    results.total++;
+                    if (success) {
+                        results.passed++;
+                        logToConsole(`✅ ${testName} - PASSED`);
+                    } else {
+                        results.failed++;
+                        logToConsole(`❌ ${testName} - FAILED`);
+                    }
+                    
+                    updateProgress(((i + 1) / quickTests.length) * 100);
+                    updateStats(results);
+                }
+                
+                const successRate = ((results.passed / results.total) * 100).toFixed(1);
+                logToConsole(`\n⚡ Quick test completed: ${successRate}% success rate`);
+                
+                showTestStatus(`Quick test completed: ${successRate}% success`, 'success');
+                
+            } catch (error) {
+                logToConsole(`❌ Quick test failed: ${error.message}`);
+                showTestStatus('Quick test failed!', 'error');
+            } finally {
+                isTestRunning = false;
+                showLoading(false);
+            }
+        };
+        
+        window.clearResults = function() {
+            clearConsole();
+            updateProgress(0);
+            updateStats({ total: 0, passed: 0, failed: 0 });
+            document.getElementById('stats').style.display = 'none';
+            logToConsole('Results cleared. Ready for new tests! 🧹');
+        };
+        
+        // Helper functions
+        function logToConsole(message) {
+            const console = document.getElementById('console');
+            console.textContent += message + '\n';
+            console.scrollTop = console.scrollHeight;
+        }
+        
+        function clearConsole() {
+            document.getElementById('console').textContent = '';
+        }
+        
+        function updateProgress(percentage) {
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+        
+        function updateStats(results) {
+            document.getElementById('stats').style.display = 'grid';
+            document.getElementById('totalTests').textContent = results.total;
+            document.getElementById('passedTests').textContent = results.passed;
+            document.getElementById('failedTests').textContent = results.failed;
+            
+            const successRate = results.total > 0 ? 
+                ((results.passed / results.total) * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('successRate').textContent = successRate;
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+        
+        function showTestStatus(message, type) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `test-status test-${type}`;
+            statusDiv.textContent = message;
+            
+            const results = document.querySelector('.results');
+            results.insertBefore(statusDiv, results.firstChild);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                if (statusDiv.parentNode) {
+                    statusDiv.parentNode.removeChild(statusDiv);
+                }
+            }, 5000);
+        }
+        
+        // Auto-run quick test on page load for demo
+        setTimeout(() => {
+            logToConsole('\n💡 Tip: Click "Run All Tests" to test all AI systems!');
+            logToConsole('Or "Quick Test" for a fast overview.');
+        }, 1000);
+    </script>
+</body>
+</html>

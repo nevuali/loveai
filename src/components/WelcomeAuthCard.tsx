@@ -48,7 +48,7 @@ const WelcomeAuthCard: React.FC<WelcomeAuthCardProps> = ({
       setCurrentFeature((prev) => (prev + 1) % features.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [features.length]);
 
   const handleGoogleSignIn = () => {
     setShowGoogleSelector(true);
