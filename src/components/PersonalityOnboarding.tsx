@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Heart, Sparkles, MapPin, Camera, DollarSign, Clock, Battery, Target,
-  ArrowRight, ArrowLeft, Check, Star, Crown, Mountain, Building
+  ArrowRight, ArrowLeft, Check, Star, Crown, Mountain, Building, Bot
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
