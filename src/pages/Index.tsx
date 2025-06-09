@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { personalityService, PersonalityProfile } from '../services/personalityService';
 import { useNavigate } from 'react-router-dom';
 import { Send, Menu, MoreVertical, Mic, Search, Image, Video, FileText, Palette, X, LogOut, User, Settings, Activity, MapPin, ChevronDown, Heart, Star, Sparkles, Crown, Zap, Edit, Plus, Bot, Moon, Sun, Trash2, ThumbsUp, ThumbsDown, Copy, Check, RotateCcw, Download, Users, Calendar } from 'lucide-react';
 import Message from '../components/Message';
@@ -32,6 +33,7 @@ const ImageUpload = lazy(() => import('../components/ImageUpload'));
 
 const ProfileAnalysisWizard = lazy(() => import('../components/ProfileAnalysisWizard'));
 const HoneymoonPlannerWizard = lazy(() => import('../components/HoneymoonPlannerWizard'));
+const PersonalityOnboarding = lazy(() => import('../components/PersonalityOnboarding'));
 
 type Message = {
   role: 'user' | 'assistant';
@@ -55,7 +57,7 @@ type Chat = {
 type ModelType = 'ai-lovv3' | 'ai-lovv2';
 
 const Index = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, needsOnboarding, checkOnboardingStatus } = useAuth();
   const navigate = useNavigate();
   const { actualTheme, toggleTheme } = useTheme();
   // Temporarily disabled due to hook error
@@ -1748,6 +1750,47 @@ const Index = () => {
   const getTotalMessageCount = () => {
     return chats.reduce((total, chat) => total + chat.messages.length, 0);
   };
+
+  const handlePersonalityComplete = async (profile: PersonalityProfile) => {
+    if (!user) return;
+    
+    try {
+      await personalityService.savePersonalityProfile(user.uid, profile);
+      await checkOnboardingStatus();
+      
+      trackUserInteraction('personality_onboarding_completed', 'onboarding', {
+        personality_type: profile.personalityType,
+        budget_range: profile.budgetRange,
+        travel_style: profile.travelStyle,
+        profile_score: profile.profileScore
+      });
+    } catch (error) {
+      console.error('Error saving personality profile:', error);
+    }
+  };
+
+  const handleOnboardingSkip = async () => {
+    if (!user) return;
+    
+    trackUserInteraction('personality_onboarding_skipped', 'onboarding', {});
+    await checkOnboardingStatus();
+  };
+
+  // Show onboarding if user needs it
+  if (user && needsOnboarding) {
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+        </div>
+      }>
+        <PersonalityOnboarding 
+          onComplete={handlePersonalityComplete}
+          onSkip={handleOnboardingSkip}
+        />
+      </Suspense>
+    );
+  }
 
   return (
     <div className="flex h-screen">

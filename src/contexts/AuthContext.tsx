@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode, useCa
 import { onAuthStateChanged, User as FirebaseUser, getRedirectResult } from 'firebase/auth';
 import { auth, firebaseConfig } from '../firebase';
 import { authService, User, RegisterData } from '../services/authService';
+import { personalityService } from '../services/personalityService';
 import { logger } from '../utils/logger';
 import { trackUserInteraction, setAnalyticsUser, updateUserProperties } from '../utils/analytics';
 
@@ -14,6 +15,8 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
+  needsOnboarding: boolean;
+  checkOnboardingStatus: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,6 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
     logger.log('🔄 Setting up auth state listener...');
@@ -78,17 +82,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           });
           setUser(userProfile);
           
-          // Set analytics user and properties
+          // Check onboarding status
           if (userProfile) {
+            const hasCompletedOnboarding = await personalityService.hasCompletedOnboarding(userProfile.uid);
+            setNeedsOnboarding(!hasCompletedOnboarding);
+            
+            // Set analytics user and properties
             setAnalyticsUser(userProfile.uid, {
               user_type: userProfile.isPremium ? 'premium' : 'free',
               registration_date: userProfile.createdAt || new Date().toISOString(),
               total_chats: 0, // Will be updated when chats are loaded
+              has_personality_profile: hasCompletedOnboarding
             });
             
             trackUserInteraction('user_authenticated', 'auth_state_change', {
               user_type: userProfile.isPremium ? 'premium' : 'free',
-              is_verified: userProfile.isVerified
+              is_verified: userProfile.isVerified,
+              needs_onboarding: !hasCompletedOnboarding
             });
           }
         } catch (error) {
@@ -106,16 +116,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             messageCount: 0,
           };
           setUser(minimalUser);
+          setNeedsOnboarding(true); // Minimal user always needs onboarding
           
           // Set analytics for minimal user
           setAnalyticsUser(minimalUser.uid, {
             user_type: 'free',
             registration_date: new Date().toISOString(),
             total_chats: 0,
+            has_personality_profile: false
           });
         }
       } else {
         setUser(null);
+        setNeedsOnboarding(false);
         trackUserInteraction('user_unauthenticated', 'auth_state_change', {});
       }
       
@@ -215,6 +228,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const checkOnboardingStatus = useCallback(async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    const hasCompleted = await personalityService.hasCompletedOnboarding(user.uid);
+    setNeedsOnboarding(!hasCompleted);
+    return hasCompleted;
+  }, [user]);
+
   // Memoize the context value to prevent unnecessary re-renders
   const value: AuthContextType = useMemo(() => ({
     user,
@@ -225,7 +246,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signInWithGoogle,
     logout,
     isAuthenticated: !!user,
-  }), [user, firebaseUser, loading, login, register, signInWithGoogle, logout]);
+    needsOnboarding,
+    checkOnboardingStatus
+  }), [user, firebaseUser, loading, login, register, signInWithGoogle, logout, needsOnboarding, checkOnboardingStatus]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }; 

@@ -27,6 +27,19 @@ export interface User {
         sms: boolean;
       };
     };
+    personalityProfile?: {
+      personalityType: 'luxury_seeker' | 'adventure_lover' | 'culture_explorer' | 'romantic_dreamer';
+      budgetRange: 'budget' | 'mid_range' | 'luxury' | 'ultra_luxury';
+      travelStyle: 'relaxation' | 'adventure' | 'cultural' | 'mixed';
+      durationPreference: '3-5' | '5-7' | '7-10' | '10+';
+      priorities: string[];
+      socialMediaStyle: string;
+      energyStyle: string;
+      mainPriority: string;
+      aiPersonality: string;
+      completedAt: Timestamp;
+      profileScore: number;
+    };
   };
   subscription?: {
     type: 'free' | 'premium';
