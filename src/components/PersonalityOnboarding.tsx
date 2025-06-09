@@ -44,6 +44,8 @@ const PersonalityOnboarding: React.FC<PersonalityOnboardingProps> = ({ onComplet
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [profileResult, setProfileResult] = useState<PersonalityProfile | null>(null);
 
   const questions: Question[] = [
     {
@@ -288,7 +290,9 @@ const PersonalityOnboarding: React.FC<PersonalityOnboardingProps> = ({ onComplet
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     const profile = generateProfile(answers);
-    onComplete(profile);
+    setProfileResult(profile);
+    setIsAnalyzing(false);
+    setShowResults(true);
   };
 
   const generateProfile = (answers: Record<string, any>): PersonalityProfile => {
@@ -350,6 +354,189 @@ const PersonalityOnboarding: React.FC<PersonalityOnboardingProps> = ({ onComplet
       setCurrentStep(prev => prev - 1);
     }
   };
+
+  const getPersonalityInfo = (personalityType: string) => {
+    const personalities = {
+      luxury_seeker: {
+        title: 'Lüks Arayıcısı',
+        icon: '💎',
+        description: 'Premium deneyimleri seven, konforu önceleyen ve özel hizmetleri tercih eden kişilik',
+        traits: ['VIP deneyimler', 'Premium konfor', 'Özel hizmetler', 'Seçkin mekanlar'],
+        aiStyle: 'Size lüks ve premium deneyimler sunacağım. En özel balayı paketlerini ve VIP hizmetleri önereceğim.'
+      },
+      adventure_lover: {
+        title: 'Macera Tutkunları',
+        icon: '🗻',
+        description: 'Heyecan verici deneyimleri seven, aktif olmayı tercih eden ve sınırlarını zorlayan kişilik',
+        traits: ['Adrenalin sporları', 'Doğa aktiviteleri', 'Keşif turlari', 'Benzersiz deneyimler'],
+        aiStyle: 'Size heyecan verici maceralar ve aktif deneyimler sunacağım. En çok adrenalini hissedeceğiniz paketleri önereceğim.'
+      },
+      culture_explorer: {
+        title: 'Kültür Kaşifi',
+        icon: '🏛️',
+        description: 'Farklı kültürleri keşfetmeyi seven, öğrenmeye açık ve otantik deneyimleri tercih eden kişilik',
+        traits: ['Tarihi yerler', 'Yerel deneyimler', 'Müze ve sanat', 'Geleneksel mutfak'],
+        aiStyle: 'Size kültürel zenginlikler ve otantik deneyimler sunacağım. En değerli tarihi ve sanatsal yerleri önereceğim.'
+      },
+      romantic_dreamer: {
+        title: 'Romantik Rüyacı',
+        icon: '💕',
+        description: 'Romantik anları önemseyen, duygusal bağlantıyı güçlendiren ve özel anılar yaratmayı seven kişilik',
+        traits: ['Romantik akşam yemekleri', 'Günbatımı manzaraları', 'Çift aktiviteleri', 'İntim deneyimler'],
+        aiStyle: 'Size en romantik anları ve duygusal bağlantıyı güçlendirecek deneyimleri sunacağım. Aşkınızı perçinleyecek özel anlar yaratacağım.'
+      }
+    };
+
+    return personalities[personalityType as keyof typeof personalities] || personalities.romantic_dreamer;
+  };
+
+  const getBudgetInfo = (budgetRange: string) => {
+    const budgets = {
+      budget: { title: 'Akıllı Seçimler', range: '15-30k₺', description: 'Kaliteyi koruyarak bütçe dostu seçenekler' },
+      mid_range: { title: 'Konforlu Deneyim', range: '30-60k₺', description: 'Kalite ve konfor dengesinde orta segment' },
+      luxury: { title: 'Premium Kalite', range: '60-100k₺', description: 'Üst düzey hizmet ve lüks deneyimler' },
+      ultra_luxury: { title: 'Sınırsız Lüks', range: '100k₺+', description: 'En üst seviye VIP deneyimler' }
+    };
+
+    return budgets[budgetRange as keyof typeof budgets] || budgets.mid_range;
+  };
+
+  const handleContinue = () => {
+    if (profileResult) {
+      onComplete(profileResult);
+    }
+  };
+
+  if (showResults && profileResult) {
+    const personalityInfo = getPersonalityInfo(profileResult.personalityType);
+    const budgetInfo = getBudgetInfo(profileResult.budgetRange);
+    
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-3xl"
+        >
+          <Card className="glass-card border-0 shadow-2xl backdrop-blur-xl overflow-hidden">
+            <CardContent className="p-0">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-8 text-white text-center">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-6xl mb-4"
+                >
+                  {personalityInfo.icon}
+                </motion.div>
+                <h1 className="text-3xl font-bold mb-2">Tebrikler!</h1>
+                <p className="text-pink-100 text-lg">Kişilik analiziniz tamamlandı</p>
+              </div>
+
+              {/* Results */}
+              <div className="p-8">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                    Sen bir <span className="text-pink-600">{personalityInfo.title}</span>'sın!
+                  </h2>
+                  <p className="text-gray-600 text-lg leading-relaxed">
+                    {personalityInfo.description}
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                  {/* Personality Traits */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-pink-500" />
+                      Senin Tarzın
+                    </h3>
+                    <div className="space-y-3">
+                      {personalityInfo.traits.map((trait, index) => (
+                        <motion.div
+                          key={trait}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 + index * 0.1 }}
+                          className="flex items-center gap-3 p-3 bg-pink-50 rounded-xl"
+                        >
+                          <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+                          <span className="text-gray-700">{trait}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Budget & Preferences */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <Target className="w-5 h-5 text-purple-500" />
+                      Tercihlerin
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-purple-50 rounded-xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          <DollarSign className="w-4 h-4 text-purple-600" />
+                          <span className="font-semibold text-gray-900">{budgetInfo.title}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{budgetInfo.range}</p>
+                        <p className="text-sm text-gray-500 mt-1">{budgetInfo.description}</p>
+                      </div>
+                      
+                      <div className="p-4 bg-blue-50 rounded-xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="w-4 h-4 text-blue-600" />
+                          <span className="font-semibold text-gray-900">Süre Tercihi</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{profileResult.durationPreference} gün</p>
+                      </div>
+
+                      <div className="p-4 bg-green-50 rounded-xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Star className="w-4 h-4 text-green-600" />
+                          <span className="font-semibold text-gray-900">Profil Skoru</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{profileResult.profileScore}/100</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Assistant Preview */}
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 mb-8">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+                      <Bot className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        AI LOVVE Artık Senin İçin Özelleşti! ✨
+                      </h4>
+                      <p className="text-gray-700 text-sm leading-relaxed">
+                        {personalityInfo.aiStyle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 justify-center">
+                  <Button
+                    onClick={handleContinue}
+                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-3 text-lg font-semibold"
+                  >
+                    Harika! Sohbete Başla
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (isAnalyzing) {
     return (
