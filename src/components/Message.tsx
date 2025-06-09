@@ -41,7 +41,7 @@ const Message = memo(({ role, content, isThinking, imageBase64, actionData, onCa
       <div className="flex items-start gap-3 max-w-[90%] md:max-w-[85%]">
         <div className="relative w-8 h-8 md:w-10 md:h-10 flex-shrink-0 mt-1">
           <div className="w-full h-full rounded-2xl bg-gradient-to-r from-amber-600 to-yellow-500 flex-center shadow-md">
-            <Bot className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            <span className="text-lg md:text-xl">✨</span>
           </div>
           {!isThinking && (
             <div className="absolute -top-1 -right-1 w-3 h-3 md:w-4 md:h-4 rounded-full bg-gradient-to-r from-green-400 to-green-500 flex-center animate-pulse">
@@ -52,7 +52,7 @@ const Message = memo(({ role, content, isThinking, imageBase64, actionData, onCa
         <div className="message-assistant text-sm md:text-base leading-relaxed flex-1">
           {isThinking ? (
             <div className="flex items-center gap-3 text-secondary">
-              <span className="text-sm md:text-base">AI düşünüyor</span>
+              <span className="text-sm md:text-base">AI thinking</span>
               <div className="flex gap-1">
                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></div>

@@ -169,10 +169,10 @@ const ChatInput = memo(({ onSendMessage, isLoading, onTypingStart, onTypingStop 
               <Bot className="w-4 h-4 text-amber-400" />
               <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
             </div>
-            <span>AI LOVE hazır ve bekliyor</span>
+            <span>AI LOVE ready and waiting</span>
           </div>
           <span className="text-white/40 text-xs hidden sm:block">
-            📸 Fotoğraf | 🎤 Mikrofon | Enter ile gönder | Shift+Enter ile yeni satır
+            📸 Photo | 🎤 Microphone | Enter to send | Shift+Enter for new line
           </span>
         </div>
 

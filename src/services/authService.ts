@@ -1,6 +1,16 @@
 import type { User as FirebaseUser } from 'firebase/auth';
 import type { FieldValue } from 'firebase/firestore';
-import { GoogleAuthProvider } from 'firebase/auth';
+import { 
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  onAuthStateChanged
+} from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from '../firebase';
 import { getAuthFunctions, getFirestoreFunctions } from '../utils/firebase-lazy';

@@ -119,7 +119,7 @@ const ProfileAnalysisWizard: React.FC<ProfileAnalysisWizardProps> = ({ onComplet
                 {responses[currentQuestion.id] || 5}
               </div>
               <div className="text-sm text-gray-600">
-                1: Hiç önemli değil - 10: Çok önemli
+                1: Not important - 10: Very important
               </div>
             </div>
             <Slider
@@ -131,9 +131,9 @@ const ProfileAnalysisWizard: React.FC<ProfileAnalysisWizardProps> = ({ onComplet
               className="w-full"
             />
             <div className="flex justify-between text-xs text-gray-500">
-              <span>Hiç önemli değil</span>
-              <span>Orta</span>
-              <span>Çok önemli</span>
+              <span>Not important</span>
+              <span>Medium</span>
+              <span>Very important</span>
             </div>
           </div>
         );
@@ -220,9 +220,9 @@ const ProfileAnalysisWizard: React.FC<ProfileAnalysisWizardProps> = ({ onComplet
             >
               <Sparkles className="w-16 h-16 text-pink-500" />
             </motion.div>
-            <h3 className="text-xl font-semibold mb-2">Profiliniz Analiz Ediliyor</h3>
+            <h3 className="text-xl font-semibold mb-2">Profile Being Analyzed</h3>
             <p className="text-gray-600 mb-4">
-              Cevaplarınız değerlendiriliyor ve size özel balayı önerileri hazırlanıyor...
+              Your answers are being evaluated and personalized honeymoon recommendations are being prepared...
             </p>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <motion.div
@@ -256,10 +256,10 @@ const ProfileAnalysisWizard: React.FC<ProfileAnalysisWizardProps> = ({ onComplet
                   })}
                   <div>
                     <CardTitle className="text-lg">
-                      Profil Analizi
+                      Profile Analysis
                     </CardTitle>
                     <p className="text-sm text-gray-600">
-                      Soru {currentStep + 1} / {questions.length}
+                      Question {currentStep + 1} / {questions.length}
                     </p>
                   </div>
                 </>
@@ -298,7 +298,7 @@ const ProfileAnalysisWizard: React.FC<ProfileAnalysisWizardProps> = ({ onComplet
                   </h3>
                   {currentQuestion.type === 'multi_select' && (
                     <p className="text-sm text-gray-600">
-                      Birden fazla seçenek seçebilirsiniz
+                      You can select multiple options
                     </p>
                   )}
                 </div>
@@ -316,11 +316,11 @@ const ProfileAnalysisWizard: React.FC<ProfileAnalysisWizardProps> = ({ onComplet
               className="flex items-center space-x-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Önceki</span>
+              <span>Previous</span>
             </Button>
 
             <div className="text-sm text-gray-500">
-              {Math.round(progress)}% tamamlandı
+              {Math.round(progress)}% completed
             </div>
 
             <Button
@@ -329,7 +329,7 @@ const ProfileAnalysisWizard: React.FC<ProfileAnalysisWizardProps> = ({ onComplet
               className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white flex items-center space-x-2"
             >
               <span>
-                {currentStep === questions.length - 1 ? 'Tamamla' : 'Sonraki'}
+                {currentStep === questions.length - 1 ? 'Complete' : 'Next'}
               </span>
               {currentStep === questions.length - 1 ? (
                 <Trophy className="w-4 h-4" />

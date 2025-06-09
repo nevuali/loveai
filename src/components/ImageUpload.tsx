@@ -148,14 +148,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           },
           className
         )}
-        title={
-          error 
-            ? `Hata: ${error}`
-            : isUploading 
-              ? 'Yükleniyor...' 
-              : displayImage
-                ? 'Fotoğrafı değiştir'
-                : 'Fotoğraf yükle'
+        title={currentImage 
+          ? 'Change photo'
+          : 'Upload photo'
         }
       >
         {isUploading ? (

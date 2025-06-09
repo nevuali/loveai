@@ -63,81 +63,81 @@ const HoneymoonPlannerWizard: React.FC<HoneymoonPlannerWizardProps> = ({
   const steps = [
     { 
       id: 'destinations', 
-      title: 'Nereye Gitmek İstiyorsunuz?', 
+      title: 'Where Do You Want to Go?', 
       icon: MapPin,
-      description: 'Hayalinizdeki destinasyonları seçin'
+      description: 'Select your dream destinations'
     },
     { 
       id: 'dates', 
-      title: 'Tarihlerinizi Seçin', 
+      title: 'Select Your Dates', 
       icon: Calendar,
-      description: 'Seyahat tarihlerinizi belirleyin'
+      description: 'Select your travel dates'
     },
     { 
       id: 'budget', 
-      title: 'Bütçenizi Belirleyin', 
+      title: 'Set Your Budget', 
       icon: DollarSign,
-      description: 'Harcama limitinizi ayarlayın'
+      description: 'Set your spending limit'
     },
     { 
       id: 'accommodation', 
-      title: 'Konaklama Tercihiniz', 
+      title: 'Accommodation Preference', 
       icon: Hotel,
-      description: 'Nerede kalmak istiyorsunuz?'
+      description: 'Where do you want to stay?'
     },
     { 
       id: 'activities', 
-      title: 'Aktiviteler', 
+      title: 'Activities', 
       icon: Activity,
-      description: 'Hangi deneyimleri yaşamak istiyorsunuz?'
+      description: 'What experiences do you want to have?'
     },
     { 
       id: 'details', 
-      title: 'Detaylar', 
+      title: 'Details', 
       icon: Heart,
-      description: 'Son dokunuşlar'
+      description: 'Special Requests'
     }
   ];
 
   const destinationOptions = [
-    { name: 'Kapadokya', type: 'domestic', popular: true },
+    { name: 'Cappadocia', type: 'domestic', popular: true },
     { name: 'Antalya', type: 'domestic', popular: true },
-    { name: 'İstanbul', type: 'domestic', popular: true },
+    { name: 'Istanbul', type: 'domestic', popular: true },
     { name: 'Çeşme', type: 'domestic', popular: false },
     { name: 'Bodrum', type: 'domestic', popular: true },
     { name: 'Phuket', type: 'international', popular: true },
     { name: 'Bali', type: 'international', popular: true },
     { name: 'Sri Lanka', type: 'international', popular: true },
-    { name: 'Maldivler', type: 'international', popular: true },
+    { name: 'Maldives', type: 'international', popular: true },
     { name: 'Paris', type: 'international', popular: true },
     { name: 'Santorini', type: 'international', popular: true },
     { name: 'Dubai', type: 'international', popular: true }
   ];
 
   const accommodationTypes = [
-    'Lüks Resort',
-    'Butik Otel',
-    'Özel Villa',
+    'Luxury Resort',
+    'Boutique Hotel',
+    'Private Villa',
     'Spa Resort',
-    'Plaj Oteli',
-    'Şehir Oteli',
-    'Tarihi Otel',
+    'Beach Hotel',
+    'City Hotel',
+    'Historic Hotel',
     'Eco Lodge'
   ];
 
   const activityOptions = [
-    'Romantik Akşam Yemeği',
+    'Romantic Dinner',
     'Spa & Wellness',
-    'Çift Masajı',
+    'Couples Massage',
     'Sunset Cruise',
-    'Kültürel Turlar',
-    'Macera Aktiviteleri',
-    'Plaj Aktiviteleri',
-    'Fotoğraf Çekimi',
-    'Yerel Deneyimler',
-    'Gece Hayatı',
-    'Alışveriş',
-    'Gezi Turları'
+    'Cultural Tours',
+    'Adventure Activities',
+    'Beach Activities',
+    'Photography Session',
+    'Local Experiences',
+    'Nightlife',
+    'Shopping',
+    'Sightseeing Tours'
   ];
 
   const budgetRanges = [
@@ -661,9 +661,9 @@ const HoneymoonPlannerWizard: React.FC<HoneymoonPlannerWizardProps> = ({
             >
               <Heart className="w-16 h-16 text-pink-500" />
             </motion.div>
-            <h3 className="text-xl font-semibold mb-2">Balayı Planınız Hazırlanıyor</h3>
+            <h3 className="text-xl font-semibold mb-2">Your Honeymoon Plan is Being Prepared</h3>
             <p className="text-gray-600 mb-4">
-              Size özel öneriler oluşturuluyor...
+              Personalized recommendations are being created for you...
             </p>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <motion.div
@@ -726,7 +726,7 @@ const HoneymoonPlannerWizard: React.FC<HoneymoonPlannerWizardProps> = ({
           
           <div className="text-center mt-2">
             <span className="text-sm text-gray-600">
-              Adım {currentStep + 1} / {steps.length}
+              Step {currentStep + 1} / {steps.length}
             </span>
           </div>
         </CardHeader>

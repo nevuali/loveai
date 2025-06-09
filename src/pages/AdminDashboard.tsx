@@ -290,57 +290,85 @@ const AdminDashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Professional Sidebar */}
+    <div className="min-h-screen">
+      {/* Golden Glassmorphism Sidebar - Enhanced Design */}
       <motion.div 
-        className={`fixed left-0 top-0 h-full bg-gradient-to-b from-white via-gray-50/95 to-white/95 backdrop-blur-xl border-r border-gray-200/60 shadow-2xl z-50 transition-all duration-300 ${
-          sidebarOpen ? 'w-72' : 'w-20'
+        className={`fixed left-0 top-0 h-full glass-card backdrop-blur-3xl z-50 transition-all duration-500 ${
+          sidebarOpen ? 'w-80' : 'w-20'
         }`}
+        style={{
+          background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(184, 134, 11, 0.12) 100%)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow: '25px 0 50px -12px rgba(0, 0, 0, 0.4), inset 1px 0 1px rgba(255, 255, 255, 0.1)'
+        }}
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <div className="flex flex-col h-full">
-          {/* Enhanced Logo & Toggle */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200/50">
-            <motion.div 
-              className={`flex items-center gap-4 ${!sidebarOpen && 'justify-center'}`}
-              layout
-            >
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Crown className="w-7 h-7 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
-              </div>
-              <AnimatePresence>
-                {sidebarOpen && (
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[#d4af37]/10 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#d4af37]/10 to-transparent"></div>
+        </div>
+
+        <div className="relative flex flex-col h-full">
+          {/* Clean Logo Section */}
+          <div className={`${sidebarOpen ? 'p-6' : 'py-6 px-2'} ${sidebarOpen ? 'border-b border-white/5' : ''}`}>
+            {sidebarOpen ? (
+              // Açık sidebar - Logo ve menü yan yana
+              <div className="flex items-center justify-between">
+                <motion.div 
+                  className="flex items-center gap-3"
+                  layout
+                >
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#d4af37] to-[#b8860b] rounded-2xl flex items-center justify-center shadow-lg">
+                      <Crown className="w-7 h-7 text-white" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#d4af37] rounded-full border border-white animate-pulse"></div>
+                  </div>
                   <motion.div
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -15 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
                     className="flex flex-col"
                   >
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    <h1 className="text-xl font-bold bg-gradient-to-r from-[#d4af37] to-[#b8860b] bg-clip-text text-transparent">
                       AI LOVVE
                     </h1>
-                    <p className="text-sm text-gray-500 font-medium">Admin Control Center</p>
+                    <p className="text-xs text-secondary">Admin Panel</p>
                   </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="hover:bg-gray-100/80 rounded-xl p-2 transition-all duration-200"
-            >
-              <Menu className="w-5 h-5 text-gray-600" />
-            </Button>
+                </motion.div>
+                
+                {/* Menü butonu - sadece açık halde */}
+                <motion.button
+                  onClick={() => setSidebarOpen(false)}
+                  className="w-8 h-8 rounded-xl border border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5 transition-all duration-200 flex items-center justify-center backdrop-blur-lg"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Menu className="w-4 h-4 text-[#d4af37]" />
+                </motion.button>
+              </div>
+            ) : (
+              // Kapalı sidebar - Sadece logo merkezde
+              <div className="flex justify-center">
+                <motion.button
+                  onClick={() => setSidebarOpen(true)}
+                  className="relative"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#d4af37] to-[#b8860b] rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Crown className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#d4af37] rounded-full border border-white animate-pulse"></div>
+                </motion.button>
+              </div>
+            )}
           </div>
 
-          {/* Enhanced Navigation */}
-          <nav className="flex-1 p-6 space-y-3">
+          {/* Clean Navigation Menu */}
+          <nav className={`flex-1 ${sidebarOpen ? 'p-6' : 'p-3'} space-y-2 overflow-y-auto scrollbar-hide`}>
             {sidebarItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -349,33 +377,27 @@ const AdminDashboard: React.FC = () => {
                 <motion.button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 relative group ${
+                  className={`w-full flex items-center ${sidebarOpen ? 'gap-3 p-3' : 'justify-center p-2'} rounded-xl transition-all duration-200 relative group ${
                     isActive 
-                      ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-xl shadow-indigo-500/25' 
-                      : 'hover:bg-white/80 hover:shadow-lg text-gray-700 hover:text-gray-900'
-                  } ${!sidebarOpen && 'justify-center'}`}
-                  whileHover={{ scale: 1.02, x: isActive ? 0 : 4 }}
+                      ? 'bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-white shadow-lg' 
+                      : 'hover:bg-[#d4af37]/10 text-primary'
+                  }`}
+                  whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.05 }}
                 >
-                  {/* Active indicator */}
-                  {isActive && (
-                    <motion.div
-                      className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-r-full"
-                      initial={{ height: 0 }}
-                      animate={{ height: '100%' }}
-                      transition={{ duration: 0.3 }}
-                    />
+                  {/* Simple active indicator - Sadece sidebar açıkken */}
+                  {isActive && sidebarOpen && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
                   )}
                   
-                  {/* Icon with background */}
-                  <div className={`relative ${isActive ? '' : 'group-hover:scale-110 transition-transform duration-200'}`}>
-                    <Icon className={`w-6 h-6 ${isActive ? 'text-white' : 'text-gray-600'}`} />
-                    {!isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg opacity-0 group-hover:opacity-10 transition-opacity duration-200" />
-                    )}
+                  {/* Icon */}
+                  <div className={`${sidebarOpen ? 'w-8 h-8' : 'w-12 h-12'} rounded-lg flex items-center justify-center transition-all duration-200 ${
+                    isActive ? (sidebarOpen ? '' : 'bg-gradient-to-r from-[#d4af37] to-[#b8860b] shadow-lg') : ''
+                  }`}>
+                    <Icon className={`${sidebarOpen ? 'w-5 h-5' : 'w-6 h-6'} ${isActive ? 'text-white' : 'text-[#d4af37]'} transition-colors duration-200`} />
                   </div>
                   
                   <AnimatePresence>
@@ -384,23 +406,18 @@ const AdminDashboard: React.FC = () => {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
-                        className="flex flex-col items-start"
+                        className="flex-1 text-left"
                       >
-                        <span className={`font-semibold text-sm ${isActive ? 'text-white' : 'text-gray-700'}`}>
+                        <span className={`font-semibold text-sm ${isActive ? 'text-white' : 'text-primary group-hover:text-[#d4af37]'} transition-colors duration-200`}>
                           {item.label}
                         </span>
-                        {isActive && (
-                          <span className="text-xs text-white/80 mt-0.5">
-                            Currently viewing
-                          </span>
-                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>
                   
-                  {/* Tooltip for collapsed state */}
+                  {/* Simple tooltip for collapsed state */}
                   {!sidebarOpen && (
-                    <div className="absolute left-full ml-4 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                    <div className="absolute left-full ml-3 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
                       {item.label}
                       <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
                     </div>
@@ -410,54 +427,70 @@ const AdminDashboard: React.FC = () => {
             })}
           </nav>
 
-          {/* Enhanced User Profile */}
-          <div className="p-6 border-t border-gray-200/50 bg-gradient-to-r from-gray-50/50 to-blue-50/50">
-            <div className={`flex items-center gap-4 ${!sidebarOpen && 'justify-center'}`}>
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg">
-                  {getUserInitial()}
+          {/* Clean User Profile Section */}
+          <div className={`${sidebarOpen ? 'p-6' : 'p-3'} border-t border-white/5`}>
+            {sidebarOpen ? (
+              // Açık sidebar - Profil ve çıkış yan yana
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#d4af37] to-[#b8860b] rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
+                    {getUserInitial()}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#d4af37] rounded-full border border-white flex items-center justify-center">
+                    <Crown className="w-2 h-2 text-white" />
+                  </div>
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
-                  <Crown className="w-3 h-3 text-white" />
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, x: -15 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex-1 min-w-0"
+                >
+                  <p className="text-sm font-semibold text-primary truncate">
+                    {user?.displayName || user?.email}
+                  </p>
+                  <p className="text-xs text-secondary">Admin</p>
+                </motion.div>
+                <motion.button
+                  onClick={logout}
+                  className="w-8 h-8 rounded-lg border border-white/10 hover:border-red-400/30 hover:bg-red-500/10 transition-all duration-200 flex items-center justify-center"
+                  title="Çıkış Yap"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <LogOut className="w-4 h-4 text-red-400" />
+                </motion.button>
               </div>
-              <AnimatePresence>
-                {sidebarOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="flex-1 min-w-0"
-                  >
-                    <p className="text-sm font-bold text-gray-900 truncate">
-                      {user?.displayName || user?.email}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-500">System Administrator</span>
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={logout}
-                className={`hover:bg-red-50 hover:text-red-600 rounded-xl transition-all duration-200 ${!sidebarOpen && 'w-full'}`}
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </div>
+            ) : (
+              // Kapalı sidebar - Sadece profil merkezde
+              <div className="flex flex-col items-center space-y-3">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#d4af37] to-[#b8860b] rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
+                    {getUserInitial()}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#d4af37] rounded-full border border-white flex items-center justify-center">
+                    <Crown className="w-2 h-2 text-white" />
+                  </div>
+                </div>
+                <motion.button
+                  onClick={logout}
+                  className="w-8 h-8 rounded-lg border border-white/10 hover:border-red-400/30 hover:bg-red-500/10 transition-all duration-200 flex items-center justify-center"
+                  title="Çıkış Yap"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <LogOut className="w-3 h-3 text-red-400" />
+                </motion.button>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
 
       {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-20'}`}>
-        {/* Enhanced Header */}
+      <div className={`transition-all duration-500 ${sidebarOpen ? 'ml-80' : 'ml-20'}`}>
+        {/* Golden Header */}
         <motion.header 
-          className="bg-gradient-to-r from-white/95 via-gray-50/95 to-white/95 backdrop-blur-xl border-b border-gray-200/60 p-8 shadow-sm"
+          className="glass-card border-b border-white/10 backdrop-blur-xl p-8 rounded-none"
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
@@ -465,12 +498,12 @@ const AdminDashboard: React.FC = () => {
             <div className="flex items-center gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent capitalize">
-                    {activeTab}
-                  </h2>
-                  {activeTab === 'overview' && <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>}
+                                  <h2 className="text-4xl font-bold bg-gradient-to-r from-[#d4af37] to-[#b8860b] bg-clip-text text-transparent capitalize">
+                  {activeTab}
+                </h2>
+                {activeTab === 'overview' && <div className="w-3 h-3 bg-[#d4af37] rounded-full animate-pulse"></div>}
                 </div>
-                <p className="text-gray-600 text-lg font-medium">
+                <p className="text-secondary text-lg font-medium">
                   {activeTab === 'overview' && '📊 Complete overview of your AI LOVVE platform'}
                   {activeTab === 'analytics' && '📈 Deep insights and performance metrics'}
                   {activeTab === 'ai-systems' && '🤖 Advanced AI engine monitoring and control'}
@@ -482,18 +515,17 @@ const AdminDashboard: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-6">
-              {/* Notification Bell */}
+              {/* Golden Notification Bell */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button 
-                  variant="outline" 
-                  className="relative bg-white/80 border-gray-200 hover:bg-white hover:border-indigo-300 rounded-2xl p-3 transition-all duration-200"
+                <button 
+                  className="relative glass-card border border-white/10 hover:border-[#d4af37]/30 rounded-2xl p-3 transition-all duration-200 backdrop-blur-xl"
                 >
-                  <Bell className="w-5 h-5 text-gray-600" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center animate-pulse">3</span>
-                </Button>
+                  <Bell className="w-5 h-5 text-[#d4af37]" />
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-[#d4af37] to-[#b8860b] rounded-full text-xs text-white flex items-center justify-center animate-pulse">3</span>
+                </button>
               </motion.div>
               
               {/* Quick Actions */}
@@ -501,26 +533,25 @@ const AdminDashboard: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Button 
-                  variant="outline"
-                  className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200 text-indigo-700 hover:from-indigo-100 hover:to-purple-100 rounded-2xl px-4 py-3 font-medium"
+                <button 
+                  className="sidebar-newchat-btn-half"
                   onClick={() => setActiveTab('packages')}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Quick Add
-                </Button>
+                </button>
               </motion.div>
               
               {/* Date & Time */}
-              <div className="text-right bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-gray-200/50">
-                <p className="text-sm font-bold text-gray-900">
+              <div className="text-right glass-card backdrop-blur-xl rounded-2xl p-4 border border-white/10">
+                <p className="text-sm font-bold text-primary">
                   {new Date().toLocaleDateString('en-US', { 
                     weekday: 'short', 
                     month: 'short', 
                     day: 'numeric' 
                   })}
                 </p>
-                <p className="text-xs text-gray-500 font-medium">
+                <p className="text-xs text-secondary font-medium">
                   {new Date().toLocaleTimeString('en-US', { 
                     hour: '2-digit', 
                     minute: '2-digit' 
@@ -533,7 +564,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Enhanced Content Area */}
         <motion.main 
-          className="p-8 min-h-screen bg-gradient-to-br from-gray-50/50 via-blue-50/30 to-indigo-50/50"
+          className="p-8 min-h-screen"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
@@ -554,28 +585,24 @@ const AdminDashboard: React.FC = () => {
                       label: 'Total Packages', 
                       value: dashboardStats.totalPackages, 
                       icon: PackageIcon, 
-                      color: 'from-blue-600 to-blue-400', 
                       change: dashboardStats.packageStats ? `+${Math.round(dashboardStats.packageStats.publishedPackages / dashboardStats.totalPackages * 100)}%` : '+0%'
                     },
                     { 
                       label: 'Active Users', 
                       value: dashboardStats.totalUsers.toLocaleString(), 
                       icon: Users, 
-                      color: 'from-green-600 to-green-400', 
                       change: dashboardStats.userStats ? `+${dashboardStats.userStats.newUsersThisMonth}` : '+0'
                     },
                     { 
                       label: 'Revenue', 
                       value: `$${dashboardStats.totalRevenue.toLocaleString()}`, 
                       icon: DollarSign, 
-                      color: 'from-purple-600 to-purple-400', 
                       change: dashboardStats.userStats ? `$${Math.round(dashboardStats.userStats.averageSpentPerUser)}` : '$0' + ' avg'
                     },
                     { 
                       label: 'Total Bookings', 
                       value: dashboardStats.totalBookings, 
                       icon: Calendar, 
-                      color: 'from-orange-600 to-orange-400', 
                       change: dashboardStats.packageStats ? `${dashboardStats.packageStats.totalViews} views` : '0 views'
                     },
                   ].map((stat, index) => {
@@ -588,55 +615,46 @@ const AdminDashboard: React.FC = () => {
                         transition={{ delay: index * 0.1 }}
                         whileHover={{ y: -5, scale: 1.02 }}
                       >
-                        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 group relative overflow-hidden">
-                          {/* Gradient overlay */}
-                          <div className={`absolute inset-0 bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-                          
-                          <CardContent className="p-8 relative z-10">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1">
-                                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">{stat.label}</p>
-                                <p className="text-4xl font-bold text-gray-900 mb-3">{stat.value}</p>
-                                <div className="flex items-center">
-                                  <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
-                                  <span className="text-sm text-green-600 font-semibold">{stat.change}</span>
-                                  <span className="text-xs text-gray-500 ml-2">vs last month</span>
-                                </div>
-                              </div>
-                              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${stat.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                                <Icon className="w-8 h-8 text-white" />
+                        <div className="glass-card rounded-2xl p-6 backdrop-blur-xl border border-white/10 hover:border-[#d4af37]/30 transition-all duration-300 group hover:-translate-y-1">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-secondary mb-1">{stat.label}</p>
+                              <p className="text-3xl font-bold text-primary mb-2">{stat.value}</p>
+                              <div className="flex items-center">
+                                <ArrowUpRight className="w-4 h-4 text-[#d4af37] mr-1" />
+                                <span className="text-sm text-[#d4af37] font-medium">{stat.change}</span>
+                                <span className="text-xs text-secondary ml-2">vs last month</span>
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-[#d4af37] to-[#b8860b] flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-lg">
+                              <Icon className="w-8 h-8 text-white" />
+                            </div>
+                          </div>
+                        </div>
                       </motion.div>
                     );
                   })}
                 </div>
 
                 {/* Enhanced Recent Activity */}
-                <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center justify-between">
+                <div className="glass-card rounded-2xl backdrop-blur-xl border border-white/10 hover:border-[#d4af37]/30 transition-all duration-300">
+                  <div className="p-6 pb-4">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-to-r from-[#d4af37] to-[#b8860b] rounded-2xl flex items-center justify-center shadow-lg">
                           <Activity className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-gray-900">Recent Activity</h3>
-                          <p className="text-sm text-gray-500">Latest system events and updates</p>
+                          <h3 className="text-xl font-bold text-primary">Recent Activity</h3>
+                          <p className="text-sm text-secondary">Latest system events and updates</p>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-xl bg-gray-50 hover:bg-gray-100 border-gray-200"
-                      >
+                      <button className="sidebar-newchat-btn-half text-sm px-4 py-2">
                         View All
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-6 pt-0">
                     <div className="space-y-4">
                       {packages.slice(0, 4).map((pkg, index) => {
                         const activities = [
@@ -648,36 +666,36 @@ const AdminDashboard: React.FC = () => {
                         return (
                           <motion.div 
                             key={`${pkg.id}-${index}`} 
-                            className="flex items-center gap-4 p-4 rounded-2xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50/50 transition-all duration-200 group border border-gray-100/50"
+                            className="flex items-center gap-4 p-4 rounded-2xl glass-card border border-white/10 hover:border-[#d4af37]/30 hover:-translate-y-1 transition-all duration-300 group"
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
                             whileHover={{ x: 4 }}
                           >
                             <div className={`w-4 h-4 rounded-full ${
-                              activity.type === 'create' ? 'bg-green-500' :
-                              activity.type === 'update' ? 'bg-blue-500' :
-                              activity.type === 'view' ? 'bg-purple-500' : 'bg-orange-500'
-                            } shadow-md group-hover:scale-110 transition-transform duration-200`}></div>
+                              activity.type === 'create' ? 'bg-[#d4af37]' :
+                              activity.type === 'update' ? 'bg-[#b8860b]' :
+                              activity.type === 'view' ? 'bg-[#daa520]' : 'bg-[#ffd700]'
+                            } shadow-lg group-hover:scale-110 transition-transform duration-200`}></div>
                             <div className="flex-1">
-                              <p className="text-sm font-semibold text-gray-900 group-hover:text-gray-700">{activity.action}</p>
-                              <p className="text-sm text-gray-600 truncate">{activity.item}</p>
+                              <p className="text-sm font-semibold text-primary group-hover:text-primary">{activity.action}</p>
+                              <p className="text-sm text-secondary truncate">{activity.item}</p>
                             </div>
                             <div className="text-right">
-                              <span className="text-xs text-gray-500 font-medium">{activity.time}</span>
+                              <span className="text-xs text-secondary font-medium">{activity.time}</span>
                             </div>
                           </motion.div>
                         );
                       })}
                       {packages.length === 0 && (
                         <div className="text-center py-8">
-                          <Activity className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                          <p className="text-gray-600">No recent activity</p>
+                          <Activity className="w-8 h-8 mx-auto text-secondary mb-2" />
+                          <p className="text-secondary">No recent activity</p>
                         </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -735,14 +753,14 @@ const AdminDashboard: React.FC = () => {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-6"
               >
-                {/* Package Management Header */}
-                <Card className="border-0 shadow-lg bg-white/60 backdrop-blur-sm">
-                  <CardHeader>
+                {/* Golden Package Management Header */}
+                <div className="glass-card rounded-2xl backdrop-blur-xl border border-white/10 hover:border-[#d4af37]/30 transition-all duration-300">
+                  <div className="p-6">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        <PackageIcon className="w-5 h-5 text-indigo-600" />
+                      <h3 className="flex items-center gap-2 text-xl font-semibold text-primary">
+                        <PackageIcon className="w-5 h-5 text-[#d4af37]" />
                         Package Management
-                      </CardTitle>
+                      </h3>
                       <div className="flex gap-2">
                         <Button 
                           onClick={() => {
@@ -782,23 +800,23 @@ const AdminDashboard: React.FC = () => {
                         </Button>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {/* Filters */}
+                  </div>
+                  <div className="p-6 pt-0">
+                    {/* Golden Filters */}
                     <div className="flex flex-wrap gap-4 mb-6">
                       <div className="flex-1 min-w-64">
                         <Input
                           placeholder="Search packages..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          className="border-gray-200 focus:border-indigo-500"
+                          className="glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl"
                         />
                       </div>
                       <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="w-48">
+                        <SelectTrigger className="w-48 glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="glass-card border-white/10 bg-surface/90 backdrop-blur-xl">
                           <SelectItem value="all">All Categories</SelectItem>
                           <SelectItem value="luxury">Luxury</SelectItem>
                           <SelectItem value="adventure">Adventure</SelectItem>
@@ -811,10 +829,10 @@ const AdminDashboard: React.FC = () => {
                         </SelectContent>
                       </Select>
                       <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
-                        <SelectTrigger className="w-48">
+                        <SelectTrigger className="w-48 glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="glass-card border-white/10 bg-surface/90 backdrop-blur-xl">
                           <SelectItem value="all">All Status</SelectItem>
                           <SelectItem value="available">Available</SelectItem>
                           <SelectItem value="unavailable">Unavailable</SelectItem>
@@ -822,41 +840,35 @@ const AdminDashboard: React.FC = () => {
                       </Select>
                     </div>
 
-                    {/* Bulk Actions */}
+                    {/* Golden Bulk Actions */}
                     {selectedPackages.length > 0 && (
                       <motion.div 
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-4 p-4 bg-indigo-50 rounded-xl mb-6"
+                        className="flex items-center gap-4 p-4 glass-card rounded-xl mb-6 border border-white/10 backdrop-blur-xl"
                       >
-                        <span className="text-sm font-medium text-indigo-900">
+                        <span className="text-sm font-medium text-[#d4af37]">
                           {selectedPackages.length} package(s) selected
                         </span>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
+                        <button 
                           onClick={() => handleBulkAvailability(true)}
-                          className="border-green-200 text-green-700 hover:bg-green-50"
+                          className="sidebar-newchat-btn-half text-sm px-4 py-2"
                         >
                           Mark Available
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
+                        </button>
+                        <button 
                           onClick={() => handleBulkAvailability(false)}
-                          className="border-orange-200 text-orange-700 hover:bg-orange-50"
+                          className="glass-card rounded-xl px-4 py-2 text-sm border border-white/10 hover:border-orange-400/30 text-orange-400 backdrop-blur-xl transition-all duration-200"
                         >
                           Mark Unavailable
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
+                        </button>
+                        <button 
                           onClick={handleBulkDelete}
-                          className="border-red-200 text-red-700 hover:bg-red-50"
+                          className="glass-card rounded-xl px-4 py-2 text-sm border border-white/10 hover:border-red-400/30 text-red-400 backdrop-blur-xl transition-all duration-200"
                         >
                           <Trash2 className="w-4 h-4 mr-1" />
                           Delete
-                        </Button>
+                        </button>
                       </motion.div>
                     )}
 
@@ -869,15 +881,15 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {/* Select All */}
-                        <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+                        {/* Golden Select All */}
+                        <div className="flex items-center gap-2 pb-4 border-b border-white/10">
                           <button onClick={toggleSelectAll} className="flex items-center gap-2">
                             {selectedPackages.length === filteredPackages.length && filteredPackages.length > 0 ? (
-                              <CheckSquare className="w-5 h-5 text-indigo-600" />
+                              <CheckSquare className="w-5 h-5 text-[#d4af37]" />
                             ) : (
-                              <Square className="w-5 h-5 text-gray-400" />
+                              <Square className="w-5 h-5 text-secondary" />
                             )}
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm text-secondary">
                               Select All ({filteredPackages.length} packages)
                             </span>
                           </button>
@@ -891,10 +903,10 @@ const AdminDashboard: React.FC = () => {
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: index * 0.05 }}
-                              className={`bg-white rounded-xl shadow-sm border-2 transition-all duration-200 hover:shadow-lg ${
+                              className={`glass-card rounded-2xl backdrop-blur-xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${
                                 selectedPackages.includes(pkg.id) 
-                                  ? 'border-indigo-200 bg-indigo-50/30' 
-                                  : 'border-gray-100 hover:border-gray-200'
+                                  ? 'border-[#d4af37]/50 bg-[#d4af37]/5' 
+                                  : 'border-white/10 hover:border-[#d4af37]/30'
                               }`}
                             >
                               <div className="p-6">
@@ -904,9 +916,9 @@ const AdminDashboard: React.FC = () => {
                                     className="mt-1"
                                   >
                                     {selectedPackages.includes(pkg.id) ? (
-                                      <CheckSquare className="w-5 h-5 text-indigo-600" />
+                                      <CheckSquare className="w-5 h-5 text-[#d4af37]" />
                                     ) : (
-                                      <Square className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                                      <Square className="w-5 h-5 text-secondary hover:text-[#d4af37]" />
                                     )}
                                   </button>
                                   
@@ -914,15 +926,15 @@ const AdminDashboard: React.FC = () => {
                                     <div className="flex items-start justify-between">
                                       <div className="flex-1">
                                         <div className="flex items-start justify-between mb-2">
-                                          <h3 className="text-lg font-semibold text-gray-900 flex-1 mr-4">{pkg.title}</h3>
+                                          <h3 className="text-lg font-semibold text-primary flex-1 mr-4">{pkg.title}</h3>
                                           {pkg.isPromoted && (
-                                            <Badge className="bg-yellow-100 text-yellow-800">
+                                            <Badge className="bg-gradient-to-r from-[#d4af37] to-[#b8860b] text-white">
                                               <Crown className="w-3 h-3 mr-1" />
                                               Promoted
                                             </Badge>
                                           )}
                                         </div>
-                                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                                        <div className="flex items-center gap-4 text-sm text-secondary mb-3">
                                           <span className="flex items-center gap-1">
                                             <MapPin className="w-4 h-4" />
                                             {pkg.location}, {pkg.country}
@@ -947,71 +959,65 @@ const AdminDashboard: React.FC = () => {
                                             {pkg.views || 0} views
                                           </span>
                                         </div>
-                                        <p className="text-gray-600 line-clamp-2 mb-3">{pkg.description}</p>
+                                        <p className="text-secondary line-clamp-2 mb-3">{pkg.description}</p>
                                         <div className="flex items-center gap-2">
                                           <Badge 
-                                            variant={pkg.availability ? 'default' : 'secondary'}
-                                            className={pkg.availability ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
+                                            className={pkg.availability ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
                                           >
                                             {pkg.availability ? 'Available' : 'Unavailable'}
                                           </Badge>
-                                          <Badge variant="outline" className="capitalize">
+                                          <Badge className="glass-card border-white/10 text-[#d4af37] capitalize backdrop-blur-xl">
                                             {pkg.category}
                                           </Badge>
-                                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                          <div className="flex items-center gap-1 text-sm text-secondary">
+                                            <Star className="w-4 h-4 fill-[#d4af37] text-[#d4af37]" />
                                             {pkg.rating || 0}
                                           </div>
                                         </div>
                                       </div>
                                       
                                       <div className="flex items-center gap-2 ml-4">
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
+                                        <button
                                           onClick={() => {
                                             // Open package in new tab to preview
                                             window.open(`/package/${pkg.id}`, '_blank');
                                           }}
-                                          className="hover:bg-gray-50 hover:border-gray-200"
+                                          className="w-8 h-8 rounded-lg glass-card border border-white/10 hover:border-[#d4af37]/30 flex items-center justify-center transition-colors backdrop-blur-xl"
                                           title="Preview Package"
                                         >
-                                          <Eye className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
+                                          <Eye className="w-4 h-4 text-[#d4af37]" />
+                                        </button>
+                                        <button
                                           onClick={() => handleEdit(pkg)}
-                                          className="hover:bg-blue-50 hover:border-blue-200"
+                                          className="w-8 h-8 rounded-lg glass-card border border-white/10 hover:border-blue-400/30 flex items-center justify-center transition-colors backdrop-blur-xl"
                                           title="Edit Package"
                                         >
-                                          <Edit className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
+                                          <Edit className="w-4 h-4 text-blue-400" />
+                                        </button>
+                                        <button
                                           onClick={() => {
                                             packageService.togglePackageAvailability(pkg.id, !pkg.availability);
                                             toast.success(`Package ${!pkg.availability ? 'enabled' : 'disabled'}`);
                                             loadDashboardData();
                                           }}
-                                          className={pkg.availability ? 
-                                            "hover:bg-orange-50 hover:border-orange-200 text-orange-600" : 
-                                            "hover:bg-green-50 hover:border-green-200 text-green-600"
-                                          }
+                                          className={`w-8 h-8 rounded-lg glass-card border border-white/10 flex items-center justify-center transition-colors backdrop-blur-xl ${pkg.availability ? 
+                                            "hover:border-red-400/30" : 
+                                            "hover:border-green-400/30"
+                                          }`}
                                           title={pkg.availability ? "Disable Package" : "Enable Package"}
                                         >
-                                          {pkg.availability ? <Ban className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
+                                          {pkg.availability ? 
+                                            <Ban className="w-4 h-4 text-red-400" /> : 
+                                            <CheckCircle className="w-4 h-4 text-green-400" />
+                                          }
+                                        </button>
+                                        <button
                                           onClick={() => handleDelete(pkg.id)}
-                                          className="hover:bg-red-50 hover:border-red-200 text-red-600"
+                                          className="w-8 h-8 rounded-lg glass-card border border-white/10 hover:border-red-400/30 flex items-center justify-center transition-colors backdrop-blur-xl"
                                           title="Delete Package"
                                         >
-                                          <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                          <Trash2 className="w-4 h-4 text-red-400" />
+                                        </button>
                                       </div>
                                     </div>
                                   </div>
@@ -1023,15 +1029,15 @@ const AdminDashboard: React.FC = () => {
 
                         {filteredPackages.length === 0 && (
                           <div className="text-center py-12">
-                            <PackageIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No packages found</h3>
-                            <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+                            <PackageIcon className="w-12 h-12 mx-auto text-[#d4af37] mb-4" />
+                            <h3 className="text-lg font-medium text-primary mb-2">No packages found</h3>
+                            <p className="text-secondary">Try adjusting your search or filter criteria.</p>
                           </div>
                         )}
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -1043,34 +1049,34 @@ const AdminDashboard: React.FC = () => {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-6"
               >
-                {/* Application Settings */}
-                <Card className="border-0 shadow-lg bg-white/60 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-indigo-600" />
+                {/* Golden Application Settings */}
+                <div className="glass-card rounded-2xl backdrop-blur-xl border border-white/10 hover:border-[#d4af37]/30 transition-all duration-300">
+                  <div className="p-6 pb-4">
+                    <h3 className="flex items-center gap-2 text-xl font-semibold text-primary">
+                      <Settings className="w-5 h-5 text-[#d4af37]" />
                       Application Settings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
+                    </h3>
+                  </div>
+                  <div className="p-6 pt-0 space-y-6">
                     {/* General Settings */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900">General Settings</h3>
+                      <h3 className="text-lg font-semibold text-primary">General Settings</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Application Name</label>
-                          <Input defaultValue="AI LOVVE" className="border-gray-200 focus:border-indigo-500" />
+                          <label className="block text-sm font-medium text-secondary mb-2">Application Name</label>
+                          <Input defaultValue="AI LOVVE" className="glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Support Email</label>
-                          <Input defaultValue="support@ailovve.com" className="border-gray-200 focus:border-indigo-500" />
+                          <label className="block text-sm font-medium text-secondary mb-2">Support Email</label>
+                          <Input defaultValue="support@ailovve.com" className="glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Default Language</label>
+                          <label className="block text-sm font-medium text-secondary mb-2">Default Language</label>
                           <Select defaultValue="en">
-                            <SelectTrigger className="border-gray-200 focus:border-indigo-500">
+                            <SelectTrigger className="glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="glass-card border-white/10 bg-surface/90 backdrop-blur-xl">
                               <SelectItem value="en">English</SelectItem>
                               <SelectItem value="tr">Türkçe</SelectItem>
                               <SelectItem value="es">Español</SelectItem>
@@ -1079,12 +1085,12 @@ const AdminDashboard: React.FC = () => {
                           </Select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Default Currency</label>
+                          <label className="block text-sm font-medium text-secondary mb-2">Default Currency</label>
                           <Select defaultValue="USD">
-                            <SelectTrigger className="border-gray-200 focus:border-indigo-500">
+                            <SelectTrigger className="glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="glass-card border-white/10 bg-surface/90 backdrop-blur-xl">
                               <SelectItem value="USD">USD ($)</SelectItem>
                               <SelectItem value="EUR">EUR (€)</SelectItem>
                               <SelectItem value="TRY">TRY (₺)</SelectItem>
@@ -1097,46 +1103,46 @@ const AdminDashboard: React.FC = () => {
 
                     {/* Feature Toggles */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Feature Settings</h3>
+                      <h3 className="text-lg font-semibold text-primary">Feature Settings</h3>
                       <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div className="flex items-center justify-between p-4 glass-card rounded-xl border border-white/10 backdrop-blur-xl">
                           <div>
-                            <h4 className="font-medium text-gray-900">Enable Package Bookings</h4>
-                            <p className="text-sm text-gray-600">Allow users to book packages directly</p>
+                            <h4 className="font-medium text-primary">Enable Package Bookings</h4>
+                            <p className="text-sm text-secondary">Allow users to book packages directly</p>
                           </div>
                           <div className="relative inline-block w-10 mr-2 align-middle select-none">
                             <input type="checkbox" defaultChecked className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-[#d4af37]/20 cursor-pointer"></label>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div className="flex items-center justify-between p-4 glass-card rounded-xl border border-white/10 backdrop-blur-xl">
                           <div>
-                            <h4 className="font-medium text-gray-900">AI Chat Assistant</h4>
-                            <p className="text-sm text-gray-600">Enable AI-powered chat for customer support</p>
+                            <h4 className="font-medium text-primary">AI Chat Assistant</h4>
+                            <p className="text-sm text-secondary">Enable AI-powered chat for customer support</p>
                           </div>
                           <div className="relative inline-block w-10 mr-2 align-middle select-none">
                             <input type="checkbox" defaultChecked className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-[#d4af37]/20 cursor-pointer"></label>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div className="flex items-center justify-between p-4 glass-card rounded-xl border border-white/10 backdrop-blur-xl">
                           <div>
-                            <h4 className="font-medium text-gray-900">Email Notifications</h4>
-                            <p className="text-sm text-gray-600">Send email notifications to users</p>
+                            <h4 className="font-medium text-primary">Email Notifications</h4>
+                            <p className="text-sm text-secondary">Send email notifications to users</p>
                           </div>
                           <div className="relative inline-block w-10 mr-2 align-middle select-none">
                             <input type="checkbox" defaultChecked className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-[#d4af37]/20 cursor-pointer"></label>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div className="flex items-center justify-between p-4 glass-card rounded-xl border border-white/10 backdrop-blur-xl">
                           <div>
-                            <h4 className="font-medium text-gray-900">Analytics Tracking</h4>
-                            <p className="text-sm text-gray-600">Collect user behavior data for analytics</p>
+                            <h4 className="font-medium text-primary">Analytics Tracking</h4>
+                            <p className="text-sm text-secondary">Collect user behavior data for analytics</p>
                           </div>
                           <div className="relative inline-block w-10 mr-2 align-middle select-none">
                             <input type="checkbox" defaultChecked className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                            <label className="toggle-label block overflow-hidden h-6 rounded-full bg-[#d4af37]/20 cursor-pointer"></label>
                           </div>
                         </div>
                       </div>
@@ -1144,23 +1150,23 @@ const AdminDashboard: React.FC = () => {
 
                     {/* API Settings */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-semibold text-gray-900">API & Integration Settings</h3>
+                      <h3 className="text-lg font-semibold text-primary">API & Integration Settings</h3>
                       <div className="grid grid-cols-1 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Gemini API Key</label>
-                          <Input type="password" placeholder="Enter your Gemini API key" className="border-gray-200 focus:border-indigo-500" />
+                          <label className="block text-sm font-medium text-secondary mb-2">Gemini API Key</label>
+                          <Input type="password" placeholder="Enter your Gemini API key" className="glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Firebase Project ID</label>
-                          <Input defaultValue="ai-lovve-project" className="border-gray-200 focus:border-indigo-500" />
+                          <label className="block text-sm font-medium text-secondary mb-2">Firebase Project ID</label>
+                          <Input defaultValue="ai-lovve-project" className="glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl" />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Analytics Provider</label>
+                          <label className="block text-sm font-medium text-secondary mb-2">Analytics Provider</label>
                           <Select defaultValue="firebase">
-                            <SelectTrigger className="border-gray-200 focus:border-indigo-500">
+                            <SelectTrigger className="glass-card border-white/10 focus:border-[#d4af37]/50 bg-transparent backdrop-blur-xl">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="glass-card border-white/10 bg-surface/90 backdrop-blur-xl">
                               <SelectItem value="firebase">Firebase Analytics</SelectItem>
                               <SelectItem value="google">Google Analytics</SelectItem>
                               <SelectItem value="mixpanel">Mixpanel</SelectItem>
@@ -1171,9 +1177,9 @@ const AdminDashboard: React.FC = () => {
                     </div>
 
                     {/* Enhanced Save Section */}
-                    <div className="flex items-center justify-between pt-8 border-t border-gray-200">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <div className="flex items-center justify-between pt-8 border-t border-white/10">
+                      <div className="flex items-center gap-2 text-sm text-secondary">
+                        <div className="w-2 h-2 bg-[#d4af37] rounded-full animate-pulse"></div>
                         <span>All changes are saved automatically</span>
                       </div>
                       <div className="flex gap-3">
@@ -1200,29 +1206,29 @@ const AdminDashboard: React.FC = () => {
                         </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
-                {/* Enhanced System Status */}
-                <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center justify-between">
+                {/* Golden System Status */}
+                <div className="glass-card rounded-2xl backdrop-blur-xl border border-white/10 hover:border-[#d4af37]/30 transition-all duration-300">
+                  <div className="p-6 pb-4">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-to-r from-[#d4af37] to-[#b8860b] rounded-2xl flex items-center justify-center shadow-lg">
                           <Activity className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-gray-900">System Health</h3>
-                          <p className="text-sm text-gray-500">Real-time service monitoring</p>
+                          <h3 className="text-xl font-bold text-primary">System Health</h3>
+                          <p className="text-sm text-secondary">Real-time service monitoring</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-xs font-semibold text-green-700">All Systems Go</span>
+                      <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-[#d4af37]/10 to-[#b8860b]/10 rounded-full border border-[#d4af37]/20">
+                        <div className="w-2 h-2 bg-[#d4af37] rounded-full animate-pulse"></div>
+                        <span className="text-xs font-semibold text-[#d4af37]">All Systems Go</span>
                       </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                    </div>
+                  </div>
+                  <div className="p-6 pt-0">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {[
                         { name: 'Firebase Database', status: 'Operational', uptime: '99.9%', response: '45ms' },
@@ -1281,8 +1287,8 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

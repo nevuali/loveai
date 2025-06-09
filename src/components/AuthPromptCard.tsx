@@ -75,8 +75,8 @@ const AuthPromptCard: React.FC<AuthPromptCardProps> = ({
               Konuşmaya devam etmek için <span className="font-semibold text-pink-600">üye olun</span> 
               {" "}veya <span className="font-semibold text-purple-600">giriş yapın</span>
             </p>
-            <p className="text-sm text-gray-500 mt-2">
-              Üyelikle sınırsız mesaj + özel özellikler! ✨
+            <p className="mb-6 text-white/80 text-sm">
+              Unlimited messages + special features with membership! ✨
             </p>
           </div>
 
@@ -89,7 +89,7 @@ const AuthPromptCard: React.FC<AuthPromptCardProps> = ({
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <Sparkles className="w-4 h-4 text-pink-500" />
-                <span>Sınırsız mesaj gönderimi</span>
+                <span>Unlimited messaging</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <Heart className="w-4 h-4 text-red-500" />
@@ -126,7 +126,7 @@ const AuthPromptCard: React.FC<AuthPromptCardProps> = ({
           <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-xs text-blue-700 text-center">
               💬 <strong>Chat üzerinden de kayıt olabilirsiniz!</strong><br/>
-              <code className="bg-blue-100 px-1 rounded">/kayit</code> yazın veya bilgilerinizi doğrudan gönderin
+              Type <code className="bg-blue-100 px-1 rounded">/register</code> or send your information directly
             </p>
           </div>
         </div>

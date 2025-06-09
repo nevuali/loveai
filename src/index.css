@@ -181,6 +181,39 @@
     transform: translateY(-1px);
   }
 
+  /* === CUSTOM SCROLLBAR STYLES === */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-golden {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 175, 55, 0.6) transparent;
+  }
+  
+  .scrollbar-golden::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-golden::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-golden::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, rgba(212, 175, 55, 0.6), rgba(184, 134, 11, 0.6));
+    border-radius: 3px;
+    transition: all 0.3s ease;
+  }
+  
+  .scrollbar-golden::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, rgba(212, 175, 55, 0.8), rgba(184, 134, 11, 0.8));
+  }
+
   /* === ACCESSIBILITY & FOCUS SYSTEM === */
   /* High contrast focus indicators */
   .focus-visible {

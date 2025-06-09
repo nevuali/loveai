@@ -29,7 +29,7 @@ const PackageCarousel = lazy(() => import('../components/PackageCarousel'));
 const PackageDetail = lazy(() => import('./PackageDetail'));
 const VoiceInput = lazy(() => import('../components/VoiceInput'));
 const ImageUpload = lazy(() => import('../components/ImageUpload'));
-const OfflineIndicator = lazy(() => import('../components/OfflineIndicator'));
+
 const ProfileAnalysisWizard = lazy(() => import('../components/ProfileAnalysisWizard'));
 const HoneymoonPlannerWizard = lazy(() => import('../components/HoneymoonPlannerWizard'));
 
@@ -76,6 +76,16 @@ const Index = () => {
       return user.email.charAt(0).toUpperCase();
     }
     return '👤';
+  };
+
+  const getUserStatus = () => {
+    if (!user) return 'Free';
+    // Check for admin status - you can add specific admin emails here
+    const adminEmails = ['admin@cappalove.com', 'admin@ailovve.com', 'support@ailovve.com'];
+    if (user.email && adminEmails.includes(user.email)) return 'Admin';
+    // Check for premium status
+    if (user.isPremium) return 'Premium';
+    return 'Free';
   };
 
   // Premium degrade rengi üret (kullanıcı email'ine göre sabit) - Memoized
@@ -2107,12 +2117,9 @@ const Index = () => {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            {/* Offline Indicator */}
-            <Suspense fallback={<div className="w-4 h-4 rounded-full bg-gray-300 animate-pulse" />}>
-              <OfflineIndicator className="hidden sm:flex" />
-            </Suspense>
+
             
-            <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">PRO</span>
+            <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">{getUserStatus()}</span>
             
             <div className="profile-menu-container relative">
               <button
@@ -2236,12 +2243,7 @@ const Index = () => {
                   {currentSubtitle}
                 </div>
                 
-                {/* Offline Status on Welcome Screen */}
-                <div className="mt-8 flex justify-center">
-                  <Suspense fallback={<div className="w-8 h-4 rounded bg-gray-300 animate-pulse" />}>
-                    <OfflineIndicator showDetails={!navigator.onLine} className="sm:hidden" />
-                  </Suspense>
-                </div>
+
                 
                 {/* Offline Notice */}
                 {!navigator.onLine && (
@@ -2350,17 +2352,7 @@ const Index = () => {
                     </div>
                   )}
 
-                  {/* Thinking Indicator */}
-                  {message.isThinking && (
-                    <div className="gemini-thinking">
-                      <div className="gemini-dots">
-                        <div className="gemini-dot"></div>
-                        <div className="gemini-dot"></div>
-                        <div className="gemini-dot"></div>
-                      </div>
-                      <span>AI is thinking...</span>
-                    </div>
-                  )}
+
                 </div>
               ))}
               
