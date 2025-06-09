@@ -502,7 +502,7 @@ class RealTimePersonalizationEngine {
   ): PersonalizedMessaging {
     
     // Greeting based on time and personality
-    let greeting = this.generatePersonalizedGreeting(userProfile, context);
+    const greeting = this.generatePersonalizedGreeting(userProfile, context);
     
     // Tone based on personality and segment
     let tone: 'professional' | 'friendly' | 'enthusiastic' | 'caring';

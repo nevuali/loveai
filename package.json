@@ -27,8 +27,10 @@
     "test:e2e:report": "playwright show-report",
     "test:ai": "node -e \"import('./src/tests/aiSystemsIntegrationTest.ts').then(m => m.aiSystemsTest.runAllTests())\"",
     "test:ai:specific": "node -e \"const system = process.argv[1]; import('./src/tests/aiSystemsIntegrationTest.ts').then(m => m.aiSystemsTest.testSpecificSystem(system))\"",
-    "deploy:staging": "npm run build:staging && firebase hosting:channel:deploy staging",
-    "deploy:production": "npm run build:production && firebase deploy --only hosting",
+    "security:check": "node scripts/pre-deploy-security.js",
+    "security:scan": "node -e \"import('./src/utils/secret-scanner.js').then(m => m.secretScanner.scanDirectory('./src').then(r => console.log(m.secretScanner.generateReport(r))))\"",
+    "deploy:staging": "npm run security:check && npm run build:staging && firebase hosting:channel:deploy staging",
+    "deploy:production": "npm run security:check && npm run build:production && firebase deploy --only hosting",
     "firebase:serve": "firebase emulators:start",
     "clean": "rm -rf dist && rm -rf node_modules/.vite",
     "analyze": "npx vite-bundle-analyzer"

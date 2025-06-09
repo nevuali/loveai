@@ -813,7 +813,7 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
       }));
       
       // 🎯 5. Multi-layer prompt generation with conversation flow awareness
-      let baseSystemPrompt = contextManager.generateDynamicSystemPrompt(context);
+      const baseSystemPrompt = contextManager.generateDynamicSystemPrompt(context);
       
       // 🧠 5.5. Dynamic Instructions Optimization
       let systemPrompt = baseSystemPrompt;

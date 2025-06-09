@@ -468,45 +468,50 @@ class MultiAgentSystem {
 
     // Agent-specific response generation
     switch (agentId) {
-      case 'destination_expert':
+      case 'destination_expert': {
         const destinationResponse = await this.generateDestinationExpertResponse(query, context);
         content = destinationResponse.content;
         confidence *= destinationResponse.confidence;
         supportingData.destinations = destinationResponse.destinations;
         recommendations.push(...destinationResponse.recommendations);
         break;
+      }
 
-      case 'package_curator':
+      case 'package_curator': {
         const packageResponse = await this.generatePackageCuratorResponse(query, context);
         content = packageResponse.content;
         confidence *= packageResponse.confidence;
         supportingData.packages = packageResponse.packages;
         recommendations.push(...packageResponse.recommendations);
         break;
+      }
 
-      case 'customer_experience':
+      case 'customer_experience': {
         const experienceResponse = this.generateCustomerExperienceResponse(query, context);
         content = experienceResponse.content;
         confidence *= experienceResponse.confidence;
         supportingData.tone = experienceResponse.tone;
         recommendations.push(...experienceResponse.recommendations);
         break;
+      }
 
-      case 'romance_concierge':
+      case 'romance_concierge': {
         const romanceResponse = this.generateRomanceConciergeResponse(query, context);
         content = romanceResponse.content;
         confidence *= romanceResponse.confidence;
         supportingData.romanticElements = romanceResponse.elements;
         recommendations.push(...romanceResponse.recommendations);
         break;
+      }
 
-      case 'data_analyst':
+      case 'data_analyst': {
         const analysisResponse = await this.generateDataAnalystResponse(query, context);
         content = analysisResponse.content;
         confidence *= analysisResponse.confidence;
         supportingData.insights = analysisResponse.insights;
         recommendations.push(...analysisResponse.recommendations);
         break;
+      }
 
       default:
         // Generic agent response
@@ -568,7 +573,7 @@ class MultiAgentSystem {
 
   private async generatePackageCuratorResponse(query: string, context: any): Promise<any> {
     let content = '';
-    let confidence = 0.8;
+    const confidence = 0.8;
     const packages: string[] = [];
     const recommendations: string[] = [];
 
@@ -585,7 +590,7 @@ class MultiAgentSystem {
 
   private generateCustomerExperienceResponse(query: string, context: any): any {
     let content = '';
-    let confidence = 0.9;
+    const confidence = 0.9;
     let tone = 'supportive';
     const recommendations: string[] = [];
 

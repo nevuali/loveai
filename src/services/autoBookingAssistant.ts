@@ -411,7 +411,7 @@ class AutoBookingAssistant {
   // Travel dates işle
   private processTravelDates(session: AutoBookingSession, message: string): void {
     // Simplified date processing
-    const dateRegex = /(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/g;
+    const dateRegex = /(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/g;
     const dates = [...message.matchAll(dateRegex)];
     
     if (dates.length >= 2) {
@@ -435,7 +435,7 @@ class AutoBookingAssistant {
   private processTravelerInfo(session: AutoBookingSession, message: string): void {
     // Extract name, email, phone
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-    const phoneRegex = /[\+]?[0-9]{10,14}/;
+    const phoneRegex = /[+]?[0-9]{10,14}/;
     
     const emailMatch = message.match(emailRegex);
     const phoneMatch = message.match(phoneRegex);

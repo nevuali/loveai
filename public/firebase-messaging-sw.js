@@ -5,15 +5,15 @@
 importScripts('https://www.gstatic.com/firebasejs/11.8.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.8.1/firebase-messaging-compat.js');
 
-// Firebase configuration (same as in main app)
+// Firebase configuration (will be injected at build time)
 const firebaseConfig = {
-  apiKey: "AIzaSyAtKZbqm_hBqsiICk3zarhP2KTlFMZPbFY",
-  authDomain: "ailovve.firebaseapp.com",
-  projectId: "ailovve",
-  storageBucket: "ailovve.appspot.com",
-  messagingSenderId: "67784907260",
-  appId: "1:67784907260:web:bdde3514cea143949ffa79",
-  measurementId: "G-70KJQL4737"
+  apiKey: "FIREBASE_API_KEY_PLACEHOLDER",
+  authDomain: "FIREBASE_AUTH_DOMAIN_PLACEHOLDER",
+  projectId: "FIREBASE_PROJECT_ID_PLACEHOLDER",
+  storageBucket: "FIREBASE_STORAGE_BUCKET_PLACEHOLDER",
+  messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID_PLACEHOLDER",
+  appId: "FIREBASE_APP_ID_PLACEHOLDER",
+  measurementId: "FIREBASE_MEASUREMENT_ID_PLACEHOLDER"
 };
 
 // Initialize Firebase in service worker

@@ -282,7 +282,7 @@ class AdvancedUserProfileService {
   }): Promise<DetailedUserProfile[]> {
     try {
       const usersRef = collection(db, 'detailedUserProfiles');
-      let q = query(usersRef, orderBy('lastUpdated', 'desc'), limit(100));
+      const q = query(usersRef, orderBy('lastUpdated', 'desc'), limit(100));
 
       // Firebase'de complex queries zor olduğu için client-side filtering yapacağız
       const querySnapshot = await getDocs(q);

@@ -217,7 +217,7 @@ class AILearningEngine {
     }
 
     // Emoji kullanımı
-    const emojiCount = (feedback.response.match(/[✨💕🏝️💎⭐🌟]/g) || []).length;
+    const emojiCount = (feedback.response.match(/[\u2728\u{1F495}\u{1F3DD}\u{1F48E}\u2B50\u{1F31F}]/gu) || []).length;
     if (emojiCount === 0) {
       suggestions.push('Daha fazla emoji kullan');
     } else if (emojiCount > 5) {

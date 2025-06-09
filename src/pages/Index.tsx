@@ -2309,78 +2309,56 @@ const Index = () => {
                             <Copy className="w-3 h-3" />
                           )}
                         </button>
-                          
-                          {/* Message Feedback Toolkit - Only for completed assistant messages */}
-                          {!message.isThinking && (
-                            <div className="message-feedback-toolkit">
-                              <div className="feedback-actions">
-                                {/* Copy Button */}
-                                <button
-                                  onClick={() => copyMessage(message.content, index)}
-                                  className={`feedback-button ${copiedMessageIndex === index ? 'copied' : ''}`}
-                                  title="Copy message"
-                                  aria-label={copiedMessageIndex === index ? 'Copied!' : 'Copy message'}
-                                >
-                                  {copiedMessageIndex === index ? (
-                                    <Check className="w-3 h-3" />
-                                  ) : (
-                                    <Copy className="w-3 h-3" />
-                                  )}
-                                </button>
-                                
-                                {/* Thumbs Up */}
-                                <button
-                                  onClick={() => handleMessageFeedback(index, 'thumbs_up')}
-                                  className={`feedback-button ${messageFeedback[index] === 'thumbs_up' ? 'active-positive' : ''}`}
-                                  title="Good response"
-                                  aria-label="Good response"
-                                >
-                                  <ThumbsUp className="w-3 h-3" />
-                                </button>
-                                
-                                {/* Thumbs Down */}
-                                <button
-                                  onClick={() => handleMessageFeedback(index, 'thumbs_down')}
-                                  className={`feedback-button ${messageFeedback[index] === 'thumbs_down' ? 'active-negative' : ''}`}
-                                  title="Bad response"
-                                  aria-label="Bad response"
-                                >
-                                  <ThumbsDown className="w-3 h-3" />
-                                </button>
-                                
-                                {/* Regenerate */}
-                                <button
-                                  onClick={() => regenerateResponse(index)}
-                                  className="feedback-button"
-                                  title="Regenerate response"
-                                  aria-label="Regenerate response"
-                                  disabled={index === 0}
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                </button>
-                              </div>
-                              
-                              <div className="feedback-disclaimer">
-                                <span className="disclaimer-text">
-                                  AI LOVVE can make mistakes. Please double-check responses.
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      )}
+                        
+                        {/* Thumbs Up */}
+                        <button
+                          onClick={() => handleMessageFeedback(index, 'thumbs_up')}
+                          className={`feedback-button ${messageFeedback[index] === 'thumbs_up' ? 'active-positive' : ''}`}
+                          title="Good response"
+                          aria-label="Good response"
+                        >
+                          <ThumbsUp className="w-3 h-3" />
+                        </button>
+                        
+                        {/* Thumbs Down */}
+                        <button
+                          onClick={() => handleMessageFeedback(index, 'thumbs_down')}
+                          className={`feedback-button ${messageFeedback[index] === 'thumbs_down' ? 'active-negative' : ''}`}
+                          title="Bad response"
+                          aria-label="Bad response"
+                        >
+                          <ThumbsDown className="w-3 h-3" />
+                        </button>
+                        
+                        {/* Regenerate */}
+                        <button
+                          onClick={() => regenerateResponse(index)}
+                          className="feedback-button"
+                          title="Regenerate response"
+                          aria-label="Regenerate response"
+                          disabled={index === 0}
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                        </button>
+                      </div>
+                      
+                      <div className="feedback-disclaimer">
+                        <span className="disclaimer-text">
+                          AI LOVVE can make mistakes. Please double-check responses.
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
-                      {/* Thinking Indicator */}
-                      {message.isThinking && (
-                        <div className="gemini-thinking">
-                          <div className="gemini-dots">
-                            <div className="gemini-dot"></div>
-                            <div className="gemini-dot"></div>
-                            <div className="gemini-dot"></div>
-                          </div>
-                          <span>AI is thinking...</span>
-                        </div>
-                      )}
+                  {/* Thinking Indicator */}
+                  {message.isThinking && (
+                    <div className="gemini-thinking">
+                      <div className="gemini-dots">
+                        <div className="gemini-dot"></div>
+                        <div className="gemini-dot"></div>
+                        <div className="gemini-dot"></div>
+                      </div>
+                      <span>AI is thinking...</span>
                     </div>
                   )}
                 </div>

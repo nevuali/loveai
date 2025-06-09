@@ -393,7 +393,7 @@ class ConversationPredictor {
   private calculateInformationCompleteness(state: ConversationState): number {
     const info = state.collectedInfo;
     let score = 0;
-    let maxScore = 6;
+    const maxScore = 6;
 
     if (info.destinations && info.destinations.length > 0) score += 1;
     if (info.budget) score += 1;

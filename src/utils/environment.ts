@@ -35,10 +35,15 @@ function validateEnvironment(): Environment {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
 
-  // Check Firebase API key format (should start with AIza...)
+  // Check Firebase API key format and security
   const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
-  if (!apiKey.startsWith('AIza')) {
+  if (apiKey && !apiKey.startsWith('AIza')) {
     console.warn('Firebase API key format might be incorrect');
+  }
+  
+  // Security check: ensure we're not using placeholder values in production
+  if (apiKey === 'your_firebase_api_key_here' || apiKey.includes('PLACEHOLDER')) {
+    throw new Error('Production deployment blocked: Placeholder API key detected');
   }
 
   return {

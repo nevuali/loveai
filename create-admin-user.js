@@ -2,15 +2,15 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
-// Firebase configuration
+// Firebase configuration - load from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyAtKZbqm_hBqsiICk3zarhP2KTlFMZPbFY",
-  authDomain: "ai-lovve-app.firebaseapp.com",
-  projectId: "ai-lovve-app",
-  storageBucket: "ai-lovve-app.firebasestorage.app",
-  messagingSenderId: "374962531929",
-  appId: "1:374962531929:web:dc4c2085c3c5b8b8976a6b",
-  measurementId: "G-EETKN9Y8PD"
+  apiKey: process.env.FIREBASE_API_KEY || "your_firebase_api_key_here",
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || "your_project.firebaseapp.com",
+  projectId: process.env.FIREBASE_PROJECT_ID || "your_project_id",
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "your_project.firebasestorage.app",
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "your_sender_id",
+  appId: process.env.FIREBASE_APP_ID || "your_app_id",
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID || "your_measurement_id"
 };
 
 // Initialize Firebase

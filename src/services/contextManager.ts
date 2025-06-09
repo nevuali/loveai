@@ -239,7 +239,7 @@ class ContextManager {
 
   // Dinamik system prompt oluştur
   generateDynamicSystemPrompt(context: ConversationContext | null): string {
-    let basePrompt = `AI LOVVE - luxury honeymoon expert. EXPERTISE: destinations, luxury accommodations, romantic experiences, travel logistics.
+    const basePrompt = `AI LOVVE - luxury honeymoon expert. EXPERTISE: destinations, luxury accommodations, romantic experiences, travel logistics.
 
 RESPONSE FORMAT: 100-200 words max, 2-3 emojis, actionable advice, specific recommendations, paragraph breaks.
 
