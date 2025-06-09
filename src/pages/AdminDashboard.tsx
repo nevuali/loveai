@@ -286,6 +286,7 @@ const AdminDashboard: React.FC = () => {
     { id: 'ai-systems', label: 'AI Systems', icon: Bot },
     { id: 'packages', label: 'Packages', icon: PackageIcon },
     { id: 'users', label: 'Users', icon: Users },
+    { id: 'test-center', label: 'Test Center', icon: Settings },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -1036,6 +1037,98 @@ const AdminDashboard: React.FC = () => {
                         )}
                       </div>
                     )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'test-center' && (
+              <motion.div
+                key="test-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
+              >
+                <div className="glass-card rounded-2xl backdrop-blur-xl border border-white/10 hover:border-[#d4af37]/30 transition-all duration-300">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-[#d4af37] to-[#b8860b] rounded-2xl flex items-center justify-center shadow-lg">
+                          <Settings className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-primary">Test Center</h3>
+                          <p className="text-sm text-secondary">Development and testing tools</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="p-6 bg-blue-50 rounded-2xl border border-blue-200 hover:shadow-lg transition-all duration-200">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-white text-lg">🧪</span>
+                          </div>
+                          <h4 className="font-semibold text-gray-900 mb-2">Personality Test</h4>
+                          <p className="text-sm text-gray-600 mb-4">Test the personality onboarding system</p>
+                          <button 
+                            onClick={() => window.open('/test/personality', '_blank')}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                          >
+                            Open Test
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="p-6 bg-green-50 rounded-2xl border border-green-200 hover:shadow-lg transition-all duration-200">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-white text-lg">🤖</span>
+                          </div>
+                          <h4 className="font-semibold text-gray-900 mb-2">AI Responses</h4>
+                          <p className="text-sm text-gray-600 mb-4">Test AI personality responses</p>
+                          <button 
+                            onClick={() => {
+                              console.log('AI Test not implemented yet');
+                              toast.info('AI Test coming soon');
+                            }}
+                            className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                          >
+                            Test AI
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="p-6 bg-purple-50 rounded-2xl border border-purple-200 hover:shadow-lg transition-all duration-200">
+                        <div className="text-center">
+                          <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-white text-lg">📊</span>
+                          </div>
+                          <h4 className="font-semibold text-gray-900 mb-2">Analytics</h4>
+                          <p className="text-sm text-gray-600 mb-4">Test user analytics tracking</p>
+                          <button 
+                            onClick={() => {
+                              console.log('Analytics Test not implemented yet');
+                              toast.info('Analytics Test coming soon');
+                            }}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                          >
+                            Test Analytics
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                      <h4 className="font-semibold text-amber-800 mb-2">Development Notes</h4>
+                      <ul className="text-sm text-amber-700 space-y-1">
+                        <li>• Personality test opens in new tab for isolated testing</li>
+                        <li>• Test results are saved to browser console</li>
+                        <li>• Use browser dev tools to inspect personality profiles</li>
+                        <li>• Reset onboarding status from browser localStorage</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </motion.div>

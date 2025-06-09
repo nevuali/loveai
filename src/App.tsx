@@ -25,6 +25,7 @@ const CappaLovePremiumPage = lazy(() => import("./pages/CappaLovePremiumPage"));
 const UserProfilePage = lazy(() => import("./pages/UserProfilePage"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const TestPersonality = lazy(() => import("./pages/TestPersonality"));
 
 // Create a query client with configuration options
 const queryClient = new QueryClient({
@@ -132,6 +133,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/test/personality" element={<TestPersonality />} />
                 </Routes>
               </Suspense>
 
