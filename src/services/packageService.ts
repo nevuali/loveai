@@ -360,7 +360,7 @@ class PackageService {
         pkg.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pkg.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pkg.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pkg.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+        pkg.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       );
 
       console.log(`🔍 Found ${searchResults.length} packages matching "${searchTerm}"`);

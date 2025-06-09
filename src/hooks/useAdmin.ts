@@ -2,21 +2,11 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
-
-interface UserRole {
-  uid: string;
-  email: string;
-  name?: string;
-  role: 'user' | 'premium' | 'admin';
-  isAdmin: boolean;
-  permissions: string[];
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import { User } from '../types/firestore';
 
 export function useAdmin() {
   const { user } = useAuth();
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [userRole, setUserRole] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,20 +29,15 @@ export function useAdmin() {
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
-          const userData = userDoc.data() as UserRole;
-          setUserRole(userData);
-          setIsAdmin(userData.role === 'admin' && userData.isAdmin === true);
+          const userData = userDoc.data();
+          if (userData && typeof userData === 'object' && 'role' in userData) {
+            const userRole = userData as User;
+            setUserRole(userRole);
+            setIsAdmin(userRole.role === 'admin' && userRole.isAdmin === true);
+          }
         } else {
-          // User doesn't exist in Firestore, create basic profile
-          const basicUserRole: UserRole = {
-            uid: user.uid,
-            email: user.email || '',
-            name: user.displayName || '',
-            role: 'user',
-            isAdmin: false,
-            permissions: []
-          };
-          setUserRole(basicUserRole);
+          // User doesn't exist in Firestore, no admin access
+          setUserRole(null);
           setIsAdmin(false);
         }
       } catch (err) {
@@ -80,9 +65,12 @@ export function useAdmin() {
         const userDoc = await getDoc(userDocRef);
         
         if (userDoc.exists()) {
-          const userData = userDoc.data() as UserRole;
-          setUserRole(userData);
-          setIsAdmin(userData.role === 'admin' && userData.isAdmin === true);
+          const userData = userDoc.data();
+          if (userData && typeof userData === 'object' && 'role' in userData) {
+            const userRole = userData as User;
+            setUserRole(userRole);
+            setIsAdmin(userRole.role === 'admin' && userRole.isAdmin === true);
+          }
         }
       } catch (err) {
         console.error('Error refreshing role:', err);

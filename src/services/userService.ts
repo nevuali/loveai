@@ -358,7 +358,7 @@ class UserService {
       thisMonth.setDate(1);
       thisMonth.setHours(0, 0, 0, 0);
       const newUsersThisMonth = users.filter(u => 
-        u.createdAt.toDate() >= thisMonth
+        u.createdAt && u.createdAt.toDate() >= thisMonth
       ).length;
       
       // Revenue calculations
@@ -385,9 +385,9 @@ class UserService {
       
       const dailyUsersMap = new Map<string, number>();
       users
-        .filter(user => user.createdAt.toDate() >= thirtyDaysAgo)
+        .filter(user => user.createdAt && user.createdAt.toDate() >= thirtyDaysAgo)
         .forEach(user => {
-          const dateStr = user.createdAt.toDate().toISOString().split('T')[0];
+          const dateStr = user.createdAt!.toDate().toISOString().split('T')[0];
           const count = dailyUsersMap.get(dateStr) || 0;
           dailyUsersMap.set(dateStr, count + 1);
         });

@@ -1314,16 +1314,10 @@ const Index = () => {
     setChats,
     setInputValue,
     handleRateLimit,
-    trackChatEvent,
     scrollToBottom,
-    generateGeminiStream,
     parsePackageRecommendations,
-    trackPackageEvent,
     notifyNewChatResponse,
-    notifyPackageRecommendation,
-    recordSuccess,
-    queueForSync,
-    recordFailure
+    notifyPackageRecommendation
   ]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -1408,7 +1402,7 @@ const Index = () => {
       card_type: cardData.title,
       step: cardData.step || 'unknown'
     });
-  }, [handleSendMessage, trackUserInteraction]);
+  }, [handleSendMessage]);
 
   const suggestionPrompts = [
     {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Users, UserCheck, Crown, Search, Filter, CheckCircle, XCircle, 
@@ -44,13 +44,35 @@ const UserManagement: React.FC = () => {
     suspendedUsers: 0
   });
 
+  const filterUsers = useCallback(() => {
+    let filtered = users;
+
+    if (searchTerm) {
+      filtered = filtered.filter(user => 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(user => user.status === statusFilter);
+    }
+
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    setFilteredUsers(filtered);
+  }, [users, searchTerm, statusFilter, roleFilter]);
+
   useEffect(() => {
     loadUsers();
   }, []);
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchTerm, statusFilter, roleFilter]);
+  }, [filterUsers]);
 
   const loadUsers = async () => {
     try {
@@ -102,28 +124,6 @@ const UserManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const filterUsers = () => {
-    let filtered = users;
-
-    if (searchTerm) {
-      filtered = filtered.filter(user => 
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.location?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(user => user.status === statusFilter);
-    }
-
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.role === roleFilter);
-    }
-
-    setFilteredUsers(filtered);
   };
 
   const handleBulkAction = (action: 'activate' | 'suspend' | 'delete') => {

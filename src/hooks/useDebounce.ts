@@ -40,7 +40,7 @@ export const useDebouncedCallback = <T extends (...args: any[]) => any>(
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-  }, deps);
+  }, deps || []);
 
   const debouncedCallback = useCallback(
     ((...args: Parameters<T>) => {
