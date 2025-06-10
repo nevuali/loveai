@@ -77,6 +77,31 @@ export const debugLog = (...args: any[]) => {
   }
 };
 
+// Domain validation for OAuth
+export const validateCurrentDomain = () => {
+  if (typeof window === 'undefined') return true;
+  
+  const currentDomain = window.location.hostname;
+  const allowedDomains = [
+    'lovve.tech',
+    'www.lovve.tech',
+    'localhost',
+    '127.0.0.1',
+    'ailovve.firebaseapp.com'
+  ];
+  
+  const isValidDomain = allowedDomains.some(domain => 
+    currentDomain === domain || currentDomain.endsWith('.' + domain)
+  );
+  
+  if (!isValidDomain && isProduction) {
+    console.warn('⚠️ Current domain not in allowed OAuth domains:', currentDomain);
+    console.warn('📋 Allowed domains:', allowedDomains);
+  }
+  
+  return isValidDomain;
+};
+
 // Environment status
 export const getEnvironmentStatus = () => ({
   environment: env.APP_ENV,
@@ -86,6 +111,8 @@ export const getEnvironmentStatus = () => ({
     authDomain: env.FIREBASE_AUTH_DOMAIN,
   },
   hasGeminiKey: !!env.GEMINI_API_KEY,
+  currentDomain: typeof window !== 'undefined' ? window.location.hostname : 'server',
+  domainValid: validateCurrentDomain(),
   timestamp: new Date().toISOString(),
 });
 

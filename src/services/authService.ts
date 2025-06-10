@@ -15,25 +15,54 @@ import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firest
 import { auth, db, firebaseConfig } from '../firebase';
 import { getAuthFunctions, getFirestoreFunctions } from '../utils/firebase-lazy';
 import { logger } from '../utils/logger';
+import { validateCurrentDomain } from '../utils/environment';
 
 // Development/Debug mode configuration
 const isDevelopment = import.meta.env.DEV;
 
-// Google Auth Provider
+// Google Auth Provider with mobile optimization
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
-googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
-googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
-// Profil fotoğrafı için ek parametreler
+
+// Mobile-friendly custom parameters
 googleProvider.setCustomParameters({
-  prompt: 'select_account'
+  prompt: 'select_account',
+  // Mobile browser compatibility
+  display: 'popup',
+  access_type: 'online',
+  // Force modern auth flow
+  auth_type: 'rerequest'
 });
 
-// Mobile detection utility
+// Enhanced mobile detection utility
 const isMobile = (): boolean => {
-  return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-         (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform));
+  // Check for mobile user agents
+  const mobileUA = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  // Check for iPad on iOS 13+ (reported as MacIntel)
+  const iPadOS = navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform);
+  
+  // Check for small screen sizes
+  const smallScreen = window.innerWidth <= 768;
+  
+  // Check for touch capability
+  const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  
+  const isMobileDevice = mobileUA || iPadOS || (smallScreen && touchDevice);
+  
+  logger.log('📱 Mobile detection:', {
+    userAgent: navigator.userAgent,
+    mobileUA,
+    iPadOS,
+    smallScreen,
+    touchDevice,
+    isMobile: isMobileDevice,
+    screenWidth: window.innerWidth,
+    maxTouchPoints: navigator.maxTouchPoints
+  });
+  
+  return isMobileDevice;
 };
 
 // User interface Firebase Auth ve Firestore yapısına uygun güncellendi
@@ -157,6 +186,16 @@ class AuthService {
   // Google ile giriş yap
   async signInWithGoogle(): Promise<AuthResponse> {
     try {
+      // Domain validation
+      if (!validateCurrentDomain()) {
+        logger.error('🚫 Domain validation failed for OAuth');
+        return {
+          success: false,
+          message: 'This domain is not authorized for Google sign-in. Please contact support.',
+          errorCode: 'auth/unauthorized-domain'
+        };
+      }
+      
       let userCredential;
       
       // Önce pending redirect var mı kontrol et
@@ -168,11 +207,27 @@ class AuthService {
       } else if (isMobile()) {
         // Mobile cihazlar için redirect başlat
         logger.log('🔍 Mobile device detected, initiating signInWithRedirect');
-        await signInWithRedirect(auth, googleProvider);
         
-        // Redirect başlatıldı, sayfa yenilenecek
-        // Bu noktada function return olmayacak çünkü sayfa redirect olacak
-        return { success: true, message: 'Redirecting to Google sign-in...' };
+        // Try popup first for better UX, fallback to redirect
+        try {
+          logger.log('🔍 Attempting popup on mobile first...');
+          userCredential = await signInWithPopup(auth, googleProvider);
+          logger.log('✅ Mobile popup auth successful');
+        } catch (popupError: any) {
+          logger.log('❌ Mobile popup failed, using redirect:', popupError.code);
+          
+          if (popupError.code === 'auth/popup-blocked' || 
+              popupError.code === 'auth/popup-closed-by-user' ||
+              popupError.code === 'auth/unauthorized-domain') {
+            logger.log('🔄 Falling back to redirect authentication');
+            await signInWithRedirect(auth, googleProvider);
+            
+            // Redirect başlatıldı, sayfa yenilenecek
+            return { success: true, message: 'Redirecting to Google sign-in...' };
+          } else {
+            throw popupError; // Re-throw other errors
+          }
+        }
       } else {
         // Desktop için popup kullan
         logger.log('🔍 Desktop device detected, using signInWithPopup');

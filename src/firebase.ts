@@ -54,6 +54,19 @@ const getAnalytics = async () => {
 };
 
 const auth = getAuth(app);
+
+// Mobile browser compatibility settings
+if (typeof window !== 'undefined') {
+  // Set persistence for mobile browsers
+  auth.settings.appVerificationDisabledForTesting = false;
+  
+  // Configure for mobile browsers
+  const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (isMobile) {
+    console.log('📱 Mobile device detected, configuring Firebase Auth for mobile');
+  }
+}
+
 // Firestore'u varsayılan database ile initialize et
 const db = getFirestore(app, "(default)");
 const functions = getFunctions(app, 'europe-west1');
