@@ -159,22 +159,28 @@ class AuthService {
     try {
       let userCredential;
       
-      if (isMobile()) {
-        // Mobile cihazlar için redirect kullan
-        logger.log('🔍 Mobile device detected, using signInWithRedirect');
+      // Önce pending redirect var mı kontrol et
+      userCredential = await getRedirectResult(auth);
+      
+      if (userCredential) {
+        // Redirect'den gelen sonuç varsa kullan
+        logger.log('🔍 Found pending redirect result');
+      } else if (isMobile()) {
+        // Mobile cihazlar için redirect başlat
+        logger.log('🔍 Mobile device detected, initiating signInWithRedirect');
         await signInWithRedirect(auth, googleProvider);
         
-        // Redirect sonrası kullanıcı geri döndüğünde sonucu kontrol et
-        userCredential = await getRedirectResult(auth);
-        
-        if (!userCredential) {
-          // Redirect henüz tamamlanmamışsa veya kullanıcı geri dönmemişse
-          return { success: false, message: 'Google sign-in was cancelled or not completed.' };
-        }
+        // Redirect başlatıldı, sayfa yenilenecek
+        // Bu noktada function return olmayacak çünkü sayfa redirect olacak
+        return { success: true, message: 'Redirecting to Google sign-in...' };
       } else {
         // Desktop için popup kullan
         logger.log('🔍 Desktop device detected, using signInWithPopup');
         userCredential = await signInWithPopup(auth, googleProvider);
+      }
+      
+      if (!userCredential) {
+        return { success: false, message: 'No authentication result received.' };
       }
 
       const firebaseUser = userCredential.user;

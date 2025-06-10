@@ -47,18 +47,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Check for Google redirect result on app load (for mobile)
     const checkRedirectResult = async () => {
       try {
+        logger.log('🔍 Checking for pending redirect result...');
         const result = await getRedirectResult(auth);
         if (result) {
-          logger.log('🔍 Google redirect result found:', {
+          logger.log('✅ Google redirect result found:', {
             uid: result.user.uid,
             email: result.user.email,
             displayName: result.user.displayName
           });
           
-          // The auth state listener will handle the rest
+          // Process the redirect result through authService
+          const authResponse = await authService.signInWithGoogle();
+          if (authResponse.success && authResponse.user) {
+            logger.log('✅ Redirect auth processing completed successfully');
+          }
+        } else {
+          logger.log('ℹ️ No pending redirect result found');
         }
       } catch (error) {
-        console.error('❌ Error checking redirect result:', error);
+        logger.error('❌ Error checking redirect result:', error);
       }
     };
 
