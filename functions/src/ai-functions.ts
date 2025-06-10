@@ -205,9 +205,14 @@ export const evaluateResponseQuality = onCall<{response: string, context: any}, 
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: allowedOrigins
+    cors: true
   },
   async (request) => {
+    logger.info("evaluateResponseQuality called", { 
+      hasData: !!request.data,
+      origin: request.rawRequest?.headers?.origin 
+    });
+
     try {
       const evaluation = {
         qualityScore: 0.85,
