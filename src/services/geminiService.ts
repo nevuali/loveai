@@ -1365,25 +1365,25 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
         setTimeout(() => {
           // Wrap in Promise with timeout to prevent hanging
           const evaluationPromise = (async () => {
-            try {
+          try {
               logger.log('📊 Starting async self-evaluation with timeout protection...');
-              
-              const evaluationContext = {
-                conversationPhase: conversationState?.currentPhase,
-                emotionalState: emotionalState?.primary,
-                visionAnalysis: visionAnalysis ? {
-                  sceneType: visionAnalysis.sceneType,
-                  mood: visionAnalysis.mood,
-                  confidenceScore: visionAnalysis.confidenceScore
-                } : undefined,
-                messageCount: messages.length,
-                conversionProbability: conversationState?.conversionProbability,
-                urgencyLevel: conversationState?.urgencyLevel,
-                realTimeDataUsed: !!realTimeData,
-                multiAgentQuality: multiAgentInsights?.qualityScore,
-                responseTime
-              };
-              
+            
+            const evaluationContext = {
+              conversationPhase: conversationState?.currentPhase,
+              emotionalState: emotionalState?.primary,
+              visionAnalysis: visionAnalysis ? {
+                sceneType: visionAnalysis.sceneType,
+                mood: visionAnalysis.mood,
+                confidenceScore: visionAnalysis.confidenceScore
+              } : undefined,
+              messageCount: messages.length,
+              conversionProbability: conversationState?.conversionProbability,
+              urgencyLevel: conversationState?.urgencyLevel,
+              realTimeDataUsed: !!realTimeData,
+              multiAgentQuality: multiAgentInsights?.qualityScore,
+              responseTime
+            };
+            
               // Add timeout to evaluation call
               const timeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => reject(new Error('Self-evaluation timeout')), 5000); // 5 second timeout
@@ -1391,35 +1391,35 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
               
               const evaluation = await Promise.race([
                 selfEvaluationSystem.evaluateResponse(
-                  lastUserMessage.content,
-                  content,
-                  finalSessionId,
-                  userId || undefined,
-                  evaluationContext
+              lastUserMessage.content,
+              content,
+              finalSessionId,
+              userId || undefined,
+              evaluationContext
                 ),
                 timeoutPromise
               ]);
-              
+            
               if (evaluation && typeof evaluation === 'object' && 'overallQuality' in evaluation) {
                 const evalResult = evaluation as any; // Type assertion for evaluation object
                 logger.log(`✨ Self-evaluation completed: Quality ${(evalResult.overallQuality || 0).toFixed(1)}/10, Confidence ${((evalResult.confidence || 0) * 100).toFixed(0)}%`);
-                
-                // Log key insights
+            
+            // Log key insights
                 if (evalResult.strengths && Array.isArray(evalResult.strengths) && evalResult.strengths.length > 0) {
                   logger.log(`💪 Strengths: ${evalResult.strengths.slice(0, 2).join(', ')}`);
-                }
+            }
                 if (evalResult.improvements && Array.isArray(evalResult.improvements) && evalResult.improvements.length > 0) {
                   logger.log(`🔧 Improvements: ${evalResult.improvements.slice(0, 2).join(', ')}`);
-                }
-                
+            }
+            
                 // Auto-generate improvement recommendations if quality is consistently low (with protection)
                 try {
-                  const recentEvaluations = selfEvaluationSystem.getRecentEvaluations(5);
+            const recentEvaluations = selfEvaluationSystem.getRecentEvaluations(5);
                   if (recentEvaluations && recentEvaluations.length > 0) {
                     const avgRecentQuality = recentEvaluations.reduce((sum, evaluation) => sum + (evaluation.overallQuality || 0), 0) / recentEvaluations.length;
-                    
-                    if (recentEvaluations.length >= 5 && avgRecentQuality < 6) {
-                      logger.log('🔄 Generating improvement recommendations due to low quality trend...');
+            
+            if (recentEvaluations.length >= 5 && avgRecentQuality < 6) {
+              logger.log('🔄 Generating improvement recommendations due to low quality trend...');
                       // Add timeout to recommendations too
                       const recommendationsPromise = selfEvaluationSystem.generateImprovementRecommendations();
                       const recommendationsTimeout = new Promise((_, reject) => {
@@ -1428,19 +1428,19 @@ export async function* generateGeminiStream(messages: AppMessage[], sessionId?: 
                       
                       const recommendations = await Promise.race([recommendationsPromise, recommendationsTimeout]);
                       if (recommendations && Array.isArray(recommendations)) {
-                        logger.log(`💡 Generated ${recommendations.length} improvement recommendations`);
+              logger.log(`💡 Generated ${recommendations.length} improvement recommendations`);
                       }
                     }
                   }
                 } catch (recError) {
                   logger.warn('⚠️ Recommendations generation failed (non-critical):', recError instanceof Error ? recError.message : 'Unknown error');
                 }
-              }
-              
-            } catch (error) {
+            }
+            
+          } catch (error) {
               // Log error but don't let it affect the main response
               logger.warn('⚠️ Self-evaluation failed (non-critical):', error instanceof Error ? error.message : 'Unknown error');
-            }
+          }
           })();
           
           // Catch any unhandled promise rejections

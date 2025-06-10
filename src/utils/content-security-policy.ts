@@ -153,6 +153,7 @@ export class ContentSecurityPolicyManager {
         // Firebase endpoints
         'https://*.firebaseapp.com',
         'https://*.googleapis.com',
+        'https://securetoken.googleapis.com',
         'wss://*.firebaseapp.com',
         // Google AI endpoints
         'https://generativelanguage.googleapis.com',
