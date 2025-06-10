@@ -1,9 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Area, AreaChart
-} from 'recharts';
 import { 
   Users, Package as PackageIcon, DollarSign, TrendingUp, MapPin, Star, 
   Calendar, Globe, Heart, Eye, MessageSquare, Activity, ArrowUpRight,
@@ -28,6 +24,116 @@ interface AnalyticsData {
   topDestinations: Array<{ location: string; bookings: number; revenue: number }>;
   packagePerformance: Array<{ id: string; title: string; views: number; bookings: number; rating: number }>;
 }
+
+// Dynamic chart component loader
+const ChartLoader: React.FC<{ 
+  type: 'bar' | 'line' | 'pie' | 'area'; 
+  data: any; 
+  config: any;
+  className?: string;
+}> = ({ type, data, config, className = "h-80" }) => {
+  const [ChartComponent, setChartComponent] = useState<React.ComponentType<any> | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadChart = async () => {
+      try {
+        const recharts = await import('recharts');
+        
+        switch (type) {
+          case 'bar':
+            setChartComponent(() => (props: any) => (
+              <recharts.ResponsiveContainer width="100%" height="100%">
+                <recharts.BarChart data={props.data} {...props.config}>
+                  <recharts.CartesianGrid strokeDasharray="3 3" />
+                  <recharts.XAxis dataKey={props.config.xKey} />
+                  <recharts.YAxis />
+                  <recharts.Tooltip />
+                  <recharts.Bar dataKey={props.config.dataKey} fill={props.config.fill} />
+                </recharts.BarChart>
+              </recharts.ResponsiveContainer>
+            ));
+            break;
+          case 'line':
+            setChartComponent(() => (props: any) => (
+              <recharts.ResponsiveContainer width="100%" height="100%">
+                <recharts.LineChart data={props.data} {...props.config}>
+                  <recharts.CartesianGrid strokeDasharray="3 3" />
+                  <recharts.XAxis dataKey={props.config.xKey} />
+                  <recharts.YAxis />
+                  <recharts.Tooltip />
+                  <recharts.Line type="monotone" dataKey={props.config.dataKey} stroke={props.config.stroke} />
+                </recharts.LineChart>
+              </recharts.ResponsiveContainer>
+            ));
+            break;
+          case 'pie':
+            setChartComponent(() => (props: any) => (
+              <recharts.ResponsiveContainer width="100%" height="100%">
+                <recharts.PieChart>
+                  <recharts.Pie 
+                    data={props.data} 
+                    cx="50%" 
+                    cy="50%" 
+                    outerRadius={80} 
+                    fill="#8884d8"
+                    dataKey={props.config.dataKey}
+                  >
+                    {props.data.map((entry: any, index: number) => (
+                      <recharts.Cell key={`cell-${index}`} fill={entry.color || `#${Math.floor(Math.random()*16777215).toString(16)}`} />
+                    ))}
+                  </recharts.Pie>
+                  <recharts.Tooltip />
+                </recharts.PieChart>
+              </recharts.ResponsiveContainer>
+            ));
+            break;
+          case 'area':
+            setChartComponent(() => (props: any) => (
+              <recharts.ResponsiveContainer width="100%" height="100%">
+                <recharts.AreaChart data={props.data} {...props.config}>
+                  <recharts.CartesianGrid strokeDasharray="3 3" />
+                  <recharts.XAxis dataKey={props.config.xKey} />
+                  <recharts.YAxis />
+                  <recharts.Tooltip />
+                  <recharts.Area type="monotone" dataKey={props.config.dataKey} stroke={props.config.stroke} fill={props.config.fill} />
+                </recharts.AreaChart>
+              </recharts.ResponsiveContainer>
+            ));
+            break;
+        }
+      } catch (error) {
+        console.error('Failed to load chart:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadChart();
+  }, [type]);
+
+  if (loading) {
+    return (
+      <div className={`${className} flex items-center justify-center bg-gray-50 rounded-lg`}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!ChartComponent) {
+    return (
+      <div className={`${className} flex items-center justify-center bg-gray-50 rounded-lg`}>
+        <span className="text-gray-500">Failed to load chart</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={className}>
+      <ChartComponent data={data} config={config} />
+    </div>
+  );
+};
 
 const AnalyticsDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -285,55 +391,17 @@ const AnalyticsDashboard: React.FC = () => {
               </h3>
             </div>
             <div className="p-6 pt-0">
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={analytics.monthlyStats}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                  <XAxis 
-                    dataKey="month" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: 'var(--color-text-secondary)' }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'rgba(0,0,0,0.8)',
-                      backdropFilter: 'blur(16px)',
-                      border: '1px solid rgba(212, 175, 55, 0.3)',
-                      borderRadius: '12px',
-                      boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="users"
-                    stroke="#d4af37"
-                    fill="url(#gradient1)"
-                    strokeWidth={2}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="packages"
-                    stroke="#b8860b"
-                    fill="url(#gradient2)"
-                    strokeWidth={2}
-                  />
-                  <defs>
-                    <linearGradient id="gradient1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#d4af37" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#d4af37" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="gradient2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#b8860b" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#b8860b" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                </AreaChart>
-              </ResponsiveContainer>
+              <ChartLoader
+                type="area"
+                data={analytics.monthlyStats}
+                config={{
+                  xKey: "month",
+                  dataKey: "users",
+                  stroke: "#d4af37",
+                  fill: "#d4af37"
+                }}
+                className="h-80"
+              />
             </div>
           </div>
         </motion.div>
@@ -353,33 +421,14 @@ const AnalyticsDashboard: React.FC = () => {
             </div>
             <div className="p-6 pt-0">
               <div className="flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={analytics.popularCategories}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      innerRadius={60}
-                      paddingAngle={2}
-                    >
-                      {analytics.popularCategories.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'rgba(0,0,0,0.8)',
-                        backdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(212, 175, 55, 0.3)',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 25px rgba(0,0,0,0.3)'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <ChartLoader
+                  type="pie"
+                  data={analytics.popularCategories}
+                  config={{
+                    dataKey: "value"
+                  }}
+                  className="h-80"
+                />
               </div>
               <div className="grid grid-cols-2 gap-3 mt-4">
                 {analytics.popularCategories.map((category, index) => (

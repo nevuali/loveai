@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, MapPin, Calendar, DollarSign, Users, Plane, Hotel, Activity, Heart, Sparkles, Star, Check, X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -225,11 +225,11 @@ const HoneymoonPlannerWizard: React.FC<HoneymoonPlannerWizardProps> = ({
     }));
   };
 
-  const toggleArrayItem = (array: string[], item: string) => {
+  const toggleArrayItem = useCallback((array: string[], item: string) => {
     return array.includes(item) 
       ? array.filter(i => i !== item)
       : [...array, item];
-  };
+  }, []);
 
   const addCustomDestination = (destination: string) => {
     if (destination && !honeymoonPlan.destinations.includes(destination)) {
@@ -779,4 +779,4 @@ const HoneymoonPlannerWizard: React.FC<HoneymoonPlannerWizardProps> = ({
   );
 };
 
-export default HoneymoonPlannerWizard;
+export default memo(HoneymoonPlannerWizard);

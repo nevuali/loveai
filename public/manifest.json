@@ -2,13 +2,13 @@
   "name": "AI LOVVE - Luxury Honeymoon Planning Assistant",
   "short_name": "AI LOVVE",
   "description": "Plan your perfect honeymoon with AI LOVVE - Your luxury AI-powered honeymoon planning assistant with voice input and personalized recommendations",
-  "start_url": "/",
+  "start_url": "https://lovve.tech/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#1a1a1a",
   "theme_color": "#8b5cf6",
   "lang": "en",
-  "scope": "/",
+  "scope": "https://lovve.tech/",
   "categories": ["travel", "lifestyle", "productivity"],
   "icons": [
     {
@@ -18,14 +18,15 @@
       "purpose": "maskable any"
     },
     {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon"
-    },
-    {
       "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
     }
   ],
   "screenshots": [

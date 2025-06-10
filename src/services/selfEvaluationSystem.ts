@@ -139,6 +139,12 @@ class SelfEvaluationSystem {
     
     logger.log(`📊 Starting self-evaluation for response: ${responseId}`);
 
+    // 🛠️ DEVELOPMENT MODE: Skip Firebase Cloud Functions for faster development
+    if (import.meta.env.MODE === 'development' || location.hostname === 'localhost') {
+      logger.log('🚀 Development mode: Using local evaluation fallback');
+      return this.parseFallbackEvaluation('Development mode evaluation', responseId, sessionId, userId, query, response);
+    }
+
     try {
       // Create comprehensive evaluation prompt
       const evaluationPrompt = this.createEvaluationPrompt(query, response, context);
@@ -185,7 +191,7 @@ class SelfEvaluationSystem {
       logger.error('❌ Self-evaluation failed:', error);
       
       // Return basic evaluation as fallback
-      return this.generateFallbackEvaluation(responseId, sessionId, userId, query, response);
+      return this.parseFallbackEvaluation('Basic evaluation due to error', responseId, sessionId, userId, query, response);
     }
   }
 

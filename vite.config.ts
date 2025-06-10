@@ -11,6 +11,8 @@ export default defineConfig({
     react()
   ],
   
+  base: '/',
+  
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -48,7 +50,7 @@ export default defineConfig({
           'google-vendor': ['@google/generative-ai'],
           'utils-vendor': ['date-fns', 'clsx', 'class-variance-authority', 'tailwind-merge'],
           'chart-vendor': ['recharts'],
-          'pdf-vendor': ['jspdf', 'html2canvas'],
+          'pdf-vendor': ['jspdf'],
         }
       }
     },

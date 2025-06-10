@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Heart, Sparkles, MapPin, Camera, DollarSign, Clock, Battery, Target,
@@ -295,7 +295,7 @@ const PersonalityOnboarding: React.FC<PersonalityOnboardingProps> = ({ onComplet
     setShowResults(true);
   };
 
-  const generateProfile = (answers: Record<string, any>): PersonalityProfile => {
+  const generateProfile = useCallback((answers: Record<string, any>): PersonalityProfile => {
     const personalityType = answers.honeymoon_vision?.personality || 'romantic_dreamer';
     const budgetRange = answers.budget || 'mid_range';
     const travelStyle = answers.honeymoon_vision?.style || 'mixed';
@@ -319,7 +319,7 @@ const PersonalityOnboarding: React.FC<PersonalityOnboardingProps> = ({ onComplet
       aiPersonality,
       profileScore
     };
-  };
+  }, []);
 
   const generateAIPersonality = (personality: string, budget: string, style: string, priority: string): string => {
     const personalities = {
@@ -668,4 +668,4 @@ const PersonalityOnboarding: React.FC<PersonalityOnboardingProps> = ({ onComplet
   );
 };
 
-export default PersonalityOnboarding;
+export default memo(PersonalityOnboarding);

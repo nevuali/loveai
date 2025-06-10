@@ -132,6 +132,16 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
     
+    // User Subscriptions - Kullanıcı sadece kendi subscription'ını yönetebilir
+    match /subscriptions/{userId} {
+      allow read, write: if isAdmin() || isOwner(userId);
+      
+      // Subscription oluştururken gerekli alanların kontrolü
+      allow create: if isOwner(userId) && 
+                       request.resource.data.userId == userId &&
+                       request.resource.data.keys().hasAll(['userId', 'planType', 'isActive']);
+    }
+    
     // Feedback & Support - Kullanıcı kendi feedback'lerini yönetebilir
     match /feedback/{feedbackId} {
       allow read, write: if isAuthenticated() && 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Edit, Trash2, Eye, Upload, Save, BarChart3, Users, Package as PackageIcon, 
@@ -85,7 +85,20 @@ const AdminDashboard: React.FC = () => {
 
   const [formData, setFormData] = useState(emptyPackage);
 
-  // Always call useEffect hooks before any conditional returns
+  // Always call all hooks before any conditional returns
+  const filteredPackages = useMemo(() => {
+    return packages.filter(pkg => {
+      const matchesSearch = pkg.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           pkg.location.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = categoryFilter === 'all' || pkg.category === categoryFilter;
+      const matchesAvailability = availabilityFilter === 'all' || 
+                                 (availabilityFilter === 'available' && pkg.availability) ||
+                                 (availabilityFilter === 'unavailable' && !pkg.availability);
+      
+      return matchesSearch && matchesCategory && matchesAvailability;
+    });
+  }, [packages, searchTerm, categoryFilter, availabilityFilter]);
+
   useEffect(() => {
     if (isAdmin && !adminLoading) {
       loadDashboardData();
@@ -210,17 +223,6 @@ const AdminDashboard: React.FC = () => {
       toast.error('Failed to delete package');
     }
   };
-
-  const filteredPackages = packages.filter(pkg => {
-    const matchesSearch = pkg.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         pkg.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || pkg.category === categoryFilter;
-    const matchesAvailability = availabilityFilter === 'all' || 
-                               (availabilityFilter === 'available' && pkg.availability) ||
-                               (availabilityFilter === 'unavailable' && !pkg.availability);
-    
-    return matchesSearch && matchesCategory && matchesAvailability;
-  });
 
   const handleBulkDelete = async () => {
     if (selectedPackages.length === 0) {
@@ -1619,4 +1621,4 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
-export default AdminDashboard;
+export default memo(AdminDashboard);

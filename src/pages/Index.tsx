@@ -24,6 +24,7 @@ import {
 import { useNotifications } from '../hooks/useNotifications';
 import { offlineManager, cacheForOffline, getCachedData, queueForSync } from '../utils/offline-manager';
 import { useDebounce, useDebouncedCallback } from '../hooks/useDebounce';
+import { subscriptionService, PlanType } from '../services/subscriptionService';
 
 // Lazy load heavy components
 const PackageCarousel = lazy(() => import('../components/PackageCarousel'));
@@ -116,6 +117,11 @@ const Index = () => {
   const [currentChatId, setCurrentChatId] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
+  
+  // Subscription state
+  const [userPlan, setUserPlan] = useState<PlanType>('free');
+  const [remainingMessages, setRemainingMessages] = useState<{ remaining: number; total: number; resetTime?: Date }>({ remaining: 20, total: 20 });
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -587,10 +593,30 @@ const Index = () => {
         
         // Set analytics user if available
         if (user?.uid) {
+          // Load user subscription data
+          logger.log('💳 Loading subscription data...');
+          try {
+            const subscription = await subscriptionService.getUserSubscription(user.uid);
+            const remainingData = await subscriptionService.getRemainingMessages(user.uid);
+            
+            setUserPlan(subscription.planType);
+            setRemainingMessages(remainingData);
+            
+            logger.log('✅ Subscription loaded:', {
+              plan: subscription.planType,
+              remaining: remainingData.remaining,
+              total: remainingData.total
+            });
+          } catch (error) {
+            logger.error('❌ Error loading subscription:', error);
+            // Keep default values on error
+          }
+          
           setAnalyticsUser(user.uid, {
             user_type: user.isPremium ? 'premium' : 'free',
             registration_date: user.createdAt || new Date().toISOString(),
-            total_chats: chats.length
+            total_chats: chats.length,
+            plan_type: userPlan
           });
         }
         
@@ -955,6 +981,34 @@ const Index = () => {
   const handleSendMessage = useCallback(async (content: string) => {
     if (!content.trim()) return;
     
+    // Check subscription message limit first
+    if (user?.uid) {
+      const canSend = await subscriptionService.canSendMessage(user.uid);
+      if (!canSend.canSend) {
+        setShowUpgradePrompt(true);
+        
+        // Show user-friendly message about upgrade
+        const newSystemMessage: Message = {
+          role: 'assistant',
+          content: `💳 You've reached your message limit. ${canSend.reason || ''} 
+
+✨ **Upgrade to Pro** for unlimited conversations:
+• Unlimited messages
+• Advanced AI personality
+• Premium recommendations
+• Priority support
+
+Or wait ${canSend.resetTime ? subscriptionService.formatTimeUntilReset(canSend.resetTime) : ''} for your quota to reset.`,
+          timestamp: new Date().toISOString()
+        };
+        
+        setMessages(prev => [...prev, newSystemMessage]);
+        return;
+      }
+      
+      // Message usage will be recorded after successful AI response
+    }
+    
     // Check rate limit before processing message
     const rateLimitPassed = await handleRateLimit('chat_message');
     if (!rateLimitPassed) {
@@ -1242,6 +1296,21 @@ const Index = () => {
 
       // Record successful message for rate limiting
       recordSuccess('chat_message', user?.uid);
+      
+      // Record message usage for subscription tracking (after successful AI response)
+      if (user?.uid) {
+        try {
+          await subscriptionService.recordMessageUsage(user.uid);
+          
+          // Update remaining messages in UI
+          const updatedRemaining = await subscriptionService.getRemainingMessages(user.uid);
+          setRemainingMessages(updatedRemaining);
+          
+          console.log('✅ Message usage recorded successfully');
+        } catch (error) {
+          console.error('❌ Error recording message usage:', error);
+        }
+      }
 
       // Queue message for offline sync if needed
       if (!navigator.onLine) {
@@ -1319,7 +1388,9 @@ const Index = () => {
     scrollToBottom,
     parsePackageRecommendations,
     notifyNewChatResponse,
-    notifyPackageRecommendation
+    notifyPackageRecommendation,
+    setShowUpgradePrompt,
+    setRemainingMessages
   ]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -2158,6 +2229,16 @@ const Index = () => {
             
             <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">{getUserStatus()}</span>
             
+            {/* Message Quota Indicator */}
+            {userPlan === 'free' && remainingMessages.remaining !== -1 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[color:var(--color-surface-glass)] border border-[color:var(--color-border)] rounded-[var(--radius-lg)] backdrop-blur-sm">
+                <div className="w-2 h-2 rounded-full bg-[color:var(--color-accent-primary)]"></div>
+                <span className="text-xs text-[color:var(--color-text-secondary)] font-medium">
+                  {remainingMessages.remaining}/{remainingMessages.total}
+                </span>
+              </div>
+            )}
+            
             <div className="profile-menu-container relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
@@ -2206,6 +2287,32 @@ const Index = () => {
                     <User className="w-4 h-4" />
                     Profile settings
                   </button>
+                  
+                  {/* Upgrade to Pro Button - only show for free users */}
+                  {userPlan === 'free' && (
+                    <button
+                      onClick={() => {
+                        navigate('/settings');
+                        // Auto open plans tab
+                        setTimeout(() => {
+                          const plansLink = document.querySelector('[data-category="plans"]');
+                          if (plansLink) {
+                            (plansLink as HTMLElement).click();
+                          }
+                        }, 100);
+                        setProfileMenuOpen(false);
+                      }}
+                      className="gemini-dropdown-item bg-gradient-to-r from-[color:var(--color-accent-primary)]/20 to-[color:var(--color-accent-secondary)]/20 border border-[color:var(--color-accent-primary)]/30 hover:from-[color:var(--color-accent-primary)]/30 hover:to-[color:var(--color-accent-secondary)]/30"
+                      role="menuitem"
+                      aria-label="Upgrade to Pro"
+                    >
+                      <Crown className="w-4 h-4 text-[color:var(--color-accent-primary)]" />
+                      <span className="bg-gradient-to-r from-[color:var(--color-accent-primary)] to-[color:var(--color-accent-secondary)] bg-clip-text text-transparent font-semibold">
+                        Upgrade to Pro
+                      </span>
+                    </button>
+                  )}
+                  
                   <button
                     onClick={() => {
                       setSettingsMenuOpen(!settingsMenuOpen);
@@ -2582,4 +2689,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default memo(Index);

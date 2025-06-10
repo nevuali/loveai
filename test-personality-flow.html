@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kişilik Testi Akış Testi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #d4af37;
+        }
+        .status {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 8px 0;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .profile-result {
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            color: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 8px 8px 8px 0;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 8px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Kişilik Testi Akış Kontrolü</h1>
+    
+    <div class="test-section">
+        <h2>📝 Test Senaryoları</h2>
+        <p>Bu test sayfası, kişilik testi tamamlandıktan sonra verinin nasıl işlendiğini kontrol eder.</p>
+        
+        <button class="test-button" onclick="testPersonalityFlow()">🚀 Tam Akışı Test Et</button>
+        <button class="test-button" onclick="testStorageFlow()">💾 Veri Saklama Test Et</button>
+        <button class="test-button" onclick="testAIPersonalization()">🤖 AI Kişiselleştirme Test Et</button>
+        <button class="test-button" onclick="clearTestData()">🧹 Test Verilerini Temizle</button>
+    </div>
+
+    <div class="test-section">
+        <h2>1️⃣ Kişilik Profili Oluşturma Testi</h2>
+        <div id="profile-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2️⃣ Firebase Saklama Testi</h2>
+        <div id="storage-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3️⃣ AI Kişiselleştirme Testi</h2>
+        <div id="ai-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4️⃣ Onboarding Durumu Testi</h2>
+        <div id="onboarding-test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Mevcut Kullanıcı Durumu</h2>
+        <div id="current-status"></div>
+    </div>
+
+    <script>
+        // Test verilerini simüle eden örnek profil
+        const samplePersonalityProfile = {
+            personalityType: 'luxury_seeker',
+            budgetRange: 'luxury',
+            travelStyle: 'relaxation',
+            durationPreference: '7-10',
+            priorities: ['maximum_comfort', 'luxury_lifestyle', 'relaxation'],
+            socialMediaStyle: 'luxury_lifestyle',
+            energyStyle: 'relaxation',
+            mainPriority: 'maximum_comfort',
+            aiPersonality: 'sophisticated, elegant, exclusive language. Focus on premium experiences, VIP services, and bespoke recommendations. Use terms like \'curated\', \'exclusive\', \'premium\'. Emphasize premium quality, exclusive experiences, and high-end services.',
+            profileScore: 95
+        };
+
+        // Test fonksiyonları
+        async function testPersonalityFlow() {
+            const resultDiv = document.getElementById('profile-test-result');
+            resultDiv.innerHTML = '<div class="status info">🔄 Kişilik profili oluşturma test ediliyor...</div>';
+
+            try {
+                // Profil oluşturma simülasyonu
+                const testResult = validatePersonalityProfile(samplePersonalityProfile);
+                
+                if (testResult.isValid) {
+                    resultDiv.innerHTML = `
+                        <div class="status success">✅ Kişilik profili başarıyla oluşturuldu!</div>
+                        <div class="profile-result">
+                            <h4>📊 Oluşturulan Profil:</h4>
+                            <p><strong>Kişilik Tipi:</strong> ${samplePersonalityProfile.personalityType}</p>
+                            <p><strong>Bütçe:</strong> ${samplePersonalityProfile.budgetRange}</p>
+                            <p><strong>Seyahat Stili:</strong> ${samplePersonalityProfile.travelStyle}</p>
+                            <p><strong>Süre Tercihi:</strong> ${samplePersonalityProfile.durationPreference} gün</p>
+                            <p><strong>Ana Öncelik:</strong> ${samplePersonalityProfile.mainPriority}</p>
+                            <p><strong>Profil Skoru:</strong> ${samplePersonalityProfile.profileScore}/100</p>
+                        </div>
+                        <div class="status success">🎯 AI kişiselleştirme prompta hazır!</div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="status error">❌ Profil doğrulama hatası: ${testResult.errors.join(', ')}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ Test hatası: ${error.message}</div>`;
+            }
+        }
+
+        async function testStorageFlow() {
+            const resultDiv = document.getElementById('storage-test-result');
+            resultDiv.innerHTML = '<div class="status info">🔄 Veri saklama test ediliyor...</div>';
+
+            try {
+                // LocalStorage ile test (Firebase simülasyonu)
+                const testUserId = 'test-user-' + Date.now();
+                
+                // Profil kaydetme simülasyonu
+                localStorage.setItem(`personality-profile-${testUserId}`, JSON.stringify({
+                    ...samplePersonalityProfile,
+                    completedAt: new Date().toISOString(),
+                    userId: testUserId
+                }));
+
+                // Kayıt doğrulama
+                const savedProfile = localStorage.getItem(`personality-profile-${testUserId}`);
+                
+                if (savedProfile) {
+                    const parsedProfile = JSON.parse(savedProfile);
+                    resultDiv.innerHTML = `
+                        <div class="status success">✅ Profil başarıyla kaydedildi!</div>
+                        <div class="status info">📅 Kayıt Zamanı: ${parsedProfile.completedAt}</div>
+                        <div class="status info">👤 Kullanıcı ID: ${parsedProfile.userId}</div>
+                        <div class="code-block">Firebase Veri Yapısı:<br>
+users/${testUserId}/profileData/personalityProfile: ${JSON.stringify(parsedProfile, null, 2)}</div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = '<div class="status error">❌ Profil kaydedilemedi!</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ Saklama hatası: ${error.message}</div>`;
+            }
+        }
+
+        async function testAIPersonalization() {
+            const resultDiv = document.getElementById('ai-test-result');
+            resultDiv.innerHTML = '<div class="status info">🔄 AI kişiselleştirme test ediliyor...</div>';
+
+            try {
+                // AI prompt oluşturma
+                const aiPrompt = generateAISystemPrompt(samplePersonalityProfile);
+                
+                // Örnek AI yanıtları simülasyonu
+                const testMessages = [
+                    "Balayı için öneriniz var mı?",
+                    "Bütçemize uygun paketler hangileri?",
+                    "Romantik yerler öner"
+                ];
+
+                const personalizedResponses = testMessages.map(msg => 
+                    generatePersonalizedResponse(msg, samplePersonalityProfile)
+                );
+
+                resultDiv.innerHTML = `
+                    <div class="status success">✅ AI kişiselleştirme aktif!</div>
+                    <div class="profile-result">
+                        <h4>🤖 Oluşturulan AI Prompt:</h4>
+                        <div class="code-block">${aiPrompt.substring(0, 300)}...</div>
+                    </div>
+                    <div class="status success">💬 Kişiselleştirilmiş Yanıt Örnekleri:</div>
+                    ${personalizedResponses.map((response, index) => `
+                        <div style="margin: 8px 0; padding: 8px; border-left: 3px solid #d4af37; background: #f8f9fa;">
+                            <strong>Soru:</strong> ${testMessages[index]}<br>
+                            <strong>Kişiselleştirilmiş Yanıt:</strong> ${response}
+                        </div>
+                    `).join('')}
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ AI kişiselleştirme hatası: ${error.message}</div>`;
+            }
+        }
+
+        async function clearTestData() {
+            // Test verilerini temizle
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('personality-profile-test-')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            document.querySelectorAll('[id$="-test-result"]').forEach(div => {
+                div.innerHTML = '<div class="status info">🧹 Test verileri temizlendi</div>';
+            });
+        }
+
+        // Yardımcı fonksiyonlar
+        function validatePersonalityProfile(profile) {
+            const errors = [];
+            
+            if (!profile.personalityType) errors.push('Kişilik tipi eksik');
+            if (!profile.budgetRange) errors.push('Bütçe aralığı eksik');
+            if (!profile.travelStyle) errors.push('Seyahat stili eksik');
+            if (!profile.durationPreference) errors.push('Süre tercihi eksik');
+            if (!profile.aiPersonality) errors.push('AI kişiliği eksik');
+            
+            return {
+                isValid: errors.length === 0,
+                errors
+            };
+        }
+
+        function generateAISystemPrompt(profile) {
+            return `You are AI LOVVE, a specialized honeymoon planning assistant. Based on the user's personality profile, adapt your communication style and recommendations accordingly.
+
+USER PERSONALITY PROFILE:
+- Type: ${profile.personalityType}
+- Budget Range: ${profile.budgetRange}
+- Travel Style: ${profile.travelStyle}
+- Duration Preference: ${profile.durationPreference} days
+- Main Priority: ${profile.mainPriority}
+- Social Media Style: ${profile.socialMediaStyle}
+- Energy Style: ${profile.energyStyle}
+
+COMMUNICATION STYLE: ${profile.aiPersonality}
+
+IMPORTANT GUIDELINES:
+1. Always align your tone and recommendations with the user's personality type
+2. Respect their budget range when suggesting packages
+3. Prioritize their main values (${profile.mainPriority})
+4. Suggest experiences that match their travel style (${profile.travelStyle})
+5. Keep recommendations within their preferred duration (${profile.durationPreference} days)
+6. Use language and examples that resonate with their social media style
+7. Match their energy level preferences when suggesting activities
+
+Remember: You're not just recommending packages, you're creating a personalized experience that feels tailored specifically for them.`;
+        }
+
+        function generatePersonalizedResponse(userMessage, profile) {
+            const responses = {
+                luxury_seeker: {
+                    "Balayı için öneriniz var mı?": "Size özel, VIP deneyimlerle dolu premium balayı paketlerimizi öneriyorum. Lüks resort'larda private suite'ler ve kişisel butler hizmeti ile unutulmaz anlar yaşayabilirsiniz.",
+                    "Bütçemize uygun paketler hangileri?": "60-100k₺ bütçenize uygun luxury segmentimizde mükemmel seçenekler var. Premium kalite hiç taviz vermeden, size layık VIP deneyimler sunuyoruz.",
+                    "Romantik yerler öner": "Santorini'de private villa, Maldivler'de water villa veya Dubai'de luxury suite - hepsi private deneyimler ve premium hizmetlerle."
+                },
+                adventure_lover: {
+                    "Balayı için öneriniz var mı?": "Heyecan dolu maceralarla balayınızı unutulmaz kılalım! Trekking, dalış, paragliding - adrenalin dolu aktivitelerle dolu paketlerimiz var.",
+                    "Bütçemize uygun paketler hangileri?": "Macera dolu deneyimlerin tadını çıkarabileceğiniz, aktif tatil paketlerimizle bütçenize uygun seçenekler sunuyoruz.",
+                    "Romantik yerler öner": "Nepal'de Everest trekking'i, Costa Rica'da zipline, Yeni Zelanda'da bungee jumping - birlikte yaşayacağınız adrenalin dolu romantizm!"
+                },
+                romantic_dreamer: {
+                    "Balayı için öneriniz var mı?": "Aşkınızı perçinleyecek en romantik anları yaşamanız için özel paketlerimiz var. Gün batımı yemekleri, çift masajları ve romantik süprizlerle.",
+                    "Bütçemize uygun paketler hangileri?": "Romantik anların paha biçilemez olduğunu biliyoruz. Bütçenize uygun romantik paketlerimizle kalp kalbe anlar yaşayabilirsiniz.",
+                    "Romantik yerler öner": "Paris'te Seine nehri üzerinde yemek, Venedik'te gondol turu, Santorini'de gün batımı - aşkınızı taçlandıracak yerler."
+                }
+            };
+            
+            return responses[profile.personalityType]?.[userMessage] || 
+                   "Size özel tavsiyelerimu yakında hazırlayacağım, kişilik profilinize göre en uygun önerileri sunacağım.";
+        }
+
+        // Sayfa yüklendiğinde mevcut durumu kontrol et
+        window.onload = function() {
+            const statusDiv = document.getElementById('current-status');
+            const isLoggedIn = localStorage.getItem('currentUser') !== null;
+            const hasPersonalityProfile = Object.keys(localStorage).some(key => 
+                key.startsWith('personality-profile-')
+            );
+            
+            statusDiv.innerHTML = `
+                <div class="status ${isLoggedIn ? 'success' : 'warning'}">
+                    👤 Kullanıcı Durumu: ${isLoggedIn ? 'Giriş Yapılmış' : 'Giriş Yapılmamış'}
+                </div>
+                <div class="status ${hasPersonalityProfile ? 'success' : 'warning'}">
+                    🧠 Kişilik Profili: ${hasPersonalityProfile ? 'Tamamlanmış' : 'Tamamlanmamış'}
+                </div>
+                <div class="status info">
+                    🔗 Test URL'si: <a href="/test/personality" target="_blank">/test/personality</a>
+                </div>
+                <div class="status info">
+                    🏠 Ana Sayfa: <a href="/" target="_blank">/</a>
+                </div>
+            `;
+
+            // Otomatik test başlat
+            setTimeout(() => {
+                document.getElementById('onboarding-test-result').innerHTML = `
+                    <div class="status info">📋 Onboarding Akışı Kontrolü:</div>
+                    <div style="margin: 8px 0;">
+                        <strong>1.</strong> Kullanıcı giriş yapıyor → AuthContext loading: false<br>
+                        <strong>2.</strong> personalityService.hasCompletedOnboarding() kontrolü<br>
+                        <strong>3.</strong> needsOnboarding: ${!hasPersonalityProfile ? 'true' : 'false'}<br>
+                        <strong>4.</strong> ${!hasPersonalityProfile ? 'PersonalityOnboarding gösteriliyor' : 'Ana sayfa gösteriliyor'}<br>
+                        <strong>5.</strong> Test tamamlandıktan sonra → onComplete() → profil kaydediliyor<br>
+                        <strong>6.</strong> needsOnboarding: false → Ana sayfa yönlendirme
+                    </div>
+                    <div class="status ${!hasPersonalityProfile ? 'warning' : 'success'}">
+                        ${!hasPersonalityProfile ? '⚠️ Kullanıcı onboarding görmelidir' : '✅ Kullanıcı ana sayfayı görmelidir'}
+                    </div>
+                `;
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

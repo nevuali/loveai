@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Bell, Shield, Globe, User, LogOut, Eye, Lock, MessageSquare, Palette, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Bell, Shield, Globe, User, LogOut, Eye, Lock, MessageSquare, Palette, X, Loader2, CreditCard, Crown, Heart, Zap, Check, Star } from 'lucide-react';
 import { settingsService, UserSettings, defaultSettings } from '../services/settingsService';
 import NotificationSettings from '../components/NotificationSettings';
 
@@ -53,6 +53,7 @@ const SettingsPage = () => {
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'personalization', label: 'Personalization', icon: Palette },
     { id: 'conversation', label: 'Conversation', icon: MessageSquare },
+    { id: 'plans', label: 'View All Plans', icon: CreditCard },
     { id: 'privacy', label: 'Privacy Controls', icon: Shield },
     { id: 'language', label: 'Language', icon: Globe },
     { id: 'security', label: 'Security', icon: Lock }
@@ -303,6 +304,209 @@ const SettingsPage = () => {
           </div>
         );
 
+      case 'plans':
+        return (
+          <div className="settings-content-section space-y-10">
+            <div>
+              <h2 className="text-lg font-medium text-white mb-3">Choose Your Plan</h2>
+              <p className="text-sm text-gray-400">Select the perfect plan for your love journey</p>
+            </div>
+            <div className="settings-divider"></div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* FREE Plan */}
+              <div className="relative overflow-hidden bg-[color:var(--color-surface)] border border-[color:var(--color-border)] rounded-[var(--radius-2xl)] p-6 hover:border-[color:var(--color-border-strong)] transition-all duration-[var(--duration-normal)] backdrop-blur-sm">
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[color:var(--color-surface-glass)] rounded-[var(--radius-lg)] flex items-center justify-center border border-[color:var(--color-border)]">
+                      <Heart className="w-5 h-5 text-[color:var(--color-text-secondary)]" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-[color:var(--color-text-primary)]">FREE</h3>
+                  </div>
+                  <p className="text-[color:var(--color-text-secondary)] text-sm">Perfect for getting started</p>
+                </div>
+                
+                <div className="mb-6">
+                  <div className="text-3xl font-bold text-[color:var(--color-text-primary)] mb-1">$0</div>
+                  <div className="text-[color:var(--color-text-secondary)] text-sm">Forever free</div>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-success)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-white" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">20 messages every 6 hours</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-success)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-white" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">Basic AI assistance</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-success)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-white" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">Standard package recommendations</span>
+                  </div>
+                </div>
+                
+                <button className="w-full py-3 px-4 bg-[color:var(--color-surface-glass)] hover:bg-[color:var(--color-surface-glass-elevated)] text-[color:var(--color-text-primary)] rounded-[var(--radius-lg)] transition-all duration-[var(--duration-normal)] font-medium border border-[color:var(--color-border)]">
+                  Current Plan
+                </button>
+              </div>
+
+              {/* PRO Plan */}
+              <div className="relative overflow-hidden bg-gradient-to-br from-[color:var(--color-accent-primary)]/10 to-[color:var(--color-accent-secondary)]/10 border-2 border-[color:var(--color-accent-primary)] rounded-[var(--radius-2xl)] p-6 shadow-[var(--shadow-glass)] transform scale-105">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-gradient-to-r from-[color:var(--color-accent-primary)] to-[color:var(--color-accent-secondary)] text-black px-4 py-1 rounded-full text-xs font-bold">
+                    MOST POPULAR
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[color:var(--color-accent-primary)] to-[color:var(--color-accent-secondary)] rounded-[var(--radius-lg)] flex items-center justify-center">
+                      <Crown className="w-5 h-5 text-black" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-[color:var(--color-text-primary)]">PRO</h3>
+                  </div>
+                  <p className="text-[color:var(--color-text-secondary)] text-sm">For serious love seekers</p>
+                </div>
+                
+                <div className="mb-6">
+                  <div className="text-3xl font-bold text-[color:var(--color-text-primary)] mb-1">$10</div>
+                  <div className="text-[color:var(--color-text-secondary)] text-sm">per month</div>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-accent-primary)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-primary)] text-sm font-medium">Unlimited conversations</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-accent-primary)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-primary)] text-sm font-medium">Advanced AI personality</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-accent-primary)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-primary)] text-sm font-medium">Premium package recommendations</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-accent-primary)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-primary)] text-sm font-medium">Priority customer support</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-accent-primary)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-primary)] text-sm font-medium">Advanced search filters</span>
+                  </div>
+                </div>
+                
+                <button className="w-full py-3 px-4 bg-gradient-to-r from-[color:var(--color-accent-primary)] to-[color:var(--color-accent-secondary)] hover:from-[color:var(--color-accent-secondary)] hover:to-[color:var(--color-accent-primary)] text-black rounded-[var(--radius-lg)] transition-all duration-[var(--duration-normal)] font-semibold shadow-[var(--shadow-md)]">
+                  Upgrade to Pro
+                </button>
+              </div>
+
+              {/* PRO with Bride Plan */}
+              <div className="relative overflow-hidden bg-[color:var(--color-surface)] border border-[color:var(--color-border)] rounded-[var(--radius-2xl)] p-6 hover:border-[color:var(--color-border-strong)] transition-all duration-[var(--duration-normal)] opacity-75 backdrop-blur-sm">
+                <div className="absolute top-4 right-4">
+                  <div className="bg-[color:var(--color-warning)] text-black px-2 py-1 rounded-[var(--radius-md)] text-xs font-bold">
+                    SOON
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[color:var(--color-accent-primary)] to-[color:var(--color-warning)] rounded-[var(--radius-lg)] flex items-center justify-center">
+                      <Star className="w-5 h-5 text-black" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-[color:var(--color-text-primary)]">PRO with Bride</h3>
+                  </div>
+                  <p className="text-[color:var(--color-text-secondary)] text-sm">Complete wedding preparation</p>
+                </div>
+                
+                <div className="mb-6">
+                  <div className="text-3xl font-bold text-[color:var(--color-text-primary)] mb-1">$25</div>
+                  <div className="text-[color:var(--color-text-secondary)] text-sm">per month</div>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-warning)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">Everything in Pro</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-warning)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">Wedding planning assistant</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-warning)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">Vendor recommendations</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-warning)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">Budget tracking tools</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-warning)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">Timeline management</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-[color:var(--color-warning)] flex items-center justify-center">
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                    <span className="text-[color:var(--color-text-secondary)] text-sm">Guest list coordination</span>
+                  </div>
+                </div>
+                
+                <button 
+                  disabled 
+                  className="w-full py-3 px-4 bg-[color:var(--color-surface-glass)] text-[color:var(--color-text-tertiary)] rounded-[var(--radius-lg)] font-medium cursor-not-allowed border border-[color:var(--color-border)]"
+                >
+                  Coming Soon
+                </button>
+              </div>
+            </div>
+            
+            <div className="bg-[color:var(--color-surface-glass)] rounded-[var(--radius-xl)] p-6 border border-[color:var(--color-border)] backdrop-blur-sm">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-[color:var(--color-accent-primary)] to-[color:var(--color-accent-secondary)] rounded-full flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-6 h-6 text-black" />
+                </div>
+                <div>
+                  <h3 className="text-[color:var(--color-text-primary)] font-semibold mb-2">Why upgrade to Pro?</h3>
+                  <p className="text-[color:var(--color-text-secondary)] text-sm leading-relaxed">
+                    Get unlimited access to our advanced AI that learns your preferences and provides 
+                    personalized honeymoon recommendations. No waiting periods, no limits - just pure 
+                    romantic planning assistance whenever you need it.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'privacy':
         return (
           <div className="settings-content-section space-y-10">
@@ -404,6 +608,7 @@ const SettingsPage = () => {
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
+                  data-category={category.id}
                   className={`settings-sidebar-item settings-focusable w-full flex flex-col md:flex-row items-center gap-2 md:gap-3 px-3 md:px-4 py-3 text-xs md:text-sm rounded-lg transition-colors ${
                     activeCategory === category.id
                       ? 'bg-gray-800 text-white active settings-active-text'
@@ -429,4 +634,4 @@ const SettingsPage = () => {
   );
 };
 
-export default SettingsPage; 
+export default memo(SettingsPage); 

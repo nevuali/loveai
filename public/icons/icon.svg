@@ -1,24 +1,43 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f1c40f;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#e74c3c;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#d946ef;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
     </linearGradient>
+    <radialGradient id="sparkle" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:white;stop-opacity:0.2" />
+    </radialGradient>
   </defs>
   
   <!-- Background Circle -->
   <circle cx="256" cy="256" r="240" fill="url(#grad1)" />
   
-  <!-- Heart Shape -->
-  <path d="M256 432 C192 368, 128 304, 128 224 C128 176, 168 136, 216 136 C232 136, 248 144, 256 152 C264 144, 280 136, 296 136 C344 136, 384 176, 384 224 C384 304, 320 368, 256 432 Z" fill="white" opacity="0.95"/>
+  <!-- Heart Shape (more elegant) -->
+  <path d="M256 420 C200 370, 120 290, 120 210 C120 160, 160 120, 210 120 C230 120, 250 128, 256 140 C262 128, 282 120, 302 120 C352 120, 392 160, 392 210 C392 290, 312 370, 256 420 Z" fill="white" opacity="0.95"/>
   
-  <!-- AI Text -->
-  <text x="256" y="300" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="48" font-weight="bold" opacity="0.9">AI</text>
+  <!-- Inner heart glow -->
+  <path d="M256 400 C210 360, 140 290, 140 220 C140 180, 170 150, 210 150 C230 150, 245 158, 256 168 C267 158, 282 150, 302 150 C342 150, 372 180, 372 220 C372 290, 302 360, 256 400 Z" fill="url(#sparkle)" opacity="0.3"/>
   
-  <!-- Crown -->
-  <path d="M200 100 L220 120 L240 100 L260 120 L280 100 L300 120 L312 100 L312 140 L200 140 Z" fill="gold" opacity="0.8"/>
-  <circle cx="220" cy="110" r="4" fill="#ff6b6b"/>
-  <circle cx="256" cy="110" r="4" fill="#ff6b6b"/>
-  <circle cx="292" cy="110" r="4" fill="#ff6b6b"/>
+  <!-- LOVVE Text -->
+  <text x="256" y="340" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="42" font-weight="bold" opacity="0.95">LOVVE</text>
+  
+  <!-- AI Badge -->
+  <circle cx="350" cy="162" r="25" fill="white" opacity="0.9"/>
+  <text x="350" y="170" text-anchor="middle" fill="#8b5cf6" font-family="Arial, sans-serif" font-size="18" font-weight="bold">AI</text>
+  
+  <!-- Sparkles -->
+  <circle cx="400" cy="120" r="6" fill="white" opacity="0.8"/>
+  <circle cx="380" cy="400" r="4" fill="white" opacity="0.6"/>
+  <circle cx="120" cy="380" r="5" fill="white" opacity="0.7"/>
+  <circle cx="80" cy="150" r="3" fill="white" opacity="0.5"/>
+  
+  <!-- Premium crown -->
+  <path d="M180 80 L200 105 L220 80 L240 105 L260 80 L280 105 L300 80 L320 105 L340 80 L340 120 L180 120 Z" fill="white" opacity="0.8"/>
+  <circle cx="200" cy="92" r="4" fill="#f59e0b"/>
+  <circle cx="240" cy="92" r="5" fill="#ef4444"/>
+  <circle cx="280" cy="92" r="4" fill="#d946ef"/>
+  <circle cx="320" cy="92" r="4" fill="#8b5cf6"/>
 </svg> 
