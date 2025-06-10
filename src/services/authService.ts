@@ -20,20 +20,41 @@ import { validateCurrentDomain } from '../utils/environment';
 // Development/Debug mode configuration
 const isDevelopment = import.meta.env.DEV;
 
-// Google Auth Provider with mobile optimization
-const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('email');
-googleProvider.addScope('profile');
+// Create Google Auth Provider with dynamic configuration
+const createGoogleProvider = (): GoogleAuthProvider => {
+  const provider = new GoogleAuthProvider();
+  provider.addScope('email');
+  provider.addScope('profile');
 
-// Mobile-friendly custom parameters
-googleProvider.setCustomParameters({
-  prompt: 'select_account',
-  // Mobile browser compatibility
-  display: 'popup',
-  access_type: 'online',
-  // Force modern auth flow
-  auth_type: 'rerequest'
-});
+  // Safari-specific parameters
+  if (isSafari()) {
+    logger.log('🦄 Safari detected, using Safari-optimized OAuth parameters');
+    provider.setCustomParameters({
+      prompt: 'select_account',
+      // Safari-friendly parameters
+      display: 'page', // Use full page instead of popup for Safari
+      access_type: 'online',
+      include_granted_scopes: 'true',
+      // Safari ITP compatibility
+      hd: undefined // Remove hosted domain restrictions for Safari
+    });
+  } else {
+    // Standard parameters for other browsers
+    provider.setCustomParameters({
+      prompt: 'select_account',
+      display: 'popup',
+      access_type: 'online',
+      auth_type: 'rerequest'
+    });
+  }
+
+  return provider;
+};
+
+// Get provider instance
+const getGoogleProvider = (): GoogleAuthProvider => {
+  return createGoogleProvider();
+};
 
 // Enhanced mobile detection utility
 const isMobile = (): boolean => {
@@ -70,6 +91,30 @@ const isPhone = (): boolean => {
   const phoneUA = /iPhone|Android.*Mobile|BlackBerry|IEMobile/i.test(navigator.userAgent);
   const smallScreen = window.innerWidth <= 480;
   return phoneUA || (isMobile() && smallScreen);
+};
+
+// Safari-specific detection
+const isSafari = (): boolean => {
+  const userAgent = navigator.userAgent;
+  const isSafariUA = /Safari/.test(userAgent) && !/Chrome|Chromium|Edge/.test(userAgent);
+  const isWebKit = /WebKit/.test(userAgent) && !/Chrome|Chromium|Edge/.test(userAgent);
+  const isMobileSafari = /iPhone|iPad/.test(userAgent) && /Safari/.test(userAgent) && !/CriOS|FxiOS|EdgiOS/.test(userAgent);
+  
+  return isSafariUA || isWebKit || isMobileSafari;
+};
+
+// Check if Safari is in private browsing mode
+const isSafariPrivate = (): boolean => {
+  if (!isSafari()) return false;
+  
+  try {
+    // Try to access localStorage - Safari private mode restricts this
+    localStorage.setItem('__safari_private_test__', '1');
+    localStorage.removeItem('__safari_private_test__');
+    return false;
+  } catch (e) {
+    return true;
+  }
 };
 
 // User interface Firebase Auth ve Firestore yapısına uygun güncellendi
@@ -203,7 +248,20 @@ class AuthService {
         };
       }
       
+      // Browser detection for strategy
+      const safariDetected = isSafari();
+      const safariPrivateMode = isSafariPrivate();
+      const phoneDetected = isPhone();
+      
+      logger.log('🔍 Browser detection:', {
+        safari: safariDetected,
+        safariPrivate: safariPrivateMode,
+        phone: phoneDetected,
+        userAgent: navigator.userAgent
+      });
+      
       let userCredential;
+      const googleProvider = getGoogleProvider();
       
       // Önce pending redirect var mı kontrol et
       userCredential = await getRedirectResult(auth);
@@ -211,6 +269,33 @@ class AuthService {
       if (userCredential) {
         // Redirect'den gelen sonuç varsa kullan
         logger.log('🔍 Found pending redirect result');
+      } else if (safariDetected) {
+        // Safari-specific handling
+        logger.log('🦄 Safari browser detected - using Safari-optimized flow');
+        
+        if (safariPrivateMode) {
+          logger.log('🔒 Safari private mode detected - using redirect only');
+          await signInWithRedirect(auth, googleProvider);
+          return { success: true, message: 'Redirecting to Google sign-in...' };
+        } else {
+          // Normal Safari - try popup with special handling
+          try {
+            logger.log('🦄 Normal Safari - attempting optimized popup...');
+            
+            // Safari popup with extended timeout
+            const popupPromise = signInWithPopup(auth, googleProvider);
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Safari popup timeout')), 30000); // 30 second timeout for Safari
+            });
+            
+            userCredential = await Promise.race([popupPromise, timeoutPromise]);
+            logger.log('✅ Safari popup auth successful');
+          } catch (safariError: any) {
+            logger.log('❌ Safari popup failed, using redirect:', safariError.message);
+            await signInWithRedirect(auth, googleProvider);
+            return { success: true, message: 'Redirecting to Google sign-in...' };
+          }
+        }
       } else if (isMobile()) {
         const deviceIsPhone = isPhone();
         logger.log('🔍 Mobile device detected:', { isPhone: deviceIsPhone });

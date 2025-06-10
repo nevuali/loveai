@@ -55,16 +55,41 @@ const getAnalytics = async () => {
 
 const auth = getAuth(app);
 
-// Mobile browser compatibility settings
+// Browser-specific compatibility settings
 if (typeof window !== 'undefined') {
   // Set persistence for mobile browsers
   auth.settings.appVerificationDisabledForTesting = false;
   
-  // Configure for mobile browsers
+  // Configure for different browsers
   const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const isPhone = /iPhone|Android.*Mobile|BlackBerry|IEMobile/i.test(navigator.userAgent);
+  const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edge/.test(navigator.userAgent);
+  const isMobileSafari = /iPhone|iPad/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS/.test(navigator.userAgent);
   
-  if (isMobile) {
+  if (isSafari || isMobileSafari) {
+    console.log('🦄 Safari browser detected, configuring Safari-specific settings');
+    
+    // Safari-specific persistence handling
+    import('firebase/auth').then(({ setPersistence, browserSessionPersistence, browserLocalPersistence }) => {
+      // Try localStorage first, fallback to sessionStorage for Safari private mode
+      const safariPersistence = () => {
+        try {
+          localStorage.setItem('__safari_test__', '1');
+          localStorage.removeItem('__safari_test__');
+          return browserLocalPersistence;
+        } catch (e) {
+          console.log('🔒 Safari private mode detected, using session persistence');
+          return browserSessionPersistence;
+        }
+      };
+      
+      setPersistence(auth, safariPersistence()).then(() => {
+        console.log('✅ Safari persistence configured successfully');
+      }).catch((error) => {
+        console.warn('⚠️ Failed to set Safari persistence:', error);
+      });
+    });
+  } else if (isMobile) {
     console.log('📱 Mobile device detected, configuring Firebase Auth for mobile');
     
     // Enhanced persistence for phones
