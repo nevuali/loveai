@@ -65,6 +65,13 @@ const isMobile = (): boolean => {
   return isMobileDevice;
 };
 
+// Phone-specific detection (stricter than mobile)
+const isPhone = (): boolean => {
+  const phoneUA = /iPhone|Android.*Mobile|BlackBerry|IEMobile/i.test(navigator.userAgent);
+  const smallScreen = window.innerWidth <= 480;
+  return phoneUA || (isMobile() && smallScreen);
+};
+
 // User interface Firebase Auth ve Firestore yapısına uygun güncellendi
 export interface User {
   uid: string; // Firebase Auth UID
@@ -205,27 +212,36 @@ class AuthService {
         // Redirect'den gelen sonuç varsa kullan
         logger.log('🔍 Found pending redirect result');
       } else if (isMobile()) {
-        // Mobile cihazlar için redirect başlat
-        logger.log('🔍 Mobile device detected, initiating signInWithRedirect');
+        const deviceIsPhone = isPhone();
+        logger.log('🔍 Mobile device detected:', { isPhone: deviceIsPhone });
         
-        // Try popup first for better UX, fallback to redirect
-        try {
-          logger.log('🔍 Attempting popup on mobile first...');
-          userCredential = await signInWithPopup(auth, googleProvider);
-          logger.log('✅ Mobile popup auth successful');
-        } catch (popupError: any) {
-          logger.log('❌ Mobile popup failed, using redirect:', popupError.code);
+        if (deviceIsPhone) {
+          // Phones: Direct redirect, no popup attempt
+          logger.log('📱 Phone detected - using direct redirect authentication');
+          await signInWithRedirect(auth, googleProvider);
           
-          if (popupError.code === 'auth/popup-blocked' || 
-              popupError.code === 'auth/popup-closed-by-user' ||
-              popupError.code === 'auth/unauthorized-domain') {
-            logger.log('🔄 Falling back to redirect authentication');
-            await signInWithRedirect(auth, googleProvider);
+          // Redirect başlatıldı, sayfa yenilenecek
+          return { success: true, message: 'Redirecting to Google sign-in...' };
+        } else {
+          // Tablets: Try popup first, fallback to redirect
+          try {
+            logger.log('📱 Tablet detected - attempting popup first...');
+            userCredential = await signInWithPopup(auth, googleProvider);
+            logger.log('✅ Mobile popup auth successful');
+          } catch (popupError: any) {
+            logger.log('❌ Mobile popup failed, using redirect:', popupError.code);
             
-            // Redirect başlatıldı, sayfa yenilenecek
-            return { success: true, message: 'Redirecting to Google sign-in...' };
-          } else {
-            throw popupError; // Re-throw other errors
+            if (popupError.code === 'auth/popup-blocked' || 
+                popupError.code === 'auth/popup-closed-by-user' ||
+                popupError.code === 'auth/unauthorized-domain') {
+              logger.log('🔄 Falling back to redirect authentication');
+              await signInWithRedirect(auth, googleProvider);
+              
+              // Redirect başlatıldı, sayfa yenilenecek
+              return { success: true, message: 'Redirecting to Google sign-in...' };
+            } else {
+              throw popupError; // Re-throw other errors
+            }
           }
         }
       } else {

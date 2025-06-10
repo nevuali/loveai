@@ -62,8 +62,24 @@ if (typeof window !== 'undefined') {
   
   // Configure for mobile browsers
   const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isPhone = /iPhone|Android.*Mobile|BlackBerry|IEMobile/i.test(navigator.userAgent);
+  
   if (isMobile) {
     console.log('📱 Mobile device detected, configuring Firebase Auth for mobile');
+    
+    // Enhanced persistence for phones
+    if (isPhone) {
+      console.log('📱 Phone detected, enabling enhanced persistence');
+      
+      // Set local persistence explicitly for phones
+      import('firebase/auth').then(({ setPersistence, browserLocalPersistence }) => {
+        setPersistence(auth, browserLocalPersistence).then(() => {
+          console.log('✅ Local persistence enabled for phone');
+        }).catch((error) => {
+          console.warn('⚠️ Failed to set persistence:', error);
+        });
+      });
+    }
   }
 }
 

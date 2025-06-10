@@ -44,28 +44,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     logger.log('🔄 Setting up auth state listener...');
     
-    // Check for Google redirect result on app load (for mobile)
+    // Enhanced redirect result checking with retry logic for phones
     const checkRedirectResult = async () => {
       try {
         logger.log('🔍 Checking for pending redirect result...');
+        
+        // Add a small delay for phone browsers to stabilize
+        if (/iPhone|Android/i.test(navigator.userAgent)) {
+          logger.log('📱 Phone detected, adding stabilization delay...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
         const result = await getRedirectResult(auth);
         if (result) {
           logger.log('✅ Google redirect result found:', {
             uid: result.user.uid,
             email: result.user.email,
-            displayName: result.user.displayName
+            displayName: result.user.displayName,
+            providerId: result.providerId,
+            operationType: result.operationType
           });
           
-          // Process the redirect result through authService
-          const authResponse = await authService.signInWithGoogle();
-          if (authResponse.success && authResponse.user) {
-            logger.log('✅ Redirect auth processing completed successfully');
-          }
+          // Don't call signInWithGoogle again, the redirect already handled it
+          // Just let the auth state listener handle the user update
+          logger.log('✅ Redirect auth completed, letting auth state listener handle user');
         } else {
           logger.log('ℹ️ No pending redirect result found');
         }
       } catch (error) {
         logger.error('❌ Error checking redirect result:', error);
+        
+        // Retry once after a delay for phone browsers
+        if (/iPhone|Android/i.test(navigator.userAgent)) {
+          logger.log('📱 Retrying redirect result check for phone...');
+          setTimeout(async () => {
+            try {
+              const retryResult = await getRedirectResult(auth);
+              if (retryResult) {
+                logger.log('✅ Redirect result found on retry');
+              }
+            } catch (retryError) {
+              logger.error('❌ Retry also failed:', retryError);
+            }
+          }, 2000);
+        }
       }
     };
 
