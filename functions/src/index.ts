@@ -21,8 +21,21 @@ import {
   Part,
 } from "@google/generative-ai";
 
+// CORS configuration for Firebase Functions v2
+const allowedOrigins = [
+  'https://lovve.tech',
+  'https://www.lovve.tech',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'https://ailovve.firebaseapp.com'
+];
+
 // Firebase Admin SDK'yı başlat
 initializeApp();
+
+// Import AI functions
+export * from './ai-functions';
 // Use default database for both development and production
 const db = getFirestore();
 console.log("Using default Firestore database");
@@ -134,7 +147,7 @@ export const generateGeminiResponse = onCall<GeminiRequestData, Promise<GeminiRe
     memory: "512MiB",
     timeoutSeconds: 60,
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     // Remove auth context check - allow public access
@@ -326,7 +339,7 @@ export const getGeminiChatHistory = onCall<ChatHistoryRequestData, Promise<ChatH
     memory: "512MiB",
     timeoutSeconds: 30,
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     logger.info("getGeminiChatHistory called", { 
@@ -370,7 +383,7 @@ export const deleteGeminiChatHistory = onCall<{ sessionId: string }, Promise<{ s
     memory: "512MiB",
     timeoutSeconds: 60,
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     logger.info("deleteGeminiChatHistory called", { 
@@ -437,7 +450,7 @@ export const getHoneymoonPackages = onCall<PackageRequestData, Promise<PackageRe
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     logger.info("getHoneymoonPackages called", { 
@@ -506,7 +519,7 @@ export const getHoneymoonPackage = onCall<{packageId: string}, Promise<{success:
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     logger.info("getHoneymoonPackage called", { 
@@ -551,7 +564,7 @@ export const initializeHoneymoonPackages = onCall<{}, Promise<{success: boolean;
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async () => {
     logger.info("initializeHoneymoonPackages called");

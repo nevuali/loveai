@@ -1,6 +1,16 @@
 import * as logger from "firebase-functions/logger";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 
+// CORS configuration for Firebase Functions v2
+const allowedOrigins = [
+  'https://lovve.tech',
+  'https://www.lovve.tech',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'https://ailovve.firebaseapp.com'
+];
+
 // AI LOVVE - Advanced AI Functions
 
 /**
@@ -10,7 +20,7 @@ export const getUserPersonalityModel = onCall<{userId: string, conversationHisto
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     
@@ -48,7 +58,7 @@ export const analyzeConversationMessage = onCall<{message: string, context: any}
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     try {
@@ -77,7 +87,7 @@ export const analyzeTextualMood = onCall<{message: string, conversationContext: 
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     try {
@@ -110,7 +120,7 @@ export const identifyEmotionalTrigger = onCall<{emotionalState: any, conversatio
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     try {
@@ -139,7 +149,7 @@ export const analyzeCulturalContext = onCall<{languageCode: string, userMessage:
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     try {
@@ -168,7 +178,7 @@ export const generateCulturallyAdaptedResponse = onCall<{originalResponse: strin
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     try {
@@ -195,7 +205,7 @@ export const evaluateResponseQuality = onCall<{response: string, context: any}, 
   {
     region: "europe-west1",
     enforceAppCheck: false,
-    cors: true
+    cors: allowedOrigins
   },
   async (request) => {
     try {
