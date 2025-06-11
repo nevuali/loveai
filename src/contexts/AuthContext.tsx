@@ -97,22 +97,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.log('🔄 Auth state changed:', {
         hasUser: !!firebaseUser,
         uid: firebaseUser?.uid,
-        email: firebaseUser?.email
+        email: firebaseUser?.email,
+        emailVerified: firebaseUser?.emailVerified,
+        isAnonymous: firebaseUser?.isAnonymous,
+        providerId: firebaseUser?.providerId
       });
       
       setFirebaseUser(firebaseUser);
       
       if (firebaseUser) {
+        // Don't clear user immediately - keep previous state while loading
+        logger.log('🔍 Loading user profile for authenticated user...');
+        
         try {
           const userProfile = await authService.getUserProfile(firebaseUser.uid);
-          logger.log('👤 User profile loaded:', {
+          logger.log('✅ User profile loaded successfully:', {
             hasProfile: !!userProfile,
-            uid: userProfile?.uid
+            uid: userProfile?.uid,
+            name: userProfile?.name,
+            email: userProfile?.email
           });
-          setUser(userProfile);
           
-          // Check onboarding status
           if (userProfile) {
+            setUser(userProfile);
+            
+            // Check onboarding status
             const hasCompletedOnboarding = await personalityService.hasCompletedOnboarding(userProfile.uid);
             setNeedsOnboarding(!hasCompletedOnboarding);
             
@@ -129,9 +138,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               is_verified: userProfile.isVerified,
               needs_onboarding: !hasCompletedOnboarding
             });
+            
+            logger.log('✅ Auth state setup complete - user authenticated and profile loaded');
+          } else {
+            logger.warn('⚠️ No user profile found, creating minimal profile');
+            // Create minimal profile if none exists
+            const minimalUser: User = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+              name: firebaseUser.displayName?.split(' ')[0] || 'User',
+              surname: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+              isVerified: firebaseUser.emailVerified,
+              isPremium: false,
+              messageCount: 0,
+            };
+            setUser(minimalUser);
+            setNeedsOnboarding(true);
           }
         } catch (error) {
-          console.error('❌ Error loading user profile:', error);
+          logger.error('❌ Error loading user profile:', error);
           // Firestore hatası olsa bile Firebase user varsa minimal profil oluştur
           const minimalUser: User = {
             uid: firebaseUser.uid,
@@ -154,14 +181,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             total_chats: 0,
             has_personality_profile: false
           });
+          
+          logger.log('✅ Minimal user profile created due to Firestore error');
         }
       } else {
+        logger.log('🚪 No Firebase user - user signed out');
         setUser(null);
         setNeedsOnboarding(false);
         trackUserInteraction('user_unauthenticated', 'auth_state_change', {});
       }
       
+      // Always set loading to false at the end
       setLoading(false);
+      logger.log('🔄 Auth state processing complete, loading set to false');
     });
 
     return () => {

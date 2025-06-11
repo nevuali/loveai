@@ -269,70 +269,38 @@ class AuthService {
       if (userCredential) {
         // Redirect'den gelen sonuç varsa kullan
         logger.log('🔍 Found pending redirect result');
-      } else if (safariDetected) {
-        // Safari-specific handling
-        logger.log('🦄 Safari browser detected - using Safari-optimized flow');
+      } else {
+        // Basit mobil algılama ve strateji
+        const isMobileDevice = /iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                               window.innerWidth <= 768;
         
-        if (safariPrivateMode) {
-          logger.log('🔒 Safari private mode detected - using redirect only');
-          await signInWithRedirect(auth, googleProvider);
-          return { success: true, message: 'Redirecting to Google sign-in...' };
-        } else {
-          // Normal Safari - try popup with special handling
+        if (isMobileDevice) {
+          logger.log('📱 Mobile device detected - using redirect authentication');
           try {
-            logger.log('🦄 Normal Safari - attempting optimized popup...');
-            
-            // Safari popup with extended timeout
-            const popupPromise = signInWithPopup(auth, googleProvider);
-            const timeoutPromise = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error('Safari popup timeout')), 30000); // 30 second timeout for Safari
-            });
-            
-            userCredential = await Promise.race([popupPromise, timeoutPromise]);
-            logger.log('✅ Safari popup auth successful');
-          } catch (safariError: any) {
-            logger.log('❌ Safari popup failed, using redirect:', safariError.message);
+            // Mobile için direkt redirect
             await signInWithRedirect(auth, googleProvider);
             return { success: true, message: 'Redirecting to Google sign-in...' };
+          } catch (redirectError: any) {
+            logger.error('❌ Mobile redirect failed:', redirectError);
+            throw redirectError;
           }
-        }
-      } else if (isMobile()) {
-        const deviceIsPhone = isPhone();
-        logger.log('🔍 Mobile device detected:', { isPhone: deviceIsPhone });
-        
-        if (deviceIsPhone) {
-          // Phones: Direct redirect, no popup attempt
-          logger.log('📱 Phone detected - using direct redirect authentication');
-          await signInWithRedirect(auth, googleProvider);
-          
-          // Redirect başlatıldı, sayfa yenilenecek
-          return { success: true, message: 'Redirecting to Google sign-in...' };
         } else {
-          // Tablets: Try popup first, fallback to redirect
+          // Desktop için popup
+          logger.log('🖥️ Desktop device detected - using popup authentication');
           try {
-            logger.log('📱 Tablet detected - attempting popup first...');
             userCredential = await signInWithPopup(auth, googleProvider);
-            logger.log('✅ Mobile popup auth successful');
           } catch (popupError: any) {
-            logger.log('❌ Mobile popup failed, using redirect:', popupError.code);
+            logger.log('❌ Desktop popup failed, trying redirect fallback:', popupError.code);
             
             if (popupError.code === 'auth/popup-blocked' || 
-                popupError.code === 'auth/popup-closed-by-user' ||
-                popupError.code === 'auth/unauthorized-domain') {
-              logger.log('🔄 Falling back to redirect authentication');
+                popupError.code === 'auth/popup-closed-by-user') {
               await signInWithRedirect(auth, googleProvider);
-              
-              // Redirect başlatıldı, sayfa yenilenecek
               return { success: true, message: 'Redirecting to Google sign-in...' };
             } else {
-              throw popupError; // Re-throw other errors
+              throw popupError;
             }
           }
         }
-      } else {
-        // Desktop için popup kullan
-        logger.log('🔍 Desktop device detected, using signInWithPopup');
-        userCredential = await signInWithPopup(auth, googleProvider);
       }
       
       if (!userCredential) {
