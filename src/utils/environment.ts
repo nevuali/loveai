@@ -46,8 +46,7 @@ function validateEnvironment(): Environment {
     throw new Error('Production deployment blocked: Placeholder API key detected');
   }
 
-  // Keep using Firebase authDomain until custom domain is properly configured
-  // TODO: Configure lovve.tech as authorized domain in Firebase Console first
+  // Firebase default authDomain kullan (ailovve.firebaseapp.com)
   const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
 
   console.log('🔧 Firebase authDomain configuration:', {
