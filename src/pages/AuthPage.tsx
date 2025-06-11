@@ -1,28 +1,59 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Eye, EyeOff, Heart, Sparkles, User, Loader2, Sun, Moon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { toast } from 'react-hot-toast';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register, signInWithGoogle } = useAuth();
+  const location = useLocation();
+  const { login, register, signInWithGoogle, sendEmailSignInLink, sendSMSCode, verifySMSCode, signInWithEmailLink } = useAuth();
   const { actualTheme, toggleTheme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [authMode, setAuthMode] = useState<'password' | 'email-link' | 'sms'>('password');
+  const [verificationId, setVerificationId] = useState('');
+  const [smsCode, setSmsCode] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     name: '',
-    surname: ''
+    surname: '',
+    phoneNumber: ''
   });
 
   const formRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Check for email link authentication on page load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const email = urlParams.get('email');
+    
+    if (location.search && email) {
+      // This might be an email link
+      const handleEmailLinkAuth = async () => {
+        try {
+          const success = await signInWithEmailLink(window.location.href, email);
+          if (success) {
+            toast.success('Welcome to AI LOVVE! 📧', { duration: 3000 });
+            navigate('/');
+          } else {
+            toast.error('Invalid or expired sign-in link');
+          }
+        } catch (error) {
+          console.error('Email link auth error:', error);
+          toast.error('Failed to authenticate with email link');
+        }
+      };
+      
+      handleEmailLinkAuth();
+    }
+  }, [location, signInWithEmailLink, navigate]);
 
   // Smooth scroll when form mode changes
   useEffect(() => {
@@ -132,10 +163,78 @@ const AuthPage: React.FC = () => {
     }
   };
 
+  const handleEmailLink = async () => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const success = await sendEmailSignInLink(formData.email);
+      if (success) {
+        toast.success('Sign-in link sent to your email! Check your inbox.', {
+          duration: 5000,
+        });
+      } else {
+        setError('Failed to send email link');
+      }
+    } catch (error: any) {
+      setError(error.message || 'Failed to send email link');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSMSAuth = async () => {
+    if (!verificationId) {
+      // Send SMS code
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        // reCAPTCHA container oluştur
+        const recaptchaContainer = 'recaptcha-container';
+        const result = await sendSMSCode(formData.phoneNumber, recaptchaContainer);
+        
+        if (result.success && result.verificationId) {
+          setVerificationId(result.verificationId);
+          toast.success('Verification code sent to your phone!');
+        } else {
+          setError(result.message || 'Failed to send SMS code');
+        }
+      } catch (error: any) {
+        setError(error.message || 'Failed to send SMS code');
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Verify SMS code
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        const success = await verifySMSCode(verificationId, smsCode);
+        if (success) {
+          toast.success('Welcome to AI LOVVE! 📱', {
+            duration: 3000,
+          });
+          navigate('/');
+        } else {
+          setError('Invalid verification code');
+        }
+      } catch (error: any) {
+        setError(error.message || 'Verification failed');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   const handleModeSwitch = () => {
     setIsSignUp(!isSignUp);
     setError('');
-    setFormData({ email: '', password: '', confirmPassword: '', name: '', surname: '' });
+    setAuthMode('password');
+    setVerificationId('');
+    setSmsCode('');
+    setFormData({ email: '', password: '', confirmPassword: '', name: '', surname: '', phoneNumber: '' });
   };
 
   return (
@@ -240,6 +339,45 @@ const AuthPage: React.FC = () => {
                 </div>
             </div>
 
+              {/* Auth Mode Selector */}
+              {!isSignUp && (
+                <div className="flex gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('password')}
+                    className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-all ${
+                      authMode === 'password' 
+                        ? 'bg-accent-primary text-white' 
+                        : 'bg-surface-elevated text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    Password
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('email-link')}
+                    className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-all ${
+                      authMode === 'email-link' 
+                        ? 'bg-accent-primary text-white' 
+                        : 'bg-surface-elevated text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    Email Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAuthMode('sms')}
+                    className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg transition-all ${
+                      authMode === 'sms' 
+                        ? 'bg-accent-primary text-white' 
+                        : 'bg-surface-elevated text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    SMS
+                  </button>
+                </div>
+              )}
+
               {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Name fields for signup */}
@@ -266,18 +404,45 @@ const AuthPage: React.FC = () => {
               )}
 
                 {/* Email Input */}
+                {(authMode === 'password' || authMode === 'email-link' || isSignUp) && (
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                  className="input-modern"
-                  placeholder="Enter your personal or work email"
+                    className="input-modern"
+                    placeholder="Enter your personal or work email"
                     required
                   />
+                )}
 
-                {/* Password fields for signup */}
-                {isSignUp && (
+                {/* Phone Input for SMS */}
+                {authMode === 'sms' && !isSignUp && (
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    className="input-modern"
+                    placeholder="Enter your phone number (+90 5xx xxx xxxx)"
+                    required
+                  />
+                )}
+
+                {/* SMS Verification Code */}
+                {authMode === 'sms' && verificationId && !isSignUp && (
+                  <input
+                    type="text"
+                    value={smsCode}
+                    onChange={(e) => setSmsCode(e.target.value)}
+                    className="input-modern"
+                    placeholder="Enter verification code"
+                    required
+                  />
+                )}
+
+                {/* Password fields for signup and login */}
+                {(isSignUp || authMode === 'password') && (
                   <>
                     <div className="relative">
                   <input
@@ -311,20 +476,61 @@ const AuthPage: React.FC = () => {
 
                 {/* Submit Button - Premium Style */}
                 <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full golden-auth-btn disabled:opacity-50 transition-all duration-300"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span className="text-center">{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
-                      </div>
-                    ) : (
-                      <span className="text-center w-full">{isSignUp ? 'Create Account' : 'Continue with email'}</span>
-                    )}
-                  </button>
+                  {/* Password auth button */}
+                  {(isSignUp || authMode === 'password') && (
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full golden-auth-btn disabled:opacity-50 transition-all duration-300"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span className="text-center">{isSignUp ? 'Creating Account...' : 'Signing In...'}</span>
+                        </div>
+                      ) : (
+                        <span className="text-center w-full">{isSignUp ? 'Create Account' : 'Sign In'}</span>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Email link button */}
+                  {authMode === 'email-link' && !isSignUp && (
+                    <button
+                      type="button"
+                      onClick={handleEmailLink}
+                      disabled={isLoading || !formData.email}
+                      className="w-full golden-auth-btn disabled:opacity-50 transition-all duration-300"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Sending Email Link...</span>
+                        </div>
+                      ) : (
+                        <span>Send Sign-In Link</span>
+                      )}
+                    </button>
+                  )}
+
+                  {/* SMS button */}
+                  {authMode === 'sms' && !isSignUp && (
+                    <button
+                      type="button"
+                      onClick={handleSMSAuth}
+                      disabled={isLoading || (!verificationId && !formData.phoneNumber) || (verificationId && !smsCode)}
+                      className="w-full golden-auth-btn disabled:opacity-50 transition-all duration-300"
+                    >
+                      {isLoading ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>{verificationId ? 'Verifying...' : 'Sending Code...'}</span>
+                        </div>
+                      ) : (
+                        <span>{verificationId ? 'Verify Code' : 'Send SMS Code'}</span>
+                      )}
+                    </button>
+                  )}
                 </div>
             </form>
 
@@ -471,6 +677,9 @@ const AuthPage: React.FC = () => {
           <div className="absolute bottom-10 left-10 w-40 h-40 bg-accent-secondary/10 rounded-full blur-2xl"></div>
         </div>
       </div>
+
+      {/* reCAPTCHA container for SMS auth */}
+      <div id="recaptcha-container" className="hidden"></div>
     </div>
   );
 };

@@ -13,6 +13,10 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: RegisterData) => Promise<boolean>;
   signInWithGoogle: () => Promise<boolean>;
+  sendEmailSignInLink: (email: string) => Promise<boolean>;
+  signInWithEmailLink: (url: string, email?: string) => Promise<boolean>;
+  sendSMSCode: (phoneNumber: string, recaptchaContainer: string) => Promise<{ success: boolean; verificationId?: string; message?: string }>;
+  verifySMSCode: (verificationId: string, code: string) => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   needsOnboarding: boolean;
@@ -289,6 +293,75 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const sendEmailSignInLink = useCallback(async (email: string): Promise<boolean> => {
+    try {
+      const response = await authService.sendEmailSignInLink(email);
+      if (response.success) {
+        trackUserInteraction('email_link_sent', 'email_link', { email });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      logger.error('Email link send error:', error);
+      return false;
+    }
+  }, []);
+
+  const signInWithEmailLink = useCallback(async (url: string, email?: string): Promise<boolean> => {
+    try {
+      const response = await authService.signInWithEmailLink(url, email);
+      if (response.success && response.user) {
+        setUser(response.user);
+        setFirebaseUser(response.firebaseUser || null);
+        
+        trackUserInteraction('user_login', 'email_link', {
+          user_type: response.user.isPremium ? 'premium' : 'free',
+          login_method: 'email_link'
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      logger.error('Email link sign-in error:', error);
+      return false;
+    }
+  }, []);
+
+  const sendSMSCode = useCallback(async (phoneNumber: string, recaptchaContainer: string) => {
+    try {
+      const result = await authService.sendSMSCode(phoneNumber, recaptchaContainer);
+      if (result.success) {
+        trackUserInteraction('sms_code_sent', 'phone', { phoneNumber });
+      }
+      return result;
+    } catch (error) {
+      logger.error('SMS send error:', error);
+      return { success: false, message: 'Failed to send SMS code' };
+    }
+  }, []);
+
+  const verifySMSCode = useCallback(async (verificationId: string, code: string): Promise<boolean> => {
+    try {
+      const response = await authService.verifySMSCode(verificationId, code);
+      if (response.success && response.user) {
+        setUser(response.user);
+        setFirebaseUser(response.firebaseUser || null);
+        
+        trackUserInteraction('user_login', 'phone', {
+          user_type: response.user.isPremium ? 'premium' : 'free',
+          login_method: 'phone'
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      logger.error('SMS verification error:', error);
+      return false;
+    }
+  }, []);
+
   const checkOnboardingStatus = useCallback(async (): Promise<boolean> => {
     if (!user) return false;
     
@@ -305,11 +378,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     signInWithGoogle,
+    sendEmailSignInLink,
+    signInWithEmailLink,
+    sendSMSCode,
+    verifySMSCode,
     logout,
     isAuthenticated: !!user,
     needsOnboarding,
     checkOnboardingStatus
-  }), [user, firebaseUser, loading, login, register, signInWithGoogle, logout, needsOnboarding, checkOnboardingStatus]);
+  }), [user, firebaseUser, loading, login, register, signInWithGoogle, sendEmailSignInLink, signInWithEmailLink, sendSMSCode, verifySMSCode, logout, needsOnboarding, checkOnboardingStatus]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }; 

@@ -9,7 +9,14 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
+  PhoneAuthProvider,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
+  signInWithCredential
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, firebaseConfig } from '../firebase';
@@ -533,6 +540,194 @@ class AuthService {
       const fallbackSessionId = `user-session-${firebaseUser.uid}-${Date.now()}`;
       logger.log('⚠️ Using fallback session ID:', fallbackSessionId);
       return fallbackSessionId;
+    }
+  }
+
+  // Email link ile giriş - kod gönder
+  async sendEmailSignInLink(email: string): Promise<AuthResponse> {
+    try {
+      const actionCodeSettings = {
+        url: window.location.origin + '/auth?email=' + email,
+        handleCodeInApp: true,
+      };
+
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      
+      // Email'i localStorage'a kaydet
+      localStorage.setItem('emailForSignIn', email);
+      
+      logger.log('✅ Email link sent successfully');
+      return {
+        success: true,
+        message: 'Sign-in link sent to your email. Please check your inbox.',
+      };
+    } catch (error: any) {
+      logger.error('❌ Email link send failed:', error);
+      return {
+        success: false,
+        message: error.message,
+        errorCode: error.code
+      };
+    }
+  }
+
+  // Email link ile giriş - link'ten gelen auth
+  async signInWithEmailLink(url: string, email?: string): Promise<AuthResponse> {
+    try {
+      if (!isSignInWithEmailLink(auth, url)) {
+        return {
+          success: false,
+          message: 'Invalid sign-in link',
+          errorCode: 'auth/invalid-link'
+        };
+      }
+
+      // Email'i al
+      let emailAddress = email;
+      if (!emailAddress) {
+        emailAddress = localStorage.getItem('emailForSignIn');
+      }
+      
+      if (!emailAddress) {
+        return {
+          success: false,
+          message: 'Email address is required',
+          errorCode: 'auth/missing-email'
+        };
+      }
+
+      const userCredential = await signInWithEmailLink(auth, emailAddress, url);
+      const firebaseUser = userCredential.user;
+
+      // localStorage'ı temizle
+      localStorage.removeItem('emailForSignIn');
+
+      // Kullanıcı profilini kontrol et/oluştur
+      let userProfile = await this.getUserProfile(firebaseUser.uid);
+      
+      if (!userProfile) {
+        // Yeni kullanıcı profili oluştur
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const newUser: Omit<User, 'uid'> & {createdAt: FieldValue, lastLogin: FieldValue } = {
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          name: firebaseUser.email?.split('@')[0] || 'User',
+          surname: '',
+          createdAt: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+          isVerified: firebaseUser.emailVerified,
+          isPremium: false,
+          messageCount: 0,
+          chatSessionId: `email-session-${firebaseUser.uid}-${Date.now()}`
+        };
+        
+        await setDoc(userDocRef, newUser, { merge: true });
+        userProfile = await this.getUserProfile(firebaseUser.uid);
+      } else {
+        // Son giriş zamanını güncelle
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        await updateDoc(userDocRef, {
+          lastLogin: serverTimestamp(),
+        });
+      }
+
+      logger.log('✅ Email link sign-in successful');
+      return {
+        success: true,
+        message: 'Sign-in successful!',
+        user: userProfile || undefined,
+        firebaseUser,
+      };
+    } catch (error: any) {
+      logger.error('❌ Email link sign-in failed:', error);
+      return {
+        success: false,
+        message: error.message,
+        errorCode: error.code
+      };
+    }
+  }
+
+  // SMS ile giriş - kod gönder
+  async sendSMSCode(phoneNumber: string, recaptchaContainer: string): Promise<{ success: boolean; verificationId?: string; message?: string }> {
+    try {
+      // reCAPTCHA verifier oluştur
+      const recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainer, {
+        size: 'invisible',
+        callback: (response: any) => {
+          logger.log('reCAPTCHA solved');
+        }
+      });
+
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+      
+      logger.log('✅ SMS code sent successfully');
+      return {
+        success: true,
+        verificationId: confirmationResult.verificationId,
+        message: 'Verification code sent to your phone'
+      };
+    } catch (error: any) {
+      logger.error('❌ SMS send failed:', error);
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+  }
+
+  // SMS kodu ile giriş
+  async verifySMSCode(verificationId: string, code: string): Promise<AuthResponse> {
+    try {
+      const credential = PhoneAuthProvider.credential(verificationId, code);
+      const userCredential = await signInWithCredential(auth, credential);
+      const firebaseUser = userCredential.user;
+
+      // Kullanıcı profilini kontrol et/oluştur
+      let userProfile = await this.getUserProfile(firebaseUser.uid);
+      
+      if (!userProfile) {
+        // Yeni kullanıcı profili oluştur
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const newUser: Omit<User, 'uid'> & {createdAt: FieldValue, lastLogin: FieldValue } = {
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          name: 'User',
+          surname: '',
+          phoneNumber: firebaseUser.phoneNumber,
+          createdAt: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+          isVerified: true, // Phone auth is considered verified
+          isPremium: false,
+          messageCount: 0,
+          chatSessionId: `phone-session-${firebaseUser.uid}-${Date.now()}`
+        };
+        
+        await setDoc(userDocRef, newUser, { merge: true });
+        userProfile = await this.getUserProfile(firebaseUser.uid);
+      } else {
+        // Son giriş zamanını güncelle
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        await updateDoc(userDocRef, {
+          lastLogin: serverTimestamp(),
+          phoneNumber: firebaseUser.phoneNumber, // Phone güncelle
+        });
+      }
+
+      logger.log('✅ SMS verification successful');
+      return {
+        success: true,
+        message: 'Phone verification successful!',
+        user: userProfile || undefined,
+        firebaseUser,
+      };
+    } catch (error: any) {
+      logger.error('❌ SMS verification failed:', error);
+      return {
+        success: false,
+        message: error.message,
+        errorCode: error.code
+      };
     }
   }
 
