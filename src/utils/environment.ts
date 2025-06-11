@@ -46,16 +46,13 @@ function validateEnvironment(): Environment {
     throw new Error('Production deployment blocked: Placeholder API key detected');
   }
 
-  // Fix authDomain for custom domain to avoid third-party cookie issues
-  const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  const authDomain = currentDomain === 'lovve.tech' || currentDomain === 'www.lovve.tech' 
-    ? 'lovve.tech' // Use custom domain to avoid cross-origin issues
-    : import.meta.env.VITE_FIREBASE_AUTH_DOMAIN; // Use default for development
+  // Keep using Firebase authDomain until custom domain is properly configured
+  // TODO: Configure lovve.tech as authorized domain in Firebase Console first
+  const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
 
   console.log('🔧 Firebase authDomain configuration:', {
-    currentDomain,
     authDomain,
-    isCustomDomain: authDomain === 'lovve.tech'
+    usingDefault: true
   });
 
   return {
