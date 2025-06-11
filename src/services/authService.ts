@@ -20,33 +20,16 @@ import { validateCurrentDomain } from '../utils/environment';
 // Development/Debug mode configuration
 const isDevelopment = import.meta.env.DEV;
 
-// Create Google Auth Provider with dynamic configuration
+// Basit Google Auth Provider - minimum konfigürasyon
 const createGoogleProvider = (): GoogleAuthProvider => {
   const provider = new GoogleAuthProvider();
   provider.addScope('email');
   provider.addScope('profile');
-
-  // Safari-specific parameters
-  if (isSafari()) {
-    logger.log('🦄 Safari detected, using Safari-optimized OAuth parameters');
-    provider.setCustomParameters({
-      prompt: 'select_account',
-      // Safari-friendly parameters
-      display: 'page', // Use full page instead of popup for Safari
-      access_type: 'online',
-      include_granted_scopes: 'true',
-      // Safari ITP compatibility
-      hd: undefined // Remove hosted domain restrictions for Safari
-    });
-  } else {
-    // Standard parameters for other browsers
-    provider.setCustomParameters({
-      prompt: 'select_account',
-      display: 'popup',
-      access_type: 'online',
-      auth_type: 'rerequest'
-    });
-  }
+  
+  // Sadece temel parametreler
+  provider.setCustomParameters({
+    prompt: 'select_account'
+  });
 
   return provider;
 };
@@ -270,35 +253,14 @@ class AuthService {
         // Redirect'den gelen sonuç varsa kullan
         logger.log('🔍 Found pending redirect result');
       } else {
-        // Mobil algıla ve ona göre strateji belirle
-        const isMobileDevice = /iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-        
-        if (isMobileDevice) {
-          // Mobil için direkt redirect - popup sorunları nedeniyle
-          logger.log('📱 Mobile device detected - using redirect authentication');
+        // Basit çözüm: hep redirect kullan (popup sorunları çok)
+        logger.log('🔄 Using redirect authentication for all devices');
+        try {
           await signInWithRedirect(auth, googleProvider);
           return { success: true, message: 'Redirecting to Google sign-in...' };
-        } else {
-          // Desktop için popup dene, başarısız olursa redirect
-          logger.log('🖥️ Desktop device - trying popup first');
-          try {
-            userCredential = await signInWithPopup(auth, googleProvider);
-            logger.log('✅ Popup authentication successful');
-          } catch (popupError: any) {
-            logger.log('❌ Popup failed, trying redirect:', popupError.code);
-            
-            // Popup başarısız olursa redirect dene
-            if (popupError.code === 'auth/popup-blocked' || 
-                popupError.code === 'auth/popup-closed-by-user' ||
-                popupError.code === 'auth/cancelled-popup-request' ||
-                popupError.code === 'auth/network-request-failed') {
-              logger.log('🔄 Redirecting to Google authentication');
-              await signInWithRedirect(auth, googleProvider);
-              return { success: true, message: 'Redirecting to Google sign-in...' };
-            } else {
-              throw popupError;
-            }
-          }
+        } catch (error: any) {
+          logger.error('❌ Redirect failed:', error);
+          throw error;
         }
       }
       
