@@ -221,16 +221,16 @@ class AuthService {
   // Google ile giriş yap
   async signInWithGoogle(): Promise<AuthResponse> {
     try {
-      // Domain validation geçici olarak devre dışı - Firebase Console'da domain eklenene kadar
+      // Domain validation - Firebase Console'da domain eklendi
       logger.log('🔍 Starting Google authentication process');
-      // if (!validateCurrentDomain()) {
-      //   logger.error('🚫 Domain validation failed for OAuth');
-      //   return {
-      //     success: false,
-      //     message: 'This domain is not authorized for Google sign-in. Please contact support.',
-      //     errorCode: 'auth/unauthorized-domain'
-      //   };
-      // }
+      if (!validateCurrentDomain()) {
+        logger.error('🚫 Domain validation failed for OAuth');
+        return {
+          success: false,
+          message: 'This domain is not authorized for Google sign-in. Please contact support.',
+          errorCode: 'auth/unauthorized-domain'
+        };
+      }
       
       // Browser detection for strategy
       const safariDetected = isSafari();
