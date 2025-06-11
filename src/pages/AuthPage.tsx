@@ -87,6 +87,12 @@ const AuthPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Only handle password-based auth in form submit
+    if (!isSignUp && authMode !== 'password') {
+      return; // Prevent form submission for non-password modes
+    }
+    
     setIsLoading(true);
     setError('');
 
@@ -113,7 +119,8 @@ const AuthPage: React.FC = () => {
         } else {
           setError('Registration failed. Please try again.');
         }
-      } else {
+      } else if (authMode === 'password') {
+        // Only login with password if in password mode
         const success = await login(formData.email, formData.password);
         
         if (success) {
@@ -441,37 +448,39 @@ const AuthPage: React.FC = () => {
                   />
                 )}
 
-                {/* Password fields for signup and login */}
+                {/* Password field for signup and password login */}
                 {(isSignUp || authMode === 'password') && (
-                  <>
-                    <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                        className="input-modern pr-10"
-                        placeholder="Create a password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-tertiary hover:text-text-secondary transition-colors"
-                  >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
+                  <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
+                      name="password"
+                      value={formData.password}
                       onChange={handleInputChange}
-                      className="input-modern"
-                      placeholder="Confirm your password"
-                      required
+                      className="input-modern pr-10"
+                      placeholder={isSignUp ? "Create a password" : "Enter your password"}
+                      required={isSignUp || authMode === 'password'}
                     />
-                  </>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-tertiary hover:text-text-secondary transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                )}
+
+                {/* Confirm password only for signup */}
+                {isSignUp && (
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="input-modern"
+                    placeholder="Confirm your password"
+                    required={isSignUp}
+                  />
                 )}
 
                 {/* Submit Button - Premium Style */}
