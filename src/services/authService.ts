@@ -270,23 +270,34 @@ class AuthService {
         // Redirect'den gelen sonuç varsa kullan
         logger.log('🔍 Found pending redirect result');
       } else {
-        // Basit strateji: önce popup dene, başarısız olursa redirect
-        logger.log('🔍 Attempting popup authentication first');
-        try {
-          userCredential = await signInWithPopup(auth, googleProvider);
-          logger.log('✅ Popup authentication successful');
-        } catch (popupError: any) {
-          logger.log('❌ Popup failed, trying redirect:', popupError.code);
-          
-          // Popup başarısız olursa redirect dene
-          if (popupError.code === 'auth/popup-blocked' || 
-              popupError.code === 'auth/popup-closed-by-user' ||
-              popupError.code === 'auth/cancelled-popup-request') {
-            logger.log('🔄 Redirecting to Google authentication');
-            await signInWithRedirect(auth, googleProvider);
-            return { success: true, message: 'Redirecting to Google sign-in...' };
-          } else {
-            throw popupError;
+        // Mobil algıla ve ona göre strateji belirle
+        const isMobileDevice = /iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        
+        if (isMobileDevice) {
+          // Mobil için direkt redirect - popup sorunları nedeniyle
+          logger.log('📱 Mobile device detected - using redirect authentication');
+          await signInWithRedirect(auth, googleProvider);
+          return { success: true, message: 'Redirecting to Google sign-in...' };
+        } else {
+          // Desktop için popup dene, başarısız olursa redirect
+          logger.log('🖥️ Desktop device - trying popup first');
+          try {
+            userCredential = await signInWithPopup(auth, googleProvider);
+            logger.log('✅ Popup authentication successful');
+          } catch (popupError: any) {
+            logger.log('❌ Popup failed, trying redirect:', popupError.code);
+            
+            // Popup başarısız olursa redirect dene
+            if (popupError.code === 'auth/popup-blocked' || 
+                popupError.code === 'auth/popup-closed-by-user' ||
+                popupError.code === 'auth/cancelled-popup-request' ||
+                popupError.code === 'auth/network-request-failed') {
+              logger.log('🔄 Redirecting to Google authentication');
+              await signInWithRedirect(auth, googleProvider);
+              return { success: true, message: 'Redirecting to Google sign-in...' };
+            } else {
+              throw popupError;
+            }
           }
         }
       }
