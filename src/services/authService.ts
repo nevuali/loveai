@@ -218,56 +218,28 @@ class AuthService {
     }
   }
 
-  // Google ile giriş yap
+  // Google ile giriş yap - EN BASİT ÇÖZÜM
   async signInWithGoogle(): Promise<AuthResponse> {
     try {
-      // Domain validation - Firebase Console'da domain eklendi
-      logger.log('🔍 Starting Google authentication process');
-      if (!validateCurrentDomain()) {
-        logger.error('🚫 Domain validation failed for OAuth');
-        return {
-          success: false,
-          message: 'This domain is not authorized for Google sign-in. Please contact support.',
-          errorCode: 'auth/unauthorized-domain'
-        };
-      }
+      logger.log('🚀 BASIT GOOGLE GIRIŞ BAŞLADI');
       
-      // Browser detection for strategy
-      const safariDetected = isSafari();
-      const safariPrivateMode = isSafariPrivate();
-      const phoneDetected = isPhone();
-      
-      logger.log('🔍 Browser detection:', {
-        safari: safariDetected,
-        safariPrivate: safariPrivateMode,
-        phone: phoneDetected,
-        userAgent: navigator.userAgent
-      });
+      const googleProvider = new GoogleAuthProvider();
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
       
       let userCredential;
-      const googleProvider = getGoogleProvider();
       
-      // Önce pending redirect var mı kontrol et
+      // Önce redirect result kontrol et
       userCredential = await getRedirectResult(auth);
       
-      if (userCredential) {
-        // Redirect'den gelen sonuç varsa kullan
-        logger.log('🔍 Found pending redirect result');
-      } else {
-        // Basit çözüm: hep redirect kullan (popup sorunları çok)
-        logger.log('🔄 Using redirect authentication for all devices');
-        try {
-          await signInWithRedirect(auth, googleProvider);
-          return { success: true, message: 'Redirecting to Google sign-in...' };
-        } catch (error: any) {
-          logger.error('❌ Redirect failed:', error);
-          throw error;
-        }
+      if (!userCredential) {
+        // Redirect yap
+        logger.log('🔄 REDIRECT YAPILIYOR...');
+        await signInWithRedirect(auth, googleProvider);
+        return { success: true, message: 'Redirecting to Google...' };
       }
       
-      if (!userCredential) {
-        return { success: false, message: 'No authentication result received.' };
-      }
+      logger.log('✅ REDIRECT RESULT BULUNDU');
 
       const firebaseUser = userCredential.user;
 
