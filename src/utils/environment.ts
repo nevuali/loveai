@@ -46,9 +46,21 @@ function validateEnvironment(): Environment {
     throw new Error('Production deployment blocked: Placeholder API key detected');
   }
 
+  // Fix authDomain for custom domain to avoid third-party cookie issues
+  const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const authDomain = currentDomain === 'lovve.tech' || currentDomain === 'www.lovve.tech' 
+    ? 'lovve.tech' // Use custom domain to avoid cross-origin issues
+    : import.meta.env.VITE_FIREBASE_AUTH_DOMAIN; // Use default for development
+
+  console.log('🔧 Firebase authDomain configuration:', {
+    currentDomain,
+    authDomain,
+    isCustomDomain: authDomain === 'lovve.tech'
+  });
+
   return {
     FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY,
-    FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    FIREBASE_AUTH_DOMAIN: authDomain,
     FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID,
     FIREBASE_STORAGE_BUCKET: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
     FIREBASE_MESSAGING_SENDER_ID: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
