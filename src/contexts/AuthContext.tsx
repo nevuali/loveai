@@ -13,7 +13,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: RegisterData) => Promise<boolean>;
   signInWithGoogle: () => Promise<boolean>;
-  sendEmailSignInLink: (email: string) => Promise<boolean>;
+  sendEmailSignInLink: (email: string, isSignup?: boolean) => Promise<boolean>;
   signInWithEmailLink: (url: string, email?: string) => Promise<boolean>;
   sendSMSCode: (phoneNumber: string, recaptchaContainer: string) => Promise<{ success: boolean; verificationId?: string; message?: string }>;
   verifySMSCode: (verificationId: string, code: string) => Promise<boolean>;
@@ -293,11 +293,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const sendEmailSignInLink = useCallback(async (email: string): Promise<boolean> => {
+  const sendEmailSignInLink = useCallback(async (email: string, isSignup: boolean = false): Promise<boolean> => {
     try {
-      const response = await authService.sendEmailSignInLink(email);
+      const response = await authService.sendEmailSignInLink(email, isSignup);
       if (response.success) {
-        trackUserInteraction('email_link_sent', 'email_link', { email });
+        trackUserInteraction(isSignup ? 'email_signup_link_sent' : 'email_link_sent', 'email_link', { email });
         return true;
       }
       return false;

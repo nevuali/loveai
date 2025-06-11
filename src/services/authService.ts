@@ -543,11 +543,11 @@ class AuthService {
     }
   }
 
-  // Email link ile giriş - kod gönder
-  async sendEmailSignInLink(email: string): Promise<AuthResponse> {
+  // Email link ile giriş/kayıt - kod gönder
+  async sendEmailSignInLink(email: string, isSignup: boolean = false): Promise<AuthResponse> {
     try {
       const actionCodeSettings = {
-        url: window.location.origin + '/auth?email=' + email,
+        url: window.location.origin + '/auth?email=' + email + (isSignup ? '&signup=true' : ''),
         handleCodeInApp: true,
       };
 
@@ -555,11 +555,16 @@ class AuthService {
       
       // Email'i localStorage'a kaydet
       localStorage.setItem('emailForSignIn', email);
+      if (isSignup) {
+        localStorage.setItem('pendingSignup', 'true');
+      }
       
       logger.log('✅ Email link sent successfully');
       return {
         success: true,
-        message: 'Sign-in link sent to your email. Please check your inbox.',
+        message: isSignup 
+          ? 'Sign-up link sent to your email. Please check your inbox to complete registration.'
+          : 'Sign-in link sent to your email. Please check your inbox.',
       };
     } catch (error: any) {
       logger.error('❌ Email link send failed:', error);
