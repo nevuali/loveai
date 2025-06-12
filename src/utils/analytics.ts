@@ -20,6 +20,7 @@ interface UserProperties {
   total_chats?: number;
   total_packages_viewed?: number;
   favorite_categories?: string[];
+  has_personality_profile?: boolean;
 }
 
 interface ConversionEvent {

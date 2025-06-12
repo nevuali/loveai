@@ -1,5 +1,5 @@
 import type { User as FirebaseUser } from 'firebase/auth';
-import type { FieldValue } from 'firebase/firestore';
+import type { FieldValue, Timestamp } from 'firebase/firestore';
 import { 
   GoogleAuthProvider,
   signInWithPopup,

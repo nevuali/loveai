@@ -128,7 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             // Set analytics user and properties
             setAnalyticsUser(userProfile.uid, {
               user_type: userProfile.isPremium ? 'premium' : 'free',
-              registration_date: userProfile.createdAt || new Date().toISOString(),
+              registration_date: typeof userProfile.createdAt === 'string' ? userProfile.createdAt : new Date().toISOString(),
               total_chats: 0, // Will be updated when chats are loaded
               has_personality_profile: hasCompletedOnboarding
             });
