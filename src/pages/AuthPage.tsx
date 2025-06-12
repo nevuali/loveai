@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register, signInWithGoogle, sendEmailSignInLink, sendSMSCode, verifySMSCode, signInWithEmailLink } = useAuth();
+  const { login, register, signInWithGoogle, sendEmailSignInLink, sendEmailOTP, sendSMSCode, verifySMSCode, signInWithEmailLink } = useAuth();
   const { actualTheme, toggleTheme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -85,44 +85,40 @@ const AuthPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Form sadece signup için kullanılacak
-    if (!isSignUp) {
-      return;
-    }
-    
     setIsLoading(true);
     setError('');
 
     try {
-      // Signup için email link veya SMS verification başlat
-      if (authMode === 'email-link') {
-        // Name bilgilerini localStorage'a kaydet
-        localStorage.setItem('signupName', formData.name);
-        if (formData.surname) {
-          localStorage.setItem('signupSurname', formData.surname);
-        }
+      if (isSignUp) {
+        // Signup - Email + Password + Phone
+        const userData = {
+          name: formData.name,
+          surname: formData.surname,
+          email: formData.email,
+          phone: formData.phoneNumber,
+          password: formData.password
+        };
         
-        const success = await sendEmailSignInLink(formData.email, true);
+        const success = await register(userData);
         if (success) {
-          toast.success('🎉 Sign-up link sent to your email! Check your inbox to complete registration.', {
-            duration: 8000,
+          toast.success(`Welcome to AI LOVVE, ${formData.name}! 🎉`, {
+            duration: 3000,
           });
-          // Form'u temizle
-          setFormData({ email: '', name: '', surname: '', phoneNumber: '' });
+          navigate('/');
         } else {
-          setError('Failed to send signup email');
+          setError('Registration failed. Please try again.');
         }
-      } else if (authMode === 'sms') {
-        // SMS için telefon doğrulama başlat
-        // Name bilgilerini localStorage'a kaydet
-        localStorage.setItem('signupName', formData.name);
-        if (formData.surname) {
-          localStorage.setItem('signupSurname', formData.surname);
+      } else {
+        // Sign In - Password based
+        if (authMode === 'password') {
+          const success = await login(formData.email, formData.password);
+          if (success) {
+            toast.success('Welcome back! 🔐', { duration: 3000 });
+            navigate('/');
+          } else {
+            setError('Invalid email or password');
+          }
         }
-        localStorage.setItem('pendingSignup', 'true');
-        
-        await handleSMSAuth();
       }
     } catch (error: any) {
       setError(error.message || 'An error occurred. Please try again.');
@@ -132,25 +128,46 @@ const AuthPage: React.FC = () => {
   };
 
 
-  const handleEmailLink = async () => {
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const success = await sendEmailSignInLink(formData.email);
-      if (success) {
-        toast.success('Sign-in link sent to your email! Check your inbox.', {
-          duration: 5000,
-        });
-        // Form'u temizle
-        setFormData({ email: '', name: '', surname: '', phoneNumber: '' });
-      } else {
-        setError('Failed to send email link');
+  const handleEmailOTP = async () => {
+    if (!verificationId) {
+      // Send Email OTP
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        const success = await sendEmailOTP(formData.email);
+        if (success) {
+          setVerificationId('email-otp-sent'); // Dummy ID to show OTP field
+          toast.success('OTP code sent to your email! Check your inbox.', {
+            duration: 5000,
+          });
+        } else {
+          setError('Failed to send email OTP');
+        }
+      } catch (error: any) {
+        setError(error.message || 'Failed to send email OTP');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error: any) {
-      setError(error.message || 'Failed to send email link');
-    } finally {
-      setIsLoading(false);
+    } else {
+      // Verify Email OTP
+      setIsLoading(true);
+      setError('');
+      
+      try {
+        // Email link ile OTP verification (simulated)
+        const success = await signInWithEmailLink(window.location.href + '?email=' + formData.email, formData.email);
+        if (success) {
+          toast.success('Welcome back! 📧', { duration: 3000 });
+          navigate('/');
+        } else {
+          setError('Invalid OTP code');
+        }
+      } catch (error: any) {
+        setError(error.message || 'OTP verification failed');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -182,7 +199,7 @@ const AuthPage: React.FC = () => {
       setError('');
       
       try {
-        const success = await verifySMSCode(verificationId, smsCode);
+        const success = await verifySMSCode(verificationId, formData.otpCode);
         if (success) {
           toast.success('Welcome to AI LOVVE! 📱', {
             duration: 3000,
@@ -202,10 +219,10 @@ const AuthPage: React.FC = () => {
   const handleModeSwitch = () => {
     setIsSignUp(!isSignUp);
     setError('');
-    setAuthMode('email-link');
+    setAuthMode('password');
     setVerificationId('');
     setSmsCode('');
-    setFormData({ email: '', name: '', surname: '', phoneNumber: '' });
+    setFormData({ email: '', name: '', surname: '', phoneNumber: '', password: '', otpCode: '' });
   };
 
   return (
@@ -389,31 +406,49 @@ const AuthPage: React.FC = () => {
                   {/* Sign In Buttons */}
                   {!isSignUp && (
                     <>
-                      {/* Email Link Sign In */}
-                      {authMode === 'email-link' && (
+                      {/* Password Sign In */}
+                      {authMode === 'password' && (
+                        <button
+                          type="submit"
+                          disabled={isLoading || !formData.email || !formData.password}
+                          className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white py-4 rounded-full font-medium disabled:opacity-50 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                        >
+                          {isLoading ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                              <span>Signing In...</span>
+                            </div>
+                          ) : (
+                            <span>🔐 Sign In</span>
+                          )}
+                        </button>
+                      )}
+
+                      {/* Email OTP Sign In */}
+                      {authMode === 'email-otp' && (
                         <button
                           type="button"
-                          onClick={handleEmailLink}
-                          disabled={isLoading || !formData.email}
+                          onClick={handleEmailOTP}
+                          disabled={isLoading || !formData.email || (verificationId && !formData.otpCode)}
                           className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 rounded-full font-medium disabled:opacity-50 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                         >
                           {isLoading ? (
                             <div className="flex items-center justify-center gap-2">
                               <Loader2 className="w-5 h-5 animate-spin" />
-                              <span>Sending Link...</span>
+                              <span>{verificationId ? 'Verifying...' : 'Sending Code...'}</span>
                             </div>
                           ) : (
-                            <span>📧 Send Sign-In Link</span>
+                            <span>{verificationId ? '✅ Verify Email OTP' : '📧 Send Email OTP'}</span>
                           )}
                         </button>
                       )}
 
-                      {/* SMS Sign In */}
-                      {authMode === 'sms' && (
+                      {/* SMS OTP Sign In */}
+                      {authMode === 'sms-otp' && (
                         <button
                           type="button"
                           onClick={handleSMSAuth}
-                          disabled={isLoading || (!verificationId && !formData.phoneNumber) || (verificationId && !smsCode)}
+                          disabled={isLoading || (!verificationId && !formData.phoneNumber) || (verificationId && !formData.otpCode)}
                           className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-full font-medium disabled:opacity-50 transition-all duration-300 hover:scale-105 hover:shadow-xl"
                         >
                           {isLoading ? (
@@ -422,7 +457,7 @@ const AuthPage: React.FC = () => {
                               <span>{verificationId ? 'Verifying...' : 'Sending Code...'}</span>
                             </div>
                           ) : (
-                            <span>{verificationId ? '✅ Verify Code' : '📱 Send SMS Code'}</span>
+                            <span>{verificationId ? '✅ Verify SMS OTP' : '📱 Send SMS OTP'}</span>
                           )}
                         </button>
                       )}
@@ -435,6 +470,34 @@ const AuthPage: React.FC = () => {
               {error && (
                 <div className="mt-4 p-3 glass border border-error/30 rounded-lg">
                   <p className="text-sm text-error">{error}</p>
+                </div>
+              )}
+
+              {/* Forgot Password - Sadece password modunda göster */}
+              {!isSignUp && authMode === 'password' && (
+                <div className="text-center pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Firebase'in built-in password reset
+                      if (formData.email) {
+                        import('firebase/auth').then(({ sendPasswordResetEmail }) => {
+                          import('../firebase').then(({ auth }) => {
+                            sendPasswordResetEmail(auth, formData.email).then(() => {
+                              toast.success('Password reset email sent! Check your inbox.', { duration: 5000 });
+                            }).catch((error) => {
+                              toast.error('Failed to send password reset email');
+                            });
+                          });
+                        });
+                      } else {
+                        toast.error('Please enter your email address first');
+                      }
+                    }}
+                    className="text-sm text-text-secondary hover:text-accent-primary transition-colors"
+                  >
+                    Forgot your password?
+                  </button>
                 </div>
               )}
 

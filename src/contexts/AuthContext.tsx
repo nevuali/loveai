@@ -14,6 +14,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<boolean>;
   signInWithGoogle: () => Promise<boolean>;
   sendEmailSignInLink: (email: string, isSignup?: boolean) => Promise<boolean>;
+  sendEmailOTP: (email: string) => Promise<boolean>;
   signInWithEmailLink: (url: string, email?: string) => Promise<boolean>;
   sendSMSCode: (phoneNumber: string, recaptchaContainer: string) => Promise<{ success: boolean; verificationId?: string; message?: string }>;
   verifySMSCode: (verificationId: string, code: string) => Promise<boolean>;
@@ -307,6 +308,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const sendEmailOTP = useCallback(async (email: string): Promise<boolean> => {
+    try {
+      const response = await authService.sendEmailOTP(email);
+      if (response.success) {
+        trackUserInteraction('email_otp_sent', 'email_otp', { email });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      logger.error('Email OTP send error:', error);
+      return false;
+    }
+  }, []);
+
   const signInWithEmailLink = useCallback(async (url: string, email?: string): Promise<boolean> => {
     try {
       const response = await authService.signInWithEmailLink(url, email);
@@ -379,6 +394,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     signInWithGoogle,
     sendEmailSignInLink,
+    sendEmailOTP,
     signInWithEmailLink,
     sendSMSCode,
     verifySMSCode,
@@ -386,7 +402,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     needsOnboarding,
     checkOnboardingStatus
-  }), [user, firebaseUser, loading, login, register, signInWithGoogle, sendEmailSignInLink, signInWithEmailLink, sendSMSCode, verifySMSCode, logout, needsOnboarding, checkOnboardingStatus]);
+  }), [user, firebaseUser, loading, login, register, signInWithGoogle, sendEmailSignInLink, sendEmailOTP, signInWithEmailLink, sendSMSCode, verifySMSCode, logout, needsOnboarding, checkOnboardingStatus]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }; 

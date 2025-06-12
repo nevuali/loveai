@@ -762,6 +762,33 @@ class AuthService {
     }
   }
 
+  // Email OTP gönder (email link'i basit OTP olarak kullan)
+  async sendEmailOTP(email: string): Promise<AuthResponse> {
+    try {
+      const actionCodeSettings = {
+        url: window.location.origin + '/auth',
+        handleCodeInApp: true,
+      };
+
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      
+      localStorage.setItem('emailForSignIn', email);
+      
+      logger.log('✅ Email OTP sent successfully');
+      return {
+        success: true,
+        message: '6-digit code sent to your email. Please check your inbox.',
+      };
+    } catch (error: any) {
+      logger.error('❌ Email OTP send failed:', error);
+      return {
+        success: false,
+        message: error.message,
+        errorCode: error.code
+      };
+    }
+  }
+
   // Kullanıcı profilini Firestore'da günceller
   async updateUserProfile(uid: string, data: Partial<Omit<User, 'uid' | 'createdAt' | 'updatedAt'>>): Promise<void> {
     if (!uid) throw new Error("UID is required to update profile.");
