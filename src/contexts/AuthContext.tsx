@@ -12,7 +12,6 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: RegisterData) => Promise<boolean>;
-  signInWithGoogle: () => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   needsOnboarding: boolean;
@@ -266,28 +265,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [user]);
 
-  const signInWithGoogle = useCallback(async (): Promise<boolean> => {
-    try {
-      const response = await authService.signInWithGoogle();
-      if (response.success && response.user) {
-        setUser(response.user);
-        setFirebaseUser(response.firebaseUser || null);
-        
-        // Track successful Google sign-in
-        trackUserInteraction('user_login', 'google', {
-          user_type: response.user.isPremium ? 'premium' : 'free',
-          login_method: 'google'
-        });
-        
-        return true;
-      }
-      return false;
-    } catch (error) {
-      logger.error('Google Sign-In error:', error);
-      trackUserInteraction('login_failed', 'google', { error: error instanceof Error ? error.message : 'Unknown error' });
-      return false;
-    }
-  }, []);
 
 
   const checkOnboardingStatus = useCallback(async (): Promise<boolean> => {
@@ -305,12 +282,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     login,
     register,
-    signInWithGoogle,
     logout,
     isAuthenticated: !!user,
     needsOnboarding,
     checkOnboardingStatus
-  }), [user, firebaseUser, loading, login, register, signInWithGoogle, logout, needsOnboarding, checkOnboardingStatus]);
+  }), [user, firebaseUser, loading, login, register, logout, needsOnboarding, checkOnboardingStatus]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }; 
