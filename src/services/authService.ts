@@ -762,99 +762,137 @@ class AuthService {
     }
   }
 
-  // Gerçek Email OTP gönder - 6 haneli kod
+  // Gerçek Email OTP gönder - Firebase Functions ile
   async sendEmailOTP(email: string): Promise<AuthResponse> {
     try {
-      // 6 haneli rastgele kod oluştur
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      // Firebase Functions ile email OTP gönder
+      const { getFunctions, httpsCallable } = await import('firebase/functions');
+      const functions = getFunctions();
+      const sendEmailOTPFunction = httpsCallable(functions, 'sendEmailOTP');
       
-      // OTP'yi localStorage'a kaydet (geçici olarak)
-      const otpData = {
-        code: otpCode,
-        email: email,
-        timestamp: Date.now(),
-        expires: Date.now() + (5 * 60 * 1000) // 5 dakika
-      };
-      localStorage.setItem('pendingEmailOTP', JSON.stringify(otpData));
+      const result = await sendEmailOTPFunction({ email });
+      const response = result.data as { success: boolean; message: string; error?: string };
       
-      // Email gönder (gerçek prodüksiyonda email service kullanılır)
-      // Şimdilik console'a log atalım ve kullanıcıya gösterelim
-      console.log(`🔐 Email OTP Code for ${email}: ${otpCode}`);
-      
-      // Geliştirme için - gerçek email yerine alert gösterelim
-      if (import.meta.env.DEV) {
-        setTimeout(() => {
-          alert(`Geliştirme modu - Email OTP kodunuz: ${otpCode}`);
-        }, 1000);
+      if (response.success) {
+        logger.log('✅ Email OTP sent successfully via Firebase Functions');
+        return {
+          success: true,
+          message: response.message,
+        };
+      } else {
+        logger.error('❌ Firebase Functions email OTP failed:', response.error);
+        return {
+          success: false,
+          message: response.message || 'Failed to send email OTP',
+          errorCode: 'functions/email-otp-failed'
+        };
       }
-      
-      logger.log('✅ Email OTP sent successfully');
-      return {
-        success: true,
-        message: '6-digit code sent to your email. Please check your inbox.',
-      };
     } catch (error: any) {
       logger.error('❌ Email OTP send failed:', error);
+      
+      // Fallback to development mode for now
+      if (import.meta.env.DEV) {
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpData = {
+          code: otpCode,
+          email: email,
+          timestamp: Date.now(),
+          expires: Date.now() + (5 * 60 * 1000)
+        };
+        localStorage.setItem('pendingEmailOTP', JSON.stringify(otpData));
+        
+        console.log(`🔐 Development Email OTP Code for ${email}: ${otpCode}`);
+        setTimeout(() => {
+          alert(`Development mode - Email OTP code: ${otpCode}`);
+        }, 1000);
+        
+        return {
+          success: true,
+          message: '6-digit code sent (development mode)',
+        };
+      }
+      
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'Failed to send email OTP',
         errorCode: error.code
       };
     }
   }
 
-  // Email OTP'yi doğrula
+  // Email OTP'yi doğrula - Firebase Functions ile
   async verifyEmailOTP(email: string, inputCode: string): Promise<AuthResponse> {
     try {
-      const storedOTPData = localStorage.getItem('pendingEmailOTP');
-      if (!storedOTPData) {
+      // Firebase Functions ile email OTP doğrula
+      const { getFunctions, httpsCallable } = await import('firebase/functions');
+      const functions = getFunctions();
+      const verifyEmailOTPFunction = httpsCallable(functions, 'verifyEmailOTP');
+      
+      const result = await verifyEmailOTPFunction({ email, code: inputCode });
+      const response = result.data as { success: boolean; message: string; customToken?: string; error?: string };
+      
+      if (response.success && response.customToken) {
+        // Custom token ile Firebase Auth'a giriş yap
+        const { signInWithCustomToken } = await import('firebase/auth');
+        const userCredential = await signInWithCustomToken(auth, response.customToken);
+        const firebaseUser = userCredential.user;
+        
+        // Kullanıcı profilini al
+        const userProfile = await this.getUserProfile(firebaseUser.uid);
+        
+        logger.log('✅ Email OTP verified successfully via Firebase Functions');
+        return {
+          success: true,
+          message: response.message,
+          user: userProfile || undefined,
+          firebaseUser
+        };
+      } else {
+        logger.error('❌ Firebase Functions email OTP verification failed:', response.error);
         return {
           success: false,
-          message: 'No OTP found. Please request a new code.',
-          errorCode: 'auth/no-otp'
+          message: response.message || 'OTP verification failed',
+          errorCode: 'functions/email-otp-verification-failed'
         };
       }
-
-      const otpData = JSON.parse(storedOTPData);
+    } catch (error: any) {
+      logger.error('❌ Email OTP verification failed:', error);
       
-      // Süre kontrolü
-      if (Date.now() > otpData.expires) {
+      // Fallback to localStorage for development
+      if (import.meta.env.DEV) {
+        const storedOTPData = localStorage.getItem('pendingEmailOTP');
+        if (!storedOTPData) {
+          return {
+            success: false,
+            message: 'No OTP found. Please request a new code.',
+            errorCode: 'auth/no-otp'
+          };
+        }
+
+        const otpData = JSON.parse(storedOTPData);
+        
+        if (Date.now() > otpData.expires) {
+          localStorage.removeItem('pendingEmailOTP');
+          return {
+            success: false,
+            message: 'OTP code has expired. Please request a new code.',
+            errorCode: 'auth/otp-expired'
+          };
+        }
+
+        if (otpData.email !== email || otpData.code !== inputCode) {
+          return {
+            success: false,
+            message: 'Invalid OTP code.',
+            errorCode: 'auth/invalid-otp'
+          };
+        }
+
         localStorage.removeItem('pendingEmailOTP');
-        return {
-          success: false,
-          message: 'OTP code has expired. Please request a new code.',
-          errorCode: 'auth/otp-expired'
-        };
-      }
-
-      // Email kontrolü
-      if (otpData.email !== email) {
-        return {
-          success: false,
-          message: 'Email does not match.',
-          errorCode: 'auth/email-mismatch'
-        };
-      }
-
-      // Kod kontrolü
-      if (otpData.code !== inputCode) {
-        return {
-          success: false,
-          message: 'Invalid OTP code.',
-          errorCode: 'auth/invalid-otp'
-        };
-      }
-
-      // OTP doğru - kullanıcıyı giriş yap
-      localStorage.removeItem('pendingEmailOTP');
-      
-      // Burada normalde kullanıcıyı bulur ve giriş yaparız
-      // Şimdilik basit custom token ile giriş yapalım
-      try {
-        // Kullanıcı var mı kontrol et
+        
         const userProfile = await this.getUserProfileByEmail(email);
         if (userProfile) {
-          logger.log('✅ Email OTP verified successfully - user found');
+          logger.log('✅ Email OTP verified successfully (development mode)');
           return {
             success: true,
             message: 'OTP verified successfully!',
@@ -867,19 +905,11 @@ class AuthService {
             errorCode: 'auth/user-not-found'
           };
         }
-      } catch (error) {
-        logger.error('❌ Error finding user:', error);
-        return {
-          success: false,
-          message: 'Error during verification.',
-          errorCode: 'auth/verification-error'
-        };
       }
-    } catch (error: any) {
-      logger.error('❌ Email OTP verification failed:', error);
+      
       return {
         success: false,
-        message: error.message,
+        message: error.message || 'OTP verification failed',
         errorCode: error.code
       };
     }

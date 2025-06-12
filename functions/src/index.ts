@@ -12,6 +12,7 @@ import {initializeApp} from "firebase-admin/app";
 import {getFirestore, Timestamp} from "firebase-admin/firestore";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {defineSecret} from "firebase-functions/params";
+import * as nodemailer from "nodemailer";
 
 import {
   GoogleGenerativeAI,
@@ -711,6 +712,254 @@ export const initializeHoneymoonPackages = onCall<{}, Promise<{success: boolean;
         message = error.message;
       }
       throw new HttpsError("internal", message);
+    }
+  }
+);
+
+// Email OTP secret for SMTP configuration
+const emailConfig = defineSecret("EMAIL_CONFIG");
+
+interface EmailOTPRequest {
+  email: string;
+}
+
+interface EmailOTPResponse {
+  success: boolean;
+  message: string;
+  error?: string;
+}
+
+/**
+ * Send real Email OTP using nodemailer
+ */
+export const sendEmailOTP = onCall<EmailOTPRequest, Promise<EmailOTPResponse>>(
+  {
+    region: "europe-west1",
+    secrets: [emailConfig],
+    memory: "512MiB",
+    timeoutSeconds: 30,
+    enforceAppCheck: false,
+    cors: allowedOrigins
+  },
+  async (request) => {
+    logger.info("sendEmailOTP called", { email: request.data?.email });
+
+    try {
+      const { email } = request.data;
+
+      if (!email) {
+        throw new HttpsError("invalid-argument", "Email is required");
+      }
+
+      // Generate 6-digit OTP code
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Store OTP in Firestore with expiration
+      const otpData = {
+        code: otpCode,
+        email: email,
+        createdAt: Timestamp.now(),
+        expiresAt: Timestamp.fromMillis(Date.now() + (5 * 60 * 1000)), // 5 minutes
+        used: false
+      };
+
+      // Save to Firestore
+      const otpRef = db.collection("emailOTPs").doc();
+      await otpRef.set(otpData);
+
+      // Get email configuration
+      const emailConfigValue = emailConfig.value();
+      if (!emailConfigValue) {
+        logger.error("Email configuration not found");
+        throw new HttpsError("failed-precondition", "Email service not configured");
+      }
+
+      const config = JSON.parse(emailConfigValue);
+
+      // Create transporter
+      const transporter = nodemailer.createTransport({
+        service: config.service || 'gmail',
+        auth: {
+          user: config.user,
+          pass: config.password
+        }
+      });
+
+      // Email content
+      const mailOptions = {
+        from: `"AI LOVVE" <${config.user}>`,
+        to: email,
+        subject: "🔐 Your AI LOVVE Verification Code",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #FF6B9D; margin: 0;">AI LOVVE</h1>
+              <p style="color: #666; margin: 5px 0;">Your romantic journey awaits</p>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #FF6B9D, #FF8E8E); padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 20px;">
+              <h2 style="color: white; margin: 0 0 15px 0;">Verification Code</h2>
+              <div style="background: white; padding: 20px; border-radius: 10px; display: inline-block;">
+                <span style="font-size: 32px; font-weight: bold; color: #FF6B9D; letter-spacing: 8px;">${otpCode}</span>
+              </div>
+            </div>
+            
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+              <p style="margin: 0; color: #333;">Enter this 6-digit code to complete your sign-in. This code will expire in <strong>5 minutes</strong>.</p>
+            </div>
+            
+            <div style="text-align: center; color: #999; font-size: 14px;">
+              <p>If you didn't request this code, you can safely ignore this email.</p>
+              <p>💕 Welcome to AI LOVVE - Where love meets technology</p>
+            </div>
+          </div>
+        `,
+        text: `Your AI LOVVE verification code is: ${otpCode}\n\nThis code will expire in 5 minutes.\n\nIf you didn't request this code, you can safely ignore this email.`
+      };
+
+      // Send email
+      await transporter.sendMail(mailOptions);
+
+      logger.info("Email OTP sent successfully", { email, otpId: otpRef.id });
+
+      return {
+        success: true,
+        message: "6-digit verification code sent to your email"
+      };
+
+    } catch (error) {
+      logger.error("Error sending email OTP:", error);
+      
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+      
+      return {
+        success: false,
+        message: "Failed to send verification code",
+        error: error instanceof Error ? error.message : "Unknown error"
+      };
+    }
+  }
+);
+
+interface VerifyEmailOTPRequest {
+  email: string;
+  code: string;
+}
+
+interface VerifyEmailOTPResponse {
+  success: boolean;
+  message: string;
+  customToken?: string;
+  error?: string;
+}
+
+/**
+ * Verify Email OTP and return custom token
+ */
+export const verifyEmailOTP = onCall<VerifyEmailOTPRequest, Promise<VerifyEmailOTPResponse>>(
+  {
+    region: "europe-west1",
+    memory: "512MiB",
+    timeoutSeconds: 30,
+    enforceAppCheck: false,
+    cors: allowedOrigins
+  },
+  async (request) => {
+    logger.info("verifyEmailOTP called", { email: request.data?.email });
+
+    try {
+      const { email, code } = request.data;
+
+      if (!email || !code) {
+        throw new HttpsError("invalid-argument", "Email and code are required");
+      }
+
+      // Find valid OTP in Firestore
+      const otpQuery = db.collection("emailOTPs")
+        .where("email", "==", email)
+        .where("code", "==", code)
+        .where("used", "==", false)
+        .where("expiresAt", ">", Timestamp.now())
+        .limit(1);
+
+      const otpSnapshot = await otpQuery.get();
+
+      if (otpSnapshot.empty) {
+        return {
+          success: false,
+          message: "Invalid or expired verification code"
+        };
+      }
+
+      // Mark OTP as used
+      const otpDoc = otpSnapshot.docs[0];
+      await otpDoc.ref.update({ used: true });
+
+      // Check if user exists in Firestore
+      const usersQuery = db.collection("users").where("email", "==", email).limit(1);
+      const userSnapshot = await usersQuery.get();
+
+      let userId: string;
+
+      if (userSnapshot.empty) {
+        // Create new user
+        const newUserRef = db.collection("users").doc();
+        userId = newUserRef.id;
+        
+        const newUser = {
+          email: email,
+          displayName: email.split('@')[0],
+          name: email.split('@')[0],
+          surname: '',
+          createdAt: Timestamp.now(),
+          lastLogin: Timestamp.now(),
+          isVerified: true,
+          isPremium: false,
+          messageCount: 0,
+          chatSessionId: `email-session-${userId}-${Date.now()}`
+        };
+
+        await newUserRef.set(newUser);
+        logger.info("New user created via email OTP", { userId, email });
+      } else {
+        // Update existing user
+        const userDoc = userSnapshot.docs[0];
+        userId = userDoc.id;
+        
+        await userDoc.ref.update({
+          lastLogin: Timestamp.now(),
+          isVerified: true
+        });
+        logger.info("Existing user logged in via email OTP", { userId, email });
+      }
+
+      // Create custom token for authentication
+      const { getAuth } = await import('firebase-admin/auth');
+      const adminAuth = getAuth();
+      const customToken = await adminAuth.createCustomToken(userId);
+
+      logger.info("Email OTP verified successfully", { userId, email });
+
+      return {
+        success: true,
+        message: "Email verified successfully",
+        customToken: customToken
+      };
+
+    } catch (error) {
+      logger.error("Error verifying email OTP:", error);
+      
+      if (error instanceof HttpsError) {
+        throw error;
+      }
+      
+      return {
+        success: false,
+        message: "Verification failed",
+        error: error instanceof Error ? error.message : "Unknown error"
+      };
     }
   }
 );

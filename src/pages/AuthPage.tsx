@@ -84,7 +84,7 @@ const AuthPage: React.FC = () => {
         const success = await sendEmailOTP(formData.email);
         if (success) {
           setVerificationId('email-otp-sent');
-          toast.success('6-digit code sent! Check console for now (dev mode)');
+          toast.success('6-digit code sent to your email! Please check your inbox.');
         } else {
           setError('Failed to send email OTP');
         }
