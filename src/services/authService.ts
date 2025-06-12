@@ -546,8 +546,11 @@ class AuthService {
   // Email link ile giriş/kayıt - kod gönder
   async sendEmailSignInLink(email: string, isSignup: boolean = false): Promise<AuthResponse> {
     try {
+      // Firebase email link URL'i - continue URL olarak ana sayfayı kullan
+      const continueUrl = window.location.origin + '/auth';
+      
       const actionCodeSettings = {
-        url: window.location.origin + '/auth?email=' + email + (isSignup ? '&signup=true' : ''),
+        url: continueUrl,
         handleCodeInApp: true,
       };
 
@@ -604,7 +607,12 @@ class AuthService {
       const userCredential = await signInWithEmailLink(auth, emailAddress, url);
       const firebaseUser = userCredential.user;
 
-      // localStorage'ı temizle
+      // localStorage'dan signup bilgilerini al
+      const signupName = localStorage.getItem('signupName');
+      const signupSurname = localStorage.getItem('signupSurname');
+      const isSignup = localStorage.getItem('pendingSignup') === 'true';
+      
+      // Email localStorage'ını temizle
       localStorage.removeItem('emailForSignIn');
 
       // Kullanıcı profilini kontrol et/oluştur
@@ -616,8 +624,8 @@ class AuthService {
         const newUser: Omit<User, 'uid'> & {createdAt: FieldValue, lastLogin: FieldValue } = {
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
-          name: firebaseUser.email?.split('@')[0] || 'User',
-          surname: '',
+          name: signupName || firebaseUser.email?.split('@')[0] || 'User',
+          surname: signupSurname || '',
           createdAt: serverTimestamp(),
           lastLogin: serverTimestamp(),
           isVerified: firebaseUser.emailVerified,
@@ -629,11 +637,29 @@ class AuthService {
         await setDoc(userDocRef, newUser, { merge: true });
         userProfile = await this.getUserProfile(firebaseUser.uid);
       } else {
-        // Son giriş zamanını güncelle
+        // Mevcut kullanıcı için son giriş zamanını güncelle
         const userDocRef = doc(db, 'users', firebaseUser.uid);
-        await updateDoc(userDocRef, {
+        const updateData: any = {
           lastLogin: serverTimestamp(),
-        });
+        };
+        
+        // Eğer signup bilgileri varsa profili güncelle
+        if (isSignup && signupName) {
+          updateData.name = signupName;
+          if (signupSurname) {
+            updateData.surname = signupSurname;
+          }
+        }
+        
+        await updateDoc(userDocRef, updateData);
+        userProfile = await this.getUserProfile(firebaseUser.uid);
+      }
+      
+      // Signup localStorage'ını temizle
+      if (isSignup) {
+        localStorage.removeItem('pendingSignup');
+        localStorage.removeItem('signupName');
+        localStorage.removeItem('signupSurname');
       }
 
       logger.log('✅ Email link sign-in successful');

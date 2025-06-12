@@ -108,6 +108,8 @@ const AuthPage: React.FC = () => {
           toast.success('🎉 Sign-up link sent to your email! Check your inbox to complete registration.', {
             duration: 8000,
           });
+          // Form'u temizle
+          setFormData({ email: '', name: '', surname: '', phoneNumber: '' });
         } else {
           setError('Failed to send signup email');
         }
@@ -140,6 +142,8 @@ const AuthPage: React.FC = () => {
         toast.success('Sign-in link sent to your email! Check your inbox.', {
           duration: 5000,
         });
+        // Form'u temizle
+        setFormData({ email: '', name: '', surname: '', phoneNumber: '' });
       } else {
         setError('Failed to send email link');
       }
