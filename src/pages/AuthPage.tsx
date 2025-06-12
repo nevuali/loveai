@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register, sendEmailOTP, sendSMSCode, verifySMSCode } = useAuth();
+  const { login, register, sendEmailOTP, verifyEmailOTP, sendSMSCode, verifySMSCode } = useAuth();
   const { actualTheme, toggleTheme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -76,6 +76,7 @@ const AuthPage: React.FC = () => {
 
   const handleEmailOTP = async () => {
     if (!verificationId) {
+      // Send Email OTP
       setIsLoading(true);
       setError('');
       
@@ -83,7 +84,7 @@ const AuthPage: React.FC = () => {
         const success = await sendEmailOTP(formData.email);
         if (success) {
           setVerificationId('email-otp-sent');
-          toast.success('OTP code sent to your email! Check your inbox.');
+          toast.success('6-digit code sent! Check console for now (dev mode)');
         } else {
           setError('Failed to send email OTP');
         }
@@ -93,12 +94,18 @@ const AuthPage: React.FC = () => {
         setIsLoading(false);
       }
     } else {
+      // Verify Email OTP
       setIsLoading(true);
       setError('');
       
       try {
-        toast.success('Please check your email and click the link to sign in!');
-        setError('');
+        const success = await verifyEmailOTP(formData.email, formData.otpCode);
+        if (success) {
+          toast.success('Welcome back! 📧');
+          navigate('/');
+        } else {
+          setError('Invalid OTP code');
+        }
       } catch (error: any) {
         setError(error.message || 'OTP verification failed');
       } finally {

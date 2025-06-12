@@ -15,6 +15,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<boolean>;
   sendEmailSignInLink: (email: string, isSignup?: boolean) => Promise<boolean>;
   sendEmailOTP: (email: string) => Promise<boolean>;
+  verifyEmailOTP: (email: string, code: string) => Promise<boolean>;
   signInWithEmailLink: (url: string, email?: string) => Promise<boolean>;
   sendSMSCode: (phoneNumber: string, recaptchaContainer: string) => Promise<{ success: boolean; verificationId?: string; message?: string }>;
   verifySMSCode: (verificationId: string, code: string) => Promise<boolean>;
@@ -322,6 +323,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const verifyEmailOTP = useCallback(async (email: string, code: string): Promise<boolean> => {
+    try {
+      const response = await authService.verifyEmailOTP(email, code);
+      if (response.success && response.user) {
+        setUser(response.user);
+        setFirebaseUser(response.firebaseUser || null);
+        
+        trackUserInteraction('user_login', 'email_otp', {
+          user_type: response.user.isPremium ? 'premium' : 'free',
+          login_method: 'email_otp'
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      logger.error('Email OTP verification error:', error);
+      return false;
+    }
+  }, []);
+
   const signInWithEmailLink = useCallback(async (url: string, email?: string): Promise<boolean> => {
     try {
       const response = await authService.signInWithEmailLink(url, email);
@@ -395,6 +417,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signInWithGoogle,
     sendEmailSignInLink,
     sendEmailOTP,
+    verifyEmailOTP,
     signInWithEmailLink,
     sendSMSCode,
     verifySMSCode,
@@ -402,7 +425,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     needsOnboarding,
     checkOnboardingStatus
-  }), [user, firebaseUser, loading, login, register, signInWithGoogle, sendEmailSignInLink, sendEmailOTP, signInWithEmailLink, sendSMSCode, verifySMSCode, logout, needsOnboarding, checkOnboardingStatus]);
+  }), [user, firebaseUser, loading, login, register, signInWithGoogle, sendEmailSignInLink, sendEmailOTP, verifyEmailOTP, signInWithEmailLink, sendSMSCode, verifySMSCode, logout, needsOnboarding, checkOnboardingStatus]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }; 
