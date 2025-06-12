@@ -72,15 +72,31 @@ const AuthPage: React.FC = () => {
     setError('');
 
     try {
-      const success = await signInWithGoogle();
-      if (success) {
+      const response = await signInWithGoogle();
+      if (response) {
+        if (response.message === 'Redirecting to Google...') {
+          toast.loading('Redirecting to Google...', { duration: 2000 });
+          // Don't set loading to false here, let the redirect happen
+          return;
+        }
+        
         toast.success('Welcome to AI LOVVE! 🚀');
         navigate('/');
       } else {
-        setError('Google sign-in failed. Please try again.');
+        setError('Google sign-in failed. Please try email/password instead.');
       }
     } catch (error: any) {
-      setError(error.message || 'Google sign-in failed. Please try again.');
+      const errorMessage = error.message || 'Google sign-in failed';
+      
+      if (errorMessage.includes('2-factor') || errorMessage.includes('multi-factor')) {
+        setError('Your Google account has 2FA enabled. Please use email/password login below.');
+        toast.error('Please use email/password login instead');
+      } else if (errorMessage.includes('CORS') || errorMessage.includes('blocked')) {
+        setError('Browser blocked Google sign-in. Please use email/password login below.');
+        toast.error('Please try email/password login instead');
+      } else {
+        setError('Google sign-in failed. Please use email/password login below.');
+      }
     } finally {
       setIsLoading(false);
     }

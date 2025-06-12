@@ -225,45 +225,31 @@ class AuthService {
     }
   }
 
-  // Google ile giriş yap - Hem mobil hem masaüstü uyumlu
+  // Google ile giriş yap - CORS sorunları için sadece redirect kullan
   async signInWithGoogle(): Promise<AuthResponse> {
     try {
-      logger.log('🚀 Starting Google Sign-In');
+      logger.log('🚀 Starting Google Sign-In with redirect flow');
       
       const googleProvider = new GoogleAuthProvider();
       googleProvider.addScope('email');
       googleProvider.addScope('profile');
       googleProvider.setCustomParameters({
-        prompt: 'select_account'
+        prompt: 'select_account',
+        access_type: 'online'
       });
 
       let userCredential;
 
-      // Mobil cihazlar için önce redirect result kontrol et
-      if (isMobile()) {
-        logger.log('📱 Mobile device detected, checking redirect result');
-        userCredential = await getRedirectResult(auth);
-        
-        if (!userCredential) {
-          logger.log('🔄 Starting redirect flow for mobile');
-          await signInWithRedirect(auth, googleProvider);
-          return { success: true, message: 'Redirecting to Google...' };
-        }
-      } else {
-        // Masaüstü için popup kullan
-        logger.log('💻 Desktop detected, using popup');
-        try {
-          userCredential = await signInWithPopup(auth, googleProvider);
-        } catch (popupError: any) {
-          logger.warn('❌ Popup failed, falling back to redirect:', popupError);
-          // Popup başarısız olursa redirect'e geç
-          if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/popup-closed-by-user') {
-            await signInWithRedirect(auth, googleProvider);
-            return { success: true, message: 'Redirecting to Google...' };
-          }
-          throw popupError;
-        }
+      // Önce redirect result kontrol et
+      userCredential = await getRedirectResult(auth);
+      
+      if (!userCredential) {
+        logger.log('🔄 No redirect result, starting redirect flow');
+        await signInWithRedirect(auth, googleProvider);
+        return { success: true, message: 'Redirecting to Google...' };
       }
+
+      logger.log('✅ Redirect result found, processing authentication');
 
       if (!userCredential) {
         return { success: false, message: 'Authentication failed' };
@@ -352,11 +338,23 @@ class AuthService {
           message: 'This domain is not authorized for Google sign-in.',
           errorCode: error.code 
         };
+      } else if (error.code === 'auth/multi-factor-auth-required') {
+        return { 
+          success: false, 
+          message: 'Your Google account has 2-factor authentication enabled. Please use email/password login instead.',
+          errorCode: error.code 
+        };
+      } else if (error.message && error.message.includes('CORS')) {
+        return { 
+          success: false, 
+          message: 'Browser security blocked Google sign-in. Please try again or use email/password.',
+          errorCode: 'auth/cors-error' 
+        };
       }
       
       return { 
         success: false, 
-        message: error.message || 'Google sign-in failed. Please try again.',
+        message: error.message || 'Google sign-in failed. Please try again or use email/password.',
         errorCode: error.code 
       };
     }
