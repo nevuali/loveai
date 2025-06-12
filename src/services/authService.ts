@@ -225,45 +225,65 @@ class AuthService {
     }
   }
 
-  // Google ile giriş yap - EN BASİT ÇÖZÜM
+  // Google ile giriş yap - Hem mobil hem masaüstü uyumlu
   async signInWithGoogle(): Promise<AuthResponse> {
     try {
-      logger.log('🚀 BASIT GOOGLE GIRIŞ BAŞLADI');
+      logger.log('🚀 Starting Google Sign-In');
       
       const googleProvider = new GoogleAuthProvider();
       googleProvider.addScope('email');
       googleProvider.addScope('profile');
-      
-      let userCredential;
-      
-      // Önce redirect result kontrol et
-      userCredential = await getRedirectResult(auth);
-      
-      if (!userCredential) {
-        // Redirect yap
-        logger.log('🔄 REDIRECT YAPILIYOR...');
-        await signInWithRedirect(auth, googleProvider);
-        return { success: true, message: 'Redirecting to Google...' };
-      }
-      
-      logger.log('✅ REDIRECT RESULT BULUNDU');
+      googleProvider.setCustomParameters({
+        prompt: 'select_account'
+      });
 
+      let userCredential;
+
+      // Mobil cihazlar için önce redirect result kontrol et
+      if (isMobile()) {
+        logger.log('📱 Mobile device detected, checking redirect result');
+        userCredential = await getRedirectResult(auth);
+        
+        if (!userCredential) {
+          logger.log('🔄 Starting redirect flow for mobile');
+          await signInWithRedirect(auth, googleProvider);
+          return { success: true, message: 'Redirecting to Google...' };
+        }
+      } else {
+        // Masaüstü için popup kullan
+        logger.log('💻 Desktop detected, using popup');
+        try {
+          userCredential = await signInWithPopup(auth, googleProvider);
+        } catch (popupError: any) {
+          logger.warn('❌ Popup failed, falling back to redirect:', popupError);
+          // Popup başarısız olursa redirect'e geç
+          if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/popup-closed-by-user') {
+            await signInWithRedirect(auth, googleProvider);
+            return { success: true, message: 'Redirecting to Google...' };
+          }
+          throw popupError;
+        }
+      }
+
+      if (!userCredential) {
+        return { success: false, message: 'Authentication failed' };
+      }
+
+      logger.log('✅ Google authentication successful');
       const firebaseUser = userCredential.user;
 
-      logger.log('🔍 Google Sign-In Firebase User:', {
+      logger.log('👤 User info:', {
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         displayName: firebaseUser.displayName,
-        photoURL: firebaseUser.photoURL,
-        providerId: firebaseUser.providerId
+        photoURL: firebaseUser.photoURL
       });
 
-      // Kullanıcının Firestore'da profili var mı kontrol et
+      // Kullanıcı profilini kontrol et/oluştur
       let userProfile = await this.getUserProfile(firebaseUser.uid);
       
-      // Eğer profil yoksa, Google bilgileriyle oluştur
       if (!userProfile) {
-        logger.log('🔍 Creating new profile for Google user');
+        logger.log('🆕 Creating new user profile');
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         const displayName = firebaseUser.displayName || '';
         const nameParts = displayName.split(' ');
@@ -285,23 +305,19 @@ class AuthService {
           chatSessionId: `google-session-${firebaseUser.uid}-${Date.now()}`
         };
         
-        logger.log('🔍 New user data being saved:', newUser);
         await setDoc(userDocRef, newUser, { merge: true });
         userProfile = await this.getUserProfile(firebaseUser.uid);
-        logger.log('🔍 Profile after creation:', userProfile);
       } else {
-        logger.log('🔍 Existing user profile found:', userProfile);
-        // Mevcut kullanıcı, photoURL'i güncelle ve lastLogin'i güncelle
+        logger.log('📝 Updating existing user profile');
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         await updateDoc(userDocRef, {
           photoURL: firebaseUser.photoURL,
           lastLogin: serverTimestamp(),
         });
-        // Güncellenmiş profili al
         userProfile = await this.getUserProfile(firebaseUser.uid);
-        logger.log('🔍 Updated user profile:', userProfile);
       }
 
+      logger.log('✅ Google sign-in completed successfully');
       return {
         success: true,
         message: 'Google sign-in successful!',
@@ -309,30 +325,40 @@ class AuthService {
         firebaseUser,
       };
     } catch (error: any) {
-      logger.error('Google Sign-In error:', error);
+      logger.error('❌ Google Sign-In error:', error);
       
-      // Specific error handling for mobile
+      // Detailed error handling
       if (error.code === 'auth/popup-blocked') {
         return { 
           success: false, 
-          message: 'Popup was blocked. Please allow popups for this site and try again.',
+          message: 'Popup was blocked. Please allow popups and try again.',
           errorCode: error.code 
         };
       } else if (error.code === 'auth/popup-closed-by-user') {
         return { 
           success: false, 
-          message: 'Sign-in was cancelled.',
+          message: 'Sign-in was cancelled. Please try again.',
           errorCode: error.code 
         };
       } else if (error.code === 'auth/network-request-failed') {
         return { 
           success: false, 
-          message: 'Network error. Please check your internet connection.',
+          message: 'Network error. Please check your connection.',
+          errorCode: error.code 
+        };
+      } else if (error.code === 'auth/unauthorized-domain') {
+        return { 
+          success: false, 
+          message: 'This domain is not authorized for Google sign-in.',
           errorCode: error.code 
         };
       }
       
-      return { success: false, message: error.message, errorCode: error.code };
+      return { 
+        success: false, 
+        message: error.message || 'Google sign-in failed. Please try again.',
+        errorCode: error.code 
+      };
     }
   }
 
