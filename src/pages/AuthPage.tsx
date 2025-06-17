@@ -8,7 +8,7 @@ import { authService } from '../services/authService';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, user, loading } = useAuth();
   const { actualTheme, toggleTheme } = useTheme();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +21,26 @@ const AuthPage: React.FC = () => {
     surname: '',
     password: ''
   });
+
+  // Kullanıcı authenticated olduğunda otomatik yönlendirme
+  React.useEffect(() => {
+    if (!loading && user) {
+      // Google redirect sonrası veya başka authentication sonrası
+      toast.success(`Welcome back, ${user.name}! 🎉`);
+      setIsGoogleLoading(false); // Google loading'i kapat
+      navigate('/');
+    }
+  }, [user, loading, navigate]);
+
+  // AuthContext loading durumu değiştiğinde Google loading'i güncelle
+  React.useEffect(() => {
+    if (!loading && isGoogleLoading) {
+      // AuthContext loading bitti ama kullanıcı yok, hata olmuş olabilir
+      setTimeout(() => {
+        setIsGoogleLoading(false);
+      }, 1000);
+    }
+  }, [loading, isGoogleLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -78,21 +98,25 @@ const AuthPage: React.FC = () => {
       
       if (result.success) {
         if (result.user) {
+          // Kullanıcı profili mevcutsa direkt navigate et
           toast.success(`Welcome, ${result.user.name}! 🎉`);
           navigate('/');
         } else if (result.message === 'Redirecting to Google...') {
-          // Redirect başlatıldı, kullanıcıyı bilgilendir
+          // Redirect başlatıldı, bu durumda loading'i kapatma
+          // AuthContext otomatik olarak redirect sonucunu işleyecek
           toast('Redirecting to Google...', { icon: '🔄' });
+          // Loading'i kapatma, redirect tamamlanana kadar bekle
+          return;
         }
       } else {
         setError(result.message || 'Google sign-in failed');
         toast.error(result.message || 'Google sign-in failed');
+        setIsGoogleLoading(false);
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Google sign-in failed. Please try again.';
       setError(errorMessage);
       toast.error(errorMessage);
-    } finally {
       setIsGoogleLoading(false);
     }
   };
