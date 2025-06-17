@@ -118,6 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           });
           
           if (userProfile) {
+            // User state'ini set etmeden önce loading'i false yap
             setUser(userProfile);
             
             // Check onboarding status

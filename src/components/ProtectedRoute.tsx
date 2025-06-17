@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
 
   // Loading durumunda minimalist yükleme ekranı göster
   if (loading) {
@@ -31,8 +31,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Kullanıcı giriş yapmamışsa /auth sayfasına yönlendir
-  if (!isAuthenticated) {
+  // Daha güvenli authentication kontrol - hem isAuthenticated hem de user var mı kontrol et
+  if (!isAuthenticated || !user) {
     return <Navigate to="/auth" replace />;
   }
 

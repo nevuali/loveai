@@ -30,7 +30,11 @@ const AuthPage: React.FC = () => {
       toast.success(`Welcome back, ${user.name}! 🎉`);
       setIsGoogleLoading(false); // Google loading'i kapat
       setIsAppleLoading(false); // Apple loading'i kapat
-      navigate('/');
+      
+      // AuthContext'in tam olarak update olması için küçük bir delay
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
     }
   }, [user, loading, navigate]);
 
