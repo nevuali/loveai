@@ -2,6 +2,7 @@ import type { User as FirebaseUser } from 'firebase/auth';
 import type { FieldValue, Timestamp } from 'firebase/firestore';
 import { 
   GoogleAuthProvider,
+  OAuthProvider,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
@@ -44,6 +45,25 @@ const createGoogleProvider = (): GoogleAuthProvider => {
 // Get provider instance
 const getGoogleProvider = (): GoogleAuthProvider => {
   return createGoogleProvider();
+};
+
+// Apple Auth Provider konfigürasyonu
+const createAppleProvider = (): OAuthProvider => {
+  const provider = new OAuthProvider('apple.com');
+  provider.addScope('email');
+  provider.addScope('name');
+  
+  // Apple ID için özel parametreler
+  provider.setCustomParameters({
+    locale: 'en'
+  });
+
+  return provider;
+};
+
+// Get Apple provider instance
+const getAppleProvider = (): OAuthProvider => {
+  return createAppleProvider();
 };
 
 // Enhanced mobile detection utility
@@ -355,6 +375,140 @@ class AuthService {
       return { 
         success: false, 
         message: error.message || 'Google sign-in failed. Please try again or use email/password.',
+        errorCode: error.code 
+      };
+    }
+  }
+
+  // Apple ile giriş yap - redirect kullan
+  async signInWithApple(): Promise<AuthResponse> {
+    try {
+      logger.log('🍎 Starting Apple Sign-In with redirect flow');
+      
+      const appleProvider = new OAuthProvider('apple.com');
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+      appleProvider.setCustomParameters({
+        locale: 'en'
+      });
+
+      let userCredential;
+
+      // Önce redirect result kontrol et
+      userCredential = await getRedirectResult(auth);
+      
+      if (!userCredential) {
+        logger.log('🔄 No redirect result, starting Apple redirect flow');
+        await signInWithRedirect(auth, appleProvider);
+        return { success: true, message: 'Redirecting to Apple...' };
+      }
+
+      logger.log('✅ Apple redirect result found, processing authentication');
+
+      if (!userCredential) {
+        return { success: false, message: 'Apple authentication failed' };
+      }
+
+      logger.log('✅ Apple authentication successful');
+      const firebaseUser = userCredential.user;
+
+      logger.log('👤 Apple user info:', {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+        photoURL: firebaseUser.photoURL
+      });
+
+      // Kullanıcı profilini kontrol et/oluştur
+      let userProfile = await this.getUserProfile(firebaseUser.uid);
+      
+      if (!userProfile) {
+        logger.log('🆕 Creating new Apple user profile');
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        const displayName = firebaseUser.displayName || '';
+        const nameParts = displayName.split(' ');
+        const firstName = nameParts[0] || 'User';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const newUser: Omit<User, 'uid'> & {createdAt: FieldValue, lastLogin: FieldValue } = {
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          name: firstName,
+          surname: lastName,
+          photoURL: firebaseUser.photoURL,
+          phoneNumber: firebaseUser.phoneNumber,
+          createdAt: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+          isVerified: firebaseUser.emailVerified,
+          isPremium: false,
+          messageCount: 0,
+          chatSessionId: `apple-session-${firebaseUser.uid}-${Date.now()}`
+        };
+        
+        await setDoc(userDocRef, newUser, { merge: true });
+        userProfile = await this.getUserProfile(firebaseUser.uid);
+      } else {
+        logger.log('📝 Updating existing Apple user profile');
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        await updateDoc(userDocRef, {
+          photoURL: firebaseUser.photoURL,
+          lastLogin: serverTimestamp(),
+        });
+        userProfile = await this.getUserProfile(firebaseUser.uid);
+      }
+
+      logger.log('✅ Apple sign-in completed successfully');
+      return {
+        success: true,
+        message: 'Apple sign-in successful!',
+        user: userProfile || undefined,
+        firebaseUser,
+      };
+    } catch (error: any) {
+      logger.error('❌ Apple Sign-In error:', error);
+      
+      // Detailed error handling for Apple
+      if (error.code === 'auth/popup-blocked') {
+        return { 
+          success: false, 
+          message: 'Popup was blocked. Please allow popups and try again.',
+          errorCode: error.code 
+        };
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        return { 
+          success: false, 
+          message: 'Apple sign-in was cancelled. Please try again.',
+          errorCode: error.code 
+        };
+      } else if (error.code === 'auth/network-request-failed') {
+        return { 
+          success: false, 
+          message: 'Network error. Please check your connection.',
+          errorCode: error.code 
+        };
+      } else if (error.code === 'auth/unauthorized-domain') {
+        return { 
+          success: false, 
+          message: 'This domain is not authorized for Apple sign-in.',
+          errorCode: error.code 
+        };
+      } else if (error.code === 'auth/operation-not-allowed') {
+        return { 
+          success: false, 
+          message: 'Apple sign-in is not enabled. Please contact support.',
+          errorCode: error.code 
+        };
+      } else if (error.message && error.message.includes('CORS')) {
+        return { 
+          success: false, 
+          message: 'Browser security blocked Apple sign-in. Please try again or use email/password.',
+          errorCode: 'auth/cors-error' 
+        };
+      }
+      
+      return { 
+        success: false, 
+        message: error.message || 'Apple sign-in failed. Please try again or use email/password.',
         errorCode: error.code 
       };
     }

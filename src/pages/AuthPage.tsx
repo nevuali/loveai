@@ -14,6 +14,7 @@ const AuthPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -25,22 +26,24 @@ const AuthPage: React.FC = () => {
   // Kullanıcı authenticated olduğunda otomatik yönlendirme
   React.useEffect(() => {
     if (!loading && user) {
-      // Google redirect sonrası veya başka authentication sonrası
+      // Google/Apple redirect sonrası veya başka authentication sonrası
       toast.success(`Welcome back, ${user.name}! 🎉`);
       setIsGoogleLoading(false); // Google loading'i kapat
+      setIsAppleLoading(false); // Apple loading'i kapat
       navigate('/');
     }
   }, [user, loading, navigate]);
 
-  // AuthContext loading durumu değiştiğinde Google loading'i güncelle
+  // AuthContext loading durumu değiştiğinde loading'leri güncelle
   React.useEffect(() => {
-    if (!loading && isGoogleLoading) {
+    if (!loading && (isGoogleLoading || isAppleLoading)) {
       // AuthContext loading bitti ama kullanıcı yok, hata olmuş olabilir
       setTimeout(() => {
         setIsGoogleLoading(false);
+        setIsAppleLoading(false);
       }, 1000);
     }
-  }, [loading, isGoogleLoading]);
+  }, [loading, isGoogleLoading, isAppleLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -118,6 +121,38 @@ const AuthPage: React.FC = () => {
       setError(errorMessage);
       toast.error(errorMessage);
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setIsAppleLoading(true);
+    setError('');
+    
+    try {
+      const result = await authService.signInWithApple();
+      
+      if (result.success) {
+        if (result.user) {
+          // Kullanıcı profili mevcutsa direkt navigate et
+          toast.success(`Welcome, ${result.user.name}! 🎉`);
+          navigate('/');
+        } else if (result.message === 'Redirecting to Apple...') {
+          // Redirect başlatıldı, bu durumda loading'i kapatma
+          // AuthContext otomatik olarak redirect sonucunu işleyecek
+          toast('Redirecting to Apple...', { icon: '🍎' });
+          // Loading'i kapatma, redirect tamamlanana kadar bekle
+          return;
+        }
+      } else {
+        setError(result.message || 'Apple sign-in failed');
+        toast.error(result.message || 'Apple sign-in failed');
+        setIsAppleLoading(false);
+      }
+    } catch (error: any) {
+      const errorMessage = error.message || 'Apple sign-in failed. Please try again.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setIsAppleLoading(false);
     }
   };
 
@@ -242,7 +277,7 @@ const AuthPage: React.FC = () => {
             <div className="pt-4">
               <button
                 type="submit"
-                disabled={isLoading || !formData.email || !formData.password || (isSignUp && !formData.name)}
+                disabled={isLoading || isGoogleLoading || isAppleLoading || !formData.email || !formData.password || (isSignUp && !formData.name)}
                 className="w-full bg-gradient-to-r from-accent-primary to-accent-secondary text-white py-4 rounded-full font-medium disabled:opacity-50 transition-all duration-300 hover:scale-105 hover:shadow-xl"
               >
                 {isLoading ? (
@@ -269,7 +304,7 @@ const AuthPage: React.FC = () => {
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading || isLoading}
+              disabled={isGoogleLoading || isLoading || isAppleLoading}
               className="w-full flex items-center justify-center gap-3 py-4 px-6 border-2 border-text-secondary/20 rounded-full text-text-primary hover:border-accent-primary/50 hover:bg-accent-primary/5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               {isGoogleLoading ? (
@@ -284,6 +319,27 @@ const AuthPage: React.FC = () => {
               )}
               <span className="font-medium">
                 {isGoogleLoading ? 'Signing in...' : `Continue with Google`}
+              </span>
+            </button>
+          </div>
+
+          {/* Apple Sign-In Button */}
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={handleAppleSignIn}
+              disabled={isAppleLoading || isLoading || isGoogleLoading}
+              className="w-full flex items-center justify-center gap-3 py-4 px-6 border-2 border-text-secondary/20 rounded-full text-text-primary hover:border-text-primary hover:bg-text-primary/5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group bg-black text-white hover:bg-gray-800"
+            >
+              {isAppleLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-white" />
+              ) : (
+                <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701z"/>
+                </svg>
+              )}
+              <span className="font-medium text-white">
+                {isAppleLoading ? 'Signing in...' : `Continue with Apple`}
               </span>
             </button>
           </div>
@@ -328,7 +384,7 @@ const AuthPage: React.FC = () => {
               {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
               <button
                 onClick={() => setIsSignUp(!isSignUp)}
-                disabled={isLoading || isGoogleLoading}
+                disabled={isLoading || isGoogleLoading || isAppleLoading}
                 className="text-accent-primary hover:text-accent-secondary transition-colors font-medium disabled:opacity-50 underline decoration-accent-primary/30 underline-offset-2 hover:decoration-accent-secondary/50"
               >
                 {isSignUp ? 'Sign In' : 'Sign Up'}
